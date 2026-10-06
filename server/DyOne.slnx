@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DyOne.Api/DyOne.Api.csproj" />
+    <Project Path="src/DyOne.Data/DyOne.Data.csproj" />
+    <Project Path="src/DyOne.Worker/DyOne.Worker.csproj" />
+  </Folder>
+</Solution>

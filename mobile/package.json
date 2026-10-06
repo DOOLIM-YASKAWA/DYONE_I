@@ -1,0 +1,19 @@
+{
+  "name": "dyone-mobile",
+  "private": true,
+  "version": "0.1.0",
+  "description": "DY ONE 모바일 앱(Capacitor). 화면은 ../web 빌드를 그대로 감싼다.",
+  "scripts": {
+    "build:web": "npm --prefix ../web run build",
+    "sync": "npm run build:web && cap sync",
+    "open:android": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/core": "8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.2",
+    "typescript": "~6.0.2"
+  }
+}

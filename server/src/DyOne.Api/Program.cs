@@ -1,0 +1,95 @@
+using System.Text;
+using System.Text.Json.Serialization;
+using DyOne.Api.Modules.Ai;
+using DyOne.Api.Modules.Auth;
+using DyOne.Api.Modules.Home;
+using DyOne.Api.Modules.Notifications;
+using DyOne.Api.Modules.Projects;
+using DyOne.Api.Platform;
+using DyOne.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+
+var builder = WebApplication.CreateBuilder(args);
+var config = builder.Configuration;
+
+// --- 데이터: 기존 dyone DB(PostgreSQL 18)를 읽기 전용으로 사용. 개발 연결 정보는 user-secrets ---
+builder.Services.AddDbContext<DyOneDbContext>(o => DyOneDb.Configure(o, config.GetConnectionString("DyOne")));
+
+// --- 인증: 그룹웨어 로그인 API로 검증 → org.employee(login_id)로 직원 확인 → DY ONE 자체 JWT ---
+var authSection = config.GetSection("Auth");
+builder.Services.Configure<AuthOptions>(authSection);
+var auth = authSection.Get<AuthOptions>() ?? new AuthOptions();
+if (auth.SigningKey.Length < 32)
+    throw new InvalidOperationException("Auth:SigningKey가 없거나 너무 짧습니다(32자 이상). 운영에서는 환경 변수로 지정하세요.");
+
+builder.Services.AddHttpClient<GroupwareAuthClient>(c => c.Timeout = TimeSpan.FromSeconds(15))
+    // 리다이렉트를 따라가지 않아야 로그인 응답의 Set-Cookie(GOSSOcookie)를 확인할 수 있다.
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false });
+builder.Services.AddScoped<UserDirectory>();
+builder.Services.AddSingleton<TokenService>();
+// 무차별 대입 방지: 같은 IP에서 1분에 10회까지 로그인 시도
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy(AuthModule.LoginRateLimit, ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+});
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o =>
+{
+    o.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = auth.Issuer,
+        ValidAudience = auth.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(auth.SigningKey)),
+        ClockSkew = TimeSpan.FromMinutes(1),
+    };
+    // SignalR은 WebSocket 연결 시 헤더를 못 붙이므로 허브 경로에 한해 쿼리의 토큰을 받는다.
+    o.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = ctx =>
+        {
+            if (ctx.HttpContext.Request.Path.StartsWithSegments("/hubs") && ctx.Request.Query.TryGetValue("access_token", out var token))
+                ctx.Token = token;
+            return Task.CompletedTask;
+        },
+    };
+});
+// 명시적으로 AllowAnonymous가 없는 모든 엔드포인트는 로그인 필요
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+
+// --- 공통 ---
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddProblemDetails();
+builder.Services.ConfigureHttpJsonOptions(o =>
+    o.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
+builder.Services.AddSignalR();
+builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
+    .WithOrigins(config.GetSection("Cors:Origins").Get<string[]>() ?? [])
+    .AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+
+// --- 모듈 서비스 ---
+builder.Services.AddScoped<AuditLog>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<IAiAssistant, RuleBasedAssistant>();
+
+var app = builder.Build();
+
+app.UseExceptionHandler();
+app.UseCors();
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapGet("/api/health", () => Results.Ok(new { status = "ok", time = DateTimeOffset.UtcNow })).AllowAnonymous();
+app.MapAuth();
+app.MapHome();
+app.MapProjects();
+app.MapAi();
+app.MapNotifications();
+app.MapHub<NotificationHub>("/hubs/notifications");
+
+app.Run();
