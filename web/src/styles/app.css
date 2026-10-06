@@ -1,0 +1,52 @@
+/* 데모(styles.css)에 없는 요소만 추가한다: 로그인, 알림함, React 렌더링용 보정 */
+
+/* NavLink(a)도 데모의 button 스타일을 그대로 받게 한다 */
+a.nav-item, #bottomNav a { text-decoration: none; }
+#bottomNav a { color: #8895a9; font-size: 12px; display: flex; flex-direction: column; gap: 5px; align-items: center; padding: 4px 10px; min-width: 55px; }
+#bottomNav a > span { font-size: 20px; }
+#bottomNav a.active { color: var(--blue); }
+
+.avatar-button { border: 0; cursor: pointer; }
+
+/* 알림함 */
+.bell { position: relative; }
+.bell-button { position: relative; padding: 9px 12px; }
+.bell-count { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; border-radius: 9px; background: #d4553f; color: #fff; font-size: 11px; display: grid; place-items: center; padding: 0 5px; }
+.bell-panel { position: absolute; right: 0; top: 48px; width: 340px; max-height: 70vh; overflow: auto; z-index: 60; box-shadow: 0 20px 60px #12244230; }
+.bell-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.bell-head span { display: flex; gap: 4px; }
+.bell-empty { padding: 20px 16px; color: var(--muted); font-size: 14px; margin: 0; }
+.bell-item { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #edf1f7; background: #fff; padding: 12px 16px; }
+.bell-item.unread { background: #f4f7fd; }
+.bell-item strong { display: block; font-size: 14px; }
+.bell-item small { display: block; color: var(--muted); margin-top: 4px; line-height: 1.6; }
+.bell-item time { display: block; color: #a0abbb; font-size: 12px; margin-top: 4px; }
+@media (max-width: 850px) { .bell-panel { position: fixed; left: 12px; right: 12px; top: 70px; width: auto; } }
+
+/* 로그인 */
+.login-wrap { min-height: 100vh; display: grid; place-items: center; background: var(--bg); padding: 24px 16px; }
+.login-card { width: 100%; max-width: 420px; padding: 32px; }
+.login-card .brand { color: var(--navy); padding: 0; margin-bottom: 28px; }
+.login-card .brand small { color: var(--muted); }
+.login-card h1 { font-size: 24px; }
+.login-card p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+.login-card .field { margin: 18px 0; }
+.login-card .primary { width: 100%; }
+.login-card form { margin-top: 8px; }
+.login-help { font-size: 12px; color: var(--muted); line-height: 1.7; margin-top: 18px; }
+
+/* 실데이터 화면 보정 */
+.stat-button { text-align: left; cursor: pointer; }
+.stat-button:hover { border-color: #b9cdf2; }
+.stat-button span { display: block; }
+.project-picker { display: flex; align-items: center; gap: 12px; flex: 1; font-size: 14px; color: var(--muted); }
+.project-picker input { flex: 1; max-width: 520px; }
+.search-input { width: 220px; padding: 9px 11px; }
+.pager { display: flex; justify-content: center; align-items: center; gap: 14px; padding: 16px; font-size: 14px; color: var(--muted); }
+.not-connected { line-height: 1.9; }
+.not-connected strong { color: var(--ink); }
+@media (max-width: 850px) { .project-picker { flex-direction: column; align-items: stretch; } .search-input { width: 100%; } .sub-filters { flex-wrap: wrap; } }
+
+/* 데스크톱 전용 기능 안내 */
+.desktop-tools { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 24px 20px; }
+.broker-result { margin: 0 24px 20px; padding: 12px; background: #f3f6fb; border-radius: 8px; font: 12px Consolas, monospace; white-space: pre-wrap; word-break: break-all; }

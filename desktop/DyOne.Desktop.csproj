@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>DyOneDesktop</AssemblyName>
+    <RootNamespace>DyOne.Desktop</RootNamespace>
+    <ApplicationIcon>assets\dy-one.ico</ApplicationIcon>
+    <Version>0.1.0</Version>
+    <Product>DY ONE Desktop</Product>
+    <Company>DY ONE</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="assets\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="bridge.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
