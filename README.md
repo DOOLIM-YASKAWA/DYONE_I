@@ -27,10 +27,43 @@
 | --- | --- | --- |
 | `server/src/DyOne.Api` | REST API + SignalR(실시간 알림), 인증(JWT), 권한, AI(규칙형) | ASP.NET Core .NET 10 |
 | `server/src/DyOne.Data` | dyone DB 기존 테이블 매핑(읽기 전용) | EF Core 10 + Npgsql |
-| `server/src/DyOne.Worker` | 주기 작업 골격(원천 적재 상태 확인 · 모바일 푸시 발송 자리) | .NET 10 Worker |
+| `server/src/DyOne.Worker` | 주기 작업. **GW 프로젝트 동기화(매일 08:00)** + 추후 모바일 푸시(FCM) | .NET 10 Worker |
 | `web` | 세 채널 공통 화면 | React 19.3 + Vite 8 + TypeScript |
 | `desktop` | Windows 앱: WPF 셸 + WebView2 + 브리지 + Local Broker 골격 | .NET 10 WPF |
 | `mobile` | 모바일 앱: `web` 빌드를 감싼 Capacitor 프로젝트(Android 생성 완료) | Capacitor 8 |
+
+## GW 프로젝트 동기화 Worker (매일 08:00)
+
+`DyOne.Worker`가 매일 08:00(KST)에 그룹웨어 WORKS applet 285(기초정보-프로젝트코드 관리)를 조회해 `dyone` DB `project.project` 미러를 갱신한다.
+
+```
+GW tims(EAV, 조회 전용) → applet285 피벗(코드·프로젝트명·발주처·ERP날짜·상태)
+  → project.project upsert(code 기준) · 없어진 DLP는 soft-delete · sync.state 기록
+```
+
+- **원천(GW):** tims(121.139.49.10:5432, 조회 전용). 상태 0~3 → `code.code` project_status의 sort_order로 매핑. DLP 접두어만 취급.
+- **대상(dyone):** 쓰기 연결 `ConnectionStrings:DyOneWrite`. API는 읽기 전용 그대로, **쓰기는 이 Worker만** 한다(원천은 읽기만, 미러만 쓴다는 원칙과 일치).
+- **대상 DB 주의:** 개발은 dev 복사본(localhost:5433). 운영(.111:12678)은 건드리지 않는다.
+- 설정: `GwProjectSync` (DailyAt · TimeZone · RunOnStartup · DryRun), `appsettings.Development.json`.
+
+**연결 정보(user-secrets, 저장소에 넣지 않음)**
+
+```powershell
+cd server
+# dyone 쓰기 연결(개발: dev 복사본)
+dotnet user-secrets set "ConnectionStrings:DyOneWrite" "Host=localhost;Port=5433;Database=dyone;Username=postgres;Password=<dev-pw>" --project src/DyOne.Worker
+# 그룹웨어 tims 읽기 연결 — 비밀번호만 실제 값으로 교체
+dotnet user-secrets set "ConnectionStrings:Gw" "Host=121.139.49.10;Port=5432;Database=tims;Username=mailadm;Password=<gw-pw>" --project src/DyOne.Worker
+```
+
+**실행**
+
+```powershell
+cd server
+dotnet run --project src/DyOne.Worker          # 매일 08:00 대기
+```
+
+바로 확인하려면 `appsettings.Development.json`에서 `GwProjectSync:RunOnStartup=true`(시작 즉시 1회), `DryRun=true`(조회·집계만, 적재 안 함)로 두고 실행한다.
 
 ## 로그인 (그룹웨어 인증)
 
