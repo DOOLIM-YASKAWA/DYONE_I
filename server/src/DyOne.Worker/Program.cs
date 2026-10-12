@@ -1,13 +1,15 @@
-using DyOne.Data;
 using DyOne.Worker;
+using DyOne.Worker.Jobs;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// 기존 dyone DB(읽기 전용). 개발 연결 정보는 user-secrets
-builder.Services.AddDbContext<DyOneDbContext>(o => DyOneDb.Configure(o, builder.Configuration.GetConnectionString("DyOne")));
+// 일일 동기화 설정 (매일 08:00 등)
+builder.Services.Configure<GwProjectSyncOptions>(builder.Configuration.GetSection("GwProjectSync"));
+builder.Services.Configure<OrgSyncOptions>(builder.Configuration.GetSection("OrgSync"));
 
-builder.Services.AddSingleton<IScheduledJob, SourceSyncJob>();
-builder.Services.AddSingleton<IScheduledJob, PushDispatchJob>();
+// 주기 작업 등록. GW(tims) 읽기 + dyone 쓰기는 Job이 ConnectionStrings:Gw / DyOneWrite로 직접 연결한다.
+builder.Services.AddSingleton<IWorkerJob, GwProjectSyncJob>();
+builder.Services.AddSingleton<IWorkerJob, OrgSyncJob>();
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();

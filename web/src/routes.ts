@@ -3,7 +3,7 @@
 // (관련: YTVH-421 하위 작업 — 프로젝트 조회/SMARTWORK 연계 등)
 export const routes = [
   { path: '/home', icon: '⌂', name: '홈', enabled: true },
-  { path: '/projects', icon: '▦', name: '프로젝트', enabled: false },
+  { path: '/projects', icon: '▦', name: '프로젝트', enabled: true },
   { path: '/chat', icon: '✦', name: 'AI 챗봇', enabled: false },
   { path: '/it', icon: '⌘', name: 'IT 요청', enabled: false },
   { path: '/meals', icon: '◉', name: '오늘의 식단', enabled: false },
