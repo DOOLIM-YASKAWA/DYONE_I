@@ -5,9 +5,10 @@ import { api } from '../../api/client'
 import type { Code, ProjectDetail } from '../../api/types'
 import { Badge, ErrorBox, Loading } from '../../components/ui'
 import { AssignmentList } from './DetailDialogs'
+import { ProjectFilesTab } from './ProjectFiles'
 
 const date = (v?: string) => (v ? new Date(v).toLocaleDateString('ko-KR') : '-')
-const TABS = ['개요', '모듈라 일지', 'ES 이슈', '랩 테스트'] as const
+const TABS = ['개요', '파일', '모듈라 일지', 'ES 이슈', '랩 테스트'] as const
 type Tab = (typeof TABS)[number]
 
 /** 프로젝트 전용 풀페이지 상세. 상단에 진행 단계바(S1~S9) + 섹션 탭. */
@@ -96,6 +97,7 @@ export function ProjectDetailPage() {
               <AssignmentList assignments={data.assignments} />
             </>
           )}
+          {tab === '파일' && <ProjectFilesTab projectId={pid} currentStageCode={stages.data?.[curIdx]?.code} />}
           {tab === '모듈라 일지' && <div className="empty" style={{ padding: 40 }}>모듈라 설치·시운전 작업 일지 — 추후(modular 연계)</div>}
           {tab === 'ES 이슈' && <div className="empty" style={{ padding: 40 }}>현장 이슈·고장 보고 — 추후(그룹웨어 ES)</div>}
           {tab === '랩 테스트' && <div className="empty" style={{ padding: 40 }}>SmartLab 연동 테스트 {data.labTestCount}건</div>}

@@ -23,3 +23,6 @@ mobile/android/app/src/main/assets/public/
 *.pfx
 *.keystore
 *.jks
+
+# 업로드 파일 로컬 저장소(개발)
+.filestore/

@@ -48,6 +48,18 @@
   ```
   - 설계: 그룹웨어 상태(영업중/수주)는 읽기전용 유지. 수주 이후 단계는 이 테이블에서 사용자가 수정. 효과적 상태 = project_stage 있으면 그 값, 없으면 GW(영업중→영업/수주→수주). 그룹웨어 마감·중단은 무시.
 
+## 3c. 프로젝트 문서 업로드 — 스키마(.111) + 파일 저장소(NAS) (2026-10-13 로컬 적용)
+로컬(5433)에만 생성됨. 운영(.111)에도 동일 필요:
+- [ ] 운영 dyone(.111:12678)에 `server/db/project_files_schema.sql` 적용 (table `project.project_file` + 분류 코드 `code.code(document_category)`; 여러 번 실행해도 안전)
+- [ ] **파일 저장소(NAS) 경로 설정** — 운영 API 설정에 `FileStorage:Root` = 사내 NAS 공유 폴더 UNC (예: `\\nas\dyone-files`).
+  - ⚠️ **실제 UNC 경로 미정 — 사용자에게 확인 후 입력.** 로컬 개발값은 `E:\dy-one-internal\.filestore`.
+  - 환경변수로 줄 경우: `FileStorage__Root=\\nas\dyone-files`
+- [ ] NAS 폴더가 **API 서비스 계정으로 읽기/쓰기 가능**해야 함(폴더 자동 생성·파일 쓰기·분류 변경 시 이동).
+- 저장 레이아웃(A안): `<Root>\projects\<프로젝트코드 이름>\<분류>\<원본파일명>` (사람이 탐색기로도 찾게). 중복 시 ` (2)` 접미. `stored_name`=Root 기준 상대경로.
+- `department_id` 컬럼 포함(`add column if not exists`, 기존 환경 멱등). 업로더 소속 부서 스냅샷 → 앱 부서별 검색.
+- [ ] 운영 dyone 접속 계정이 `project.project_file`에 **INSERT/UPDATE 권한**(단계 테이블과 동일 경로 — 읽기전용 연결에서 옵션만 제거해 씀).
+- 업로드 용량 상한: API에서 512MB(Kestrel `MaxRequestBodySize` + `FormOptions.MultipartBodyLengthLimit`). 필요 시 조정.
+
 ## 4. dyone 앱 커밋/배포
 - [ ] 미커밋 변경 커밋: SmartLab 탭/모듈(`SmartLabModule`,`SmartLabPage`), 홈 위젯(최근 등록/변경), `source_updated_at`(엔티티·Worker·HomeModule), 조직도 Worker 다중타깃 등.
 - [ ] 운영 dyone 설정(환경변수): `WriteTargets`, `SmartLabSso:*`, 각 `*:Password` 시크릿.
