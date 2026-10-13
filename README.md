@@ -129,3 +129,11 @@ dotnet user-secrets set "ConnectionStrings:DyOne" $cs --project src/DyOne.Worker
 - `appsettings.Development.json`의 서명 키는 로컬 개발 전용이다. 운영 값은 환경 변수로 넣는다.
 - `mobile`의 `npm audit` 경고 3건(moderate)은 Capacitor CLI 빌드 도구 의존성이며 앱에 포함되지 않는다.
 - 앱 아이콘(`dy-one.ico`)은 WPF가 읽지 못하는 형식이라 정식 아이콘을 새로 만들어야 한다.
+
+## 공정 관리 별도 웹
+
+공정 관리는 `E:\dy-one-process` 독립 웹(개발 4176)으로 연결합니다. `/process` 메뉴 → `/api/integrations/process/token` → 별도 웹 `/sso/dyone` 순서로 internal 로그인 정보를 전달합니다. 기존 PJT ADMIN과 dy-one-admin은 수정하지 않습니다.
+
+API user-secrets의 `ProcessSso:Secret`(별도 웹의 DYONE_SSO_SECRET과 동일, 32자 이상)과 `ProcessSso:BaseUrl`(개발 http://localhost:4176)을 설정하고 API를 재시작합니다. 공정 웹의 DB·편집 권한 설정은 해당 프로젝트 README를 참고합니다. internal의 읽기 전용 DB 연결은 유지합니다.
+
+공정 SSO는 현재 internal API(5080)에서 제공합니다. 종료된 임시 5082 API로 향하던 로컬 프록시 설정을 제거했습니다. SmartLab·SRS·공정 연결에는 공통 로딩바와 실패 재연결 UI를 사용합니다. SmartLab·SRS 로딩바는 실제 초기 데이터 준비 완료 신호를 받은 뒤 종료됩니다.

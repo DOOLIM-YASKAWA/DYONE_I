@@ -7,6 +7,9 @@ import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { ProjectDetailPage } from './pages/projects/ProjectDetailPage'
 import { ProjectsPage } from './pages/projects/ProjectsPage'
+import { SrsAnalyzerPage } from './pages/SrsAnalyzerPage'
+import { SmartLabPage } from './pages/SmartLabPage'
+import { ProcessPage } from './pages/ProcessPage'
 import { AccessPage, ItPage, MealsPage, VehiclesPage } from './pages/ServicePages'
 import { useRealtimeNotifications } from './realtime/useRealtimeNotifications'
 import { enabledRoutes } from './routes'
@@ -16,6 +19,9 @@ import { enabledRoutes } from './routes'
 const pageElements: Record<string, ReactElement> = {
   '/home': <HomePage />,
   '/projects': <ProjectsPage />,
+  '/smartlab': <SmartLabPage />,
+  '/process': <ProcessPage />,
+  '/srs-analyzer': <SrsAnalyzerPage />,
   '/chat': <ChatPage />,
   '/it': <ItPage />,
   '/meals': <MealsPage />,

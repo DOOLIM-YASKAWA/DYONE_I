@@ -27,6 +27,18 @@
 - [ ] **매일 08:00 자동 적재**가 필요하면, 운영 서버에 Worker를 상주(서비스)시키고 위 환경변수를 설정. (지금은 상시 실행 아님 — 수동 실행만)
 - 기본값(appsettings)은 `WriteTargets=["DyOneWrite"]` = 로컬만. 운영은 명시할 때만 포함.
 
+## 3. SmartLab (.119) — B 방식 SSO 핸드오프 배포
+로컬 SmartLab(E:\dy-one-smartlab)에 넣은 변경을 운영(.119, NSSM `DY-SmartLab`)에 반영:
+- [ ] `server/index.js` — `GET /sso/dyone`(dyone 토큰 검증 → SLAB_SESS 발급) 추가분
+- [ ] `src/App.jsx` — 임베드 감지(`window.self!==window.top`) 시 자체 헤더 숨김 + gw 리다이렉트 회피
+- [ ] `src/styles.css` — 임베드 톤(헤더 숨김/블루톤/thead 회청색)
+- [ ] 재배포 후 `nssm restart DY-SmartLab`
+- [ ] .119 서비스 env에 **`DYONE_SSO_SECRET`** 추가 — dyone의 `SmartLabSso:Secret`와 **동일 값**
+- [ ] dyone 운영 설정에 `SmartLabSso:Secret`(동일) + `SmartLabSso:BaseUrl`(운영 SmartLab 주소)
+- [ ] ⚠️ **운영은 cross-site**(dyone 도메인 ↔ .119)라, 로컬의 same-site 쿠키 트릭이 안 통함.
+  - 해결: dyone이 SmartLab을 **리버스 프록시(`/smartlab`)로 same-origin** 제공 → iframe 쿠키 동작.
+  - 또는 SmartLab 쿠키를 `SameSite=None; Secure`로 + 양쪽 https.
+
 ## 3b. dyone 자체 프로젝트 상태(단계) — 스키마 (.111)
 로컬(5433)에만 생성됨. 운영(.111)에도 동일 생성 필요:
 - [ ] 코드 그룹 + 단계 코드셋:

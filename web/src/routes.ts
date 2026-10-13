@@ -4,6 +4,9 @@
 export const routes = [
   { path: '/home', icon: '⌂', name: '홈', enabled: true },
   { path: '/projects', icon: '▦', name: '프로젝트', enabled: true },
+  { path: '/smartlab', icon: '⚗', name: 'SmartLab', enabled: true },
+  { path: '/srs-analyzer', icon: '▧', name: 'SRS Analyzer', enabled: true },
+  { path: '/process', icon: '⚙', name: '공정 관리', enabled: true },
   { path: '/chat', icon: '✦', name: 'AI 챗봇', enabled: false },
   { path: '/it', icon: '⌘', name: 'IT 요청', enabled: false },
   { path: '/meals', icon: '◉', name: '오늘의 식단', enabled: false },
