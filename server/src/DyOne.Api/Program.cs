@@ -1,3 +1,4 @@
+using DyOne.Api.Modules.Integrations;
 using System.Text;
 using System.Text.Json.Serialization;
 using DyOne.Api.Modules.Ai;
@@ -96,6 +97,9 @@ app.MapProjects();
 app.MapProjectFiles();
 app.MapAi();
 app.MapNotifications();
+app.MapSmartLab();
+app.MapSrsAnalyzer();
+app.MapProcess();
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

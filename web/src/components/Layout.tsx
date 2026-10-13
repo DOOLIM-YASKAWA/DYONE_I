@@ -17,6 +17,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const menuOpen = menuOpenAt === location.pathname
   const setMenuOpen = (open: boolean) => setMenuOpenAt(open ? location.pathname : null)
   const current = routes.find((r) => location.pathname.startsWith(r.path)) ?? routes[0]
+  const wideLayout = (location.pathname.startsWith('/smartlab') || location.pathname.startsWith('/srs-analyzer') || location.pathname.startsWith('/process'))  // 임베드 화면은 본문 최대폭 해제
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
@@ -69,7 +70,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </header>
-        <main id="main">{children}</main>
+        <main id="main" className={wideLayout ? 'flush' : undefined}>{children}</main>
         <footer className="demo-footer">
           개발 환경 · dyone DB(그룹웨어 프로젝트·조직도·공정·SmartLab 미러)를 읽기 전용으로 표시합니다. 그룹웨어 인증·ERP·AI·주차·출입은 아직 연결되지 않았습니다.
         </footer>
