@@ -1,15 +1,16 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../../api/client'
 import type { AiSource, Code, LabTest, PagedResult, Project, ProjectDetail, Section } from '../../api/types'
 import { NotConnected } from '../../components/NotConnected'
 import { Badge, DataTable, ErrorBox, Loading, PageHead } from '../../components/ui'
 import { platform } from '../../platform/bridge'
 import { DesktopTools } from './DesktopTools'
+import { ModularSection } from './ModularSection'
+import { WorksAppSection } from './WorksAppSection'
 import { AssignmentList, LabDetailDialog, ProjectDetailDialog } from './DetailDialogs'
 import { ProjectAI } from './ProjectAI'
-import { ProjectPicker } from './ProjectPicker'
 import { isSection, sections } from './sections'
 
 type DialogState = { kind: 'project'; id: number } | { kind: 'lab'; lab: LabTest } | null
@@ -18,10 +19,13 @@ const date = (v?: string) => (v ? new Date(v).toLocaleDateString('ko-KR') : '-')
 
 export function ProjectsPage() {
   const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
   const scope = params.get('project') ? Number(params.get('project')) : null
   const section: Section = isSection(params.get('tab')) ? (params.get('tab') as Section) : 'progress'
   const statusId = params.get('status') ?? ''
-  const [search, setSearch] = useState('')
+  const customer = params.get('customer') ?? ''
+  const [search, setSearch] = useState(params.get('search') ?? '')
+  useEffect(() => { setSearch(params.get('search') ?? '') }, [params])
   const [page, setPage] = useState(1)
   const [dialog, setDialog] = useState<DialogState>(null)
 
@@ -32,11 +36,12 @@ export function ProjectsPage() {
     enabled: scope !== null,
   })
   const projects = useQuery({
-    queryKey: ['projects', search, statusId, page],
+    queryKey: ['projects', search, statusId, customer, page],
     queryFn: () => {
       const q = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) })
       if (search) q.set('search', search)
       if (statusId) q.set('statusId', statusId)
+      if (customer) q.set('customer', customer)
       return api<PagedResult<Project>>(`/api/projects?${q}`)
     },
     enabled: section === 'progress' && scope === null,
@@ -74,12 +79,13 @@ export function ProjectsPage() {
     else update({ tab: 'lab' })
   }
 
-  const tabCount = (key: Section) =>
-    key === 'progress' ? (scope ? 1 : projects.data?.total) : key === 'lab' ? labs.data?.total : undefined
-
   let body
   if (!spec.connected) {
     body = <NotConnected what={spec.name} source={`그룹웨어 WORKS applet ${spec.applet}`} />
+  } else if (section === 'modular') {
+    body = <ModularSection projectCode={project?.code ?? null} />
+  } else if (section === 'es') {
+    body = <WorksAppSection appletId={spec.applet} projectCode={project?.code ?? null} />
   } else if (section === 'progress' && scope !== null) {
     body = detail.isLoading ? <Loading /> : detail.data ? <div className="panel-body"><AssignmentList assignments={detail.data.assignments} /></div> : <ErrorBox error={detail.error} />
   } else if (section === 'progress') {
@@ -90,23 +96,19 @@ export function ProjectsPage() {
     ) : (
       <>
         <DataTable
-          headers={['프로젝트 코드·명', '발주처', '진행 상태', '종류', 'ERP 등록날짜', '최근 변경']}
+          headers={['프로젝트 코드·명', '발주처', '진행 단계', '종류', 'ERP 등록날짜', '최근 변경']}
           rows={(projects.data?.items ?? []).map((p) => ({
             key: String(p.id),
             cells: [
               <>
                 <span className="code">{p.code}</span>
                 <br />
-                <button className="row-title" onClick={() => setDialog({ kind: 'project', id: p.id })}>
+                <button className="row-title" onClick={() => navigate(`/projects/${p.id}`)}>
                   {p.name}
-                </button>
-                <br />
-                <button className="text-button" onClick={() => update({ project: p.id })}>
-                  관련 업무 모아보기 →
                 </button>
               </>,
               p.partnerName ?? '-',
-              p.status ? <Badge status={p.status} /> : '미지정',
+              p.effectiveStage ? <Badge status={p.effectiveStage} /> : (p.status ?? '미지정'),
               p.type ?? '-',
               p.erpRegDate ?? '-',
               date(p.updatedAt),
@@ -151,22 +153,63 @@ export function ProjectsPage() {
       <PageHead eyebrow="PROJECT WORKSPACE" title="프로젝트" sub="그룹웨어 프로젝트 · 공정 배당 · SmartLab 랩 테스트 (dyone DB)" />
       <div className="project-with-ai">
         <div className="project-work">
-          <div className="project-toolbar">
-            <ProjectPicker onPick={(id) => update({ project: id })} />
-            {scope && (
+          {scope && (
+            <div className="project-toolbar">
               <button className="secondary" onClick={() => update({ project: null })}>
                 전체 프로젝트로
               </button>
-            )}
-          </div>
-          <div className="project-tabs" role="tablist" aria-label="프로젝트 업무 영역">
-            {sections.map((s) => (
-              <button key={s.key} role="tab" aria-selected={s.key === section} className={s.key === section ? 'active' : ''} onClick={() => update({ tab: s.key })}>
-                {s.name}
-                <small>{s.connected ? (tabCount(s.key)?.toLocaleString() ?? '·') : '미연결'}</small>
-              </button>
-            ))}
-          </div>
+            </div>
+          )}
+          {!scope && (
+            <>
+              <div className="customer-chips">
+                {['전체', '현대', '기아', 'GM', '르노', '쌍용', '기타'].map((c) => {
+                  const active = c === '전체' ? !customer : customer === c
+                  return (
+                    <button
+                      key={c}
+                      className={active ? 'chip active' : 'chip'}
+                      onClick={() => {
+                        const pr = new URLSearchParams(params)
+                        if (c === '전체') pr.delete('customer')
+                        else pr.set('customer', c)
+                        setPage(1)
+                        setParams(pr)
+                      }}
+                    >
+                      {c}
+                    </button>
+                  )
+                })}
+              </div>
+              {/* 검색·상태 필터: 고객사 칩 아래로 이동(기존 상단 ProjectPicker 대체). 검색하면 해당 프로젝트만 목록에 표시 */}
+              <div className="sub-filters project-search">
+                <input
+                  key={search}
+                  className="search-input"
+                  placeholder="프로젝트 코드·이름·발주처 검색"
+                  defaultValue={search}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setSearch(e.currentTarget.value.trim())
+                      setPage(1)
+                    }
+                  }}
+                  aria-label="프로젝트 검색"
+                />
+                <label htmlFor="statusFilter">상태</label>
+                <select id="statusFilter" value={statusId} onChange={(e) => update({ status: e.target.value })}>
+                  <option value="">전체</option>
+                  {statuses.data?.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                  <option value="0">미지정</option>
+                </select>
+              </div>
+            </>
+          )}
           {project && (
             <div className="scope-card">
               <div>
@@ -179,7 +222,7 @@ export function ProjectsPage() {
                   {detail.data?.apps.length ? ` · 앱: ${detail.data.apps.join(', ')}` : ''}
                 </p>
               </div>
-              <button className="secondary" onClick={() => setDialog({ kind: 'project', id: project.id })}>
+              <button className="secondary" onClick={() => navigate(`/projects/${project.id}`)}>
                 상세
               </button>
               <span />
@@ -210,34 +253,10 @@ export function ProjectsPage() {
                   {section === 'progress' && !scope && projects.data && `${projects.data.total.toLocaleString()}개 프로젝트`}
                   {section === 'lab' && labs.data && `${labs.data.total.toLocaleString()}개 테스트`}
                   {section === 'progress' && scope && '프로젝트에 배당된 고객사 › 공장 › 부스 › 존'}
+                  {section === 'modular' && '그룹웨어 모듈라빌드 프로젝트 정보(applet 376)와 같은 목록 · 간트 · 상세'}
+                  {section === 'es' && '그룹웨어 ES 이슈사항 보고(applet 281)와 같은 목록 · 상세'}
                 </p>
               </div>
-              {section === 'progress' && !scope && (
-                <div className="sub-filters">
-                  <input
-                    className="search-input"
-                    placeholder="코드·이름·발주처 검색"
-                    defaultValue={search}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        setSearch(e.currentTarget.value.trim())
-                        setPage(1)
-                      }
-                    }}
-                    aria-label="프로젝트 검색"
-                  />
-                  <label htmlFor="statusFilter">상태</label>
-                  <select id="statusFilter" value={statusId} onChange={(e) => update({ status: e.target.value })}>
-                    <option value="">전체</option>
-                    {statuses.data?.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                    <option value="0">미지정</option>
-                  </select>
-                </div>
-              )}
             </div>
             {body}
           </section>

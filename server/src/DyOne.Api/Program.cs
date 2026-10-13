@@ -1,8 +1,11 @@
+using DyOne.Api.Modules.Integrations;
 using System.Text;
 using System.Text.Json.Serialization;
 using DyOne.Api.Modules.Ai;
 using DyOne.Api.Modules.Auth;
 using DyOne.Api.Modules.Home;
+using DyOne.Api.Modules.Modular;
+using DyOne.Api.Modules.Works;
 using DyOne.Api.Modules.Notifications;
 using DyOne.Api.Modules.Projects;
 using DyOne.Api.Platform;
@@ -16,6 +19,11 @@ var config = builder.Configuration;
 
 // --- 데이터: 기존 dyone DB(PostgreSQL 18)를 읽기 전용으로 사용. 개발 연결 정보는 user-secrets ---
 builder.Services.AddDbContext<DyOneDbContext>(o => DyOneDb.Configure(o, config.GetConnectionString("DyOne")));
+
+// --- 프로젝트 문서 업로드 저장소(운영=NAS UNC, 개발=로컬 폴더; FileStorage:Root). 대용량 설계 문서 대비 512MB 허용 ---
+builder.Services.AddSingleton<DyOne.Api.Modules.Projects.FileStorage>();
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = 512L * 1024 * 1024);
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 512L * 1024 * 1024);
 
 // --- 인증: 그룹웨어 로그인 API로 검증 → org.employee(login_id)로 직원 확인 → DY ONE 자체 JWT ---
 var authSection = config.GetSection("Auth");
@@ -74,6 +82,9 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
 // --- 모듈 서비스 ---
 builder.Services.AddScoped<AuditLog>();
 builder.Services.AddScoped<NotificationService>();
+// 그룹웨어 변경 알림(Worker가 sync.change_notice에 남긴 것)을 실시간 알림으로 보낸다
+builder.Services.AddSingleton<AppAudience>();
+builder.Services.AddHostedService<GwChangeNoticeRelay>();
 builder.Services.AddScoped<IAiAssistant, RuleBasedAssistant>();
 
 var app = builder.Build();
@@ -88,8 +99,14 @@ app.MapGet("/api/health", () => Results.Ok(new { status = "ok", time = DateTimeO
 app.MapAuth();
 app.MapHome();
 app.MapProjects();
+app.MapProjectFiles();
+app.MapModular();
+app.MapWorks();
 app.MapAi();
 app.MapNotifications();
+app.MapSmartLab();
+app.MapSrsAnalyzer();
+app.MapProcess();
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

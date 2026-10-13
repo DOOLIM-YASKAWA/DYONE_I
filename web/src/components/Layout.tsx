@@ -17,6 +17,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const menuOpen = menuOpenAt === location.pathname
   const setMenuOpen = (open: boolean) => setMenuOpenAt(open ? location.pathname : null)
   const current = routes.find((r) => location.pathname.startsWith(r.path)) ?? routes[0]
+  const wideLayout = (location.pathname.startsWith('/smartlab') || location.pathname.startsWith('/srs-analyzer') || location.pathname.startsWith('/process'))  // 임베드 화면은 본문 최대폭 해제
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
@@ -69,7 +70,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </header>
-        <main id="main">{children}</main>
+        <main id="main" className={wideLayout ? 'flush' : undefined}>{children}</main>
         <footer className="demo-footer">
           개발 환경 · dyone DB(그룹웨어 프로젝트·조직도·공정·SmartLab 미러)를 읽기 전용으로 표시합니다. 그룹웨어 인증·ERP·AI·주차·출입은 아직 연결되지 않았습니다.
         </footer>
@@ -94,7 +95,7 @@ function NotificationBell() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  // 알림함 저장소가 정해지기 전: 서버 목록(빈 목록)으로 시작하고, 실시간으로 받은 알림을 화면에서만 쌓는다.
+  // 알림함: 접속 전에 온 알림(내가 쓰는 앱 것, 최근 30일)을 서버에서 받고, 이후는 실시간으로 받은 알림을 앞에 쌓는다.
   const { data = [] } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => api<AppNotification[]>('/api/notifications'),
@@ -104,8 +105,9 @@ function NotificationBell() {
   const markRead = (id?: number) =>
     queryClient.setQueryData<AppNotification[]>(['notifications'], (old = []) =>
       old.map((n) => (id === undefined || n.id === id ? { ...n, readAt: n.readAt ?? new Date().toISOString() } : n)))
-  const read = { mutate: (id: number) => markRead(id) }
-  const readAll = { mutate: () => markRead() }
+  // 읽음은 화면에 먼저 표시하고 서버에 남긴다(다른 PC·Windows 앱에서도 읽음으로 보인다).
+  const read = { mutate: (id: number) => { markRead(id); void api(`/api/notifications/${id}/read`, { method: 'POST' }).catch(() => {}) } }
+  const readAll = { mutate: () => { markRead(); void api('/api/notifications/read-all', { method: 'POST' }).catch(() => {}) } }
   const test = useMutation({ mutationFn: () => api('/api/notifications/test', { method: 'POST' }) })
 
   return (

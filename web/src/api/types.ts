@@ -47,6 +47,9 @@ export interface Project {
   isActive: boolean
   updatedAt: string
   description?: string
+  sourceUpdatedAt?: string
+  effectiveStage?: string
+  effectiveSource?: 'dyone' | 'gw'
 }
 
 /** project.project_assignment → plant.* */
@@ -63,6 +66,26 @@ export interface ProjectDetail {
   assignments: Assignment[]
   apps: string[]
   labTestCount: number
+  dyoneStage?: { stageId: number; stageCode: string; stageName: string; updatedAt: string; updatedByName?: string } | null
+}
+
+/** project.project_file — 프로젝트별 업로드 문서(dyone 자체) */
+export interface ProjectFile {
+  id: number
+  projectId: number
+  categoryId?: number
+  category?: string
+  categoryCode?: string
+  stageId?: number
+  stage?: string
+  fileName: string
+  contentType?: string
+  sizeBytes: number
+  description?: string
+  uploadedByName?: string
+  departmentId?: number
+  department?: string
+  uploadedAt: string
 }
 
 /** smartlab.lab_test */
@@ -80,9 +103,9 @@ export interface LabTest {
 }
 
 export interface HomeSummary {
-  statusCounts: { statusId: number; status: string; count: number }[]
-  recentProjects: Project[]
-  recentLabTests: LabTest[]
+  customerCounts: { name: string; count: number }[]
+  recentRegistered: Project[]
+  recentChanged: Project[]
   sync: { source: string; entity: string; updatedAt?: string }[]
 }
 
@@ -105,4 +128,249 @@ export interface AppNotification {
   link?: string
   createdAt: string
   readAt?: string
+}
+
+/** modular.* — 모듈라빌드 프로젝트 정보 (그룹웨어 applet 376 이관) */
+export interface ModularStatus {
+  id: number
+  name: string
+  sort: number
+  color?: string
+  isEnd: boolean
+  isBegin: boolean
+}
+
+export interface ModularTransition {
+  id: number
+  from: number
+  to: number
+  action: string
+  sort: number
+}
+
+export interface ModularOption {
+  code: number
+  label: string
+  isDefault: boolean
+}
+
+export type ModularListKey = 'install_location' | 'robot_model' | 'cable_robot_box' | 'cable_box_rc' | 'comm' | 'applicator' | 'category' | 'region'
+export type ModularRole = 'pm' | 'pl' | 'control' | 'design' | 'teach'
+
+export interface ModularMeta {
+  statuses: ModularStatus[]
+  transitions: ModularTransition[]
+  options: Partial<Record<ModularListKey, ModularOption[]>>
+  roles: Record<ModularRole, string>
+  editEnabled: boolean
+  syncedAt?: string
+}
+
+export interface ModularBuild {
+  id: number
+  fromGroupware: boolean
+  year?: number
+  status?: ModularStatus
+  projectCode: string
+  projectName: string
+  installLocations: string[]
+  shipMonth?: string
+  installStart?: string
+  commissioningStart?: string
+  category?: string
+  shipDue?: string
+  region?: string
+  robotCount?: string
+  robotModels: string[]
+  applicators: string[]
+  comms: string[]
+  plant?: string
+  customer?: string
+  process?: string
+  processDetail?: string
+  externalInspection?: string
+  updatedAt?: string
+  /** DY ONE 관리 전환: 그룹웨어 변경을 더 이상 반영하지 않는 건 */
+  managedInDyone: boolean
+  /** 그룹웨어에서 문서가 지워진 건(DY ONE에서는 남겨 둠) */
+  gwDeleted: boolean
+}
+
+export interface ModularList extends PagedResult<ModularBuild> {
+  years: number[]
+  statusCounts: { statusId?: number; count: number }[]
+}
+
+export interface ModularGanttItem {
+  id: number
+  projectCode: string
+  projectName: string
+  start: string
+  end: string
+  endIsEstimate: boolean
+  commissioningStart?: string
+  status?: ModularStatus
+}
+
+export interface ModularFields {
+  year?: number
+  projectCode: string
+  projectName: string
+  installStart?: string
+  installStartRaw?: string
+  commissioningStart?: string
+  commissioningStartRaw?: string
+  externalInspection?: string
+  shipDue?: string
+  shipMonth?: string
+  originToolReceipt?: string
+  note?: string
+  customer?: string
+  plant?: string
+  process?: string
+  processDetail?: string
+  robotCount?: number
+  robotCountRaw?: string
+  categoryCode?: number
+  regionCode?: number
+  mainIssue?: string
+  attachmentCount: number
+  createdByName?: string
+  createdAt?: string
+  updatedByName?: string
+  updatedAt?: string
+  syncedAt?: string
+  gwDocId?: number
+}
+
+export interface ModularDetail {
+  item: ModularBuild
+  fields: ModularFields
+  options: Record<string, number[]>
+  members: { role: ModularRole; roleLabel: string; name: string; employeeId?: number }[]
+  activities: ModularActivity[]
+  files: ModularFile[]
+  history: ModularHistoryItem[]
+  transitions: ModularTransition[]
+  project?: { id: number; code: string; name: string; partnerName?: string }
+  /** DY ONE 값이 그룹웨어 값과 다른 칸 */
+  differences: { key: string; label: string; dyOne: string; groupware: string }[]
+  fromGroupware: boolean
+  managedInDyone: boolean
+  managedInDyoneAt?: string
+  managedInDyoneBy?: string
+  gwDeletedAt?: string
+  editable: boolean
+  gwUrl?: string
+}
+
+export interface ModularFile {
+  id: number
+  source: 'doc' | 'activity'
+  name?: string
+  ext?: string
+  size?: number
+  /** DY ONE 저장소로 복사됐는지. false면 본체가 그룹웨어 서버에만 있다. */
+  stored: boolean
+  at?: string
+}
+
+export interface ModularActivity {
+  id: number
+  body?: string
+  by?: string
+  at?: string
+  comments: { id: number; body?: string; by?: string; at?: string }[]
+  files: ModularFile[]
+}
+
+export interface ModularHistoryItem {
+  source: 'groupware' | 'dyone'
+  kind: 'status' | 'edit' | 'created' | 'activity' | 'comment' | 'etc' | 'overwrite' | 'manage'
+  title?: string
+  detail?: string
+  from?: string
+  to?: string
+  by?: string
+  at?: string
+}
+
+/** works.* — 그룹웨어 WORKS 앱 공통(앱 번호 기준, 281 ES 이슈 등) */
+export interface WorksStatus {
+  id: number
+  name: string
+  sort: number
+  color?: string
+  isEnd: boolean
+  isBegin: boolean
+}
+
+export interface WorksField {
+  cid: string
+  label: string
+  fieldType: string
+  valueType?: string
+  required: boolean
+  editable: boolean
+  options?: { code: number; label: string; isDefault: boolean }[]
+  props?: Record<string, unknown>
+}
+
+/** 그룹웨어 폼 배치: canvas · label · columns · column · hr · (필드) */
+export interface WorksLayoutNode {
+  type: string
+  cid?: string
+  label?: string
+  count?: string
+  children?: WorksLayoutNode[]
+}
+
+export interface WorksMeta {
+  appletId: number
+  name: string
+  layout?: WorksLayoutNode
+  viewColumns?: string[]
+  fields: WorksField[]
+  statuses: WorksStatus[]
+  transitions: { id: number; from: number; to: number; action: string; sort: number }[]
+  editEnabled: boolean
+  syncedAt?: string
+}
+
+export interface WorksDocItem {
+  id: number
+  fromGroupware: boolean
+  status?: WorksStatus
+  display: Record<string, string | null>
+  managedInDyone: boolean
+  gwDeleted: boolean
+  createdAt?: string
+  createdBy?: string
+}
+
+export interface WorksDocList extends PagedResult<WorksDocItem> {
+  statusCounts: { statusId: number; count: number }[]
+}
+
+export interface WorksDocDetail {
+  id: number
+  appletId: number
+  status?: WorksStatus
+  values: Record<string, string | null>
+  display: Record<string, string | null>
+  fromGroupware: boolean
+  managedInDyone: boolean
+  managedInDyoneBy?: string
+  gwDeletedAt?: string
+  createdByName?: string
+  createdAt?: string
+  updatedByName?: string
+  updatedAt?: string
+  differences: { key: string; label: string; dyOne: string; groupware: string }[]
+  transitions: { id: number; from: number; to: number; action: string; sort: number }[]
+  activities: ModularActivity[]
+  files: ModularFile[]
+  history: ModularHistoryItem[]
+  editable: boolean
+  gwUrl?: string
 }

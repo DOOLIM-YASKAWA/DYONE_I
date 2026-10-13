@@ -31,6 +31,8 @@ public class Project
     public DateTimeOffset UpdatedAt { get; set; }
     public string? PartnerName { get; set; }
     public DateOnly? ErpRegDate { get; set; }
+    /// <summary>그룹웨어 applet285 문서 수정일(GW에서 마지막으로 바뀐 시각). Worker가 수집. "최근 변경" 정렬용.</summary>
+    public DateTime? SourceUpdatedAt { get; set; }
 }
 
 /// <summary>project.project_assignment — 공정(factory/booth/zone) ↔ 프로젝트 배당</summary>
@@ -51,6 +53,39 @@ public class ProjectApp
 {
     public long ProjectId { get; set; }
     public string AppKey { get; set; } = "";
+}
+
+/// <summary>
+/// project.project_stage — dyone 자체 진행 단계(사용자 편집). 그룹웨어 상태(영업중/수주)와 별개.
+/// 수주 이후 단계(설계/모듈라/현장설치/라인대응/완료)를 대응 인원이 dyone에서 직접 관리한다.
+/// </summary>
+public class ProjectStage
+{
+    public long ProjectId { get; set; }
+    public long StageId { get; set; }          // code.code(group_key=project_stage).id
+    public long? UpdatedBy { get; set; }        // org.employee.id
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+/// <summary>
+/// project.project_file — 프로젝트별 업로드 문서(사양서/설계/모듈라/라인 대응 등). dyone 자체 데이터.
+/// 실물 파일은 파일 저장소(NAS 등)에 두고 여기엔 메타만. 분류=code.code(document_category).
+/// </summary>
+public class ProjectFile
+{
+    public long Id { get; set; }
+    public long ProjectId { get; set; }
+    public long? CategoryId { get; set; }       // code.code(group_key=document_category)
+    public long? StageId { get; set; }          // code.code(group_key=project_stage) — 업로드 당시 단계(선택)
+    public string FileName { get; set; } = "";  // 원본 파일명
+    public string StoredName { get; set; } = ""; // 저장소 Root 기준 상대경로(projects/<코드 이름>/<분류>/<원본파일명>)
+    public string? ContentType { get; set; }
+    public long SizeBytes { get; set; }
+    public string? Description { get; set; }
+    public long? UploadedBy { get; set; }        // org.employee.id
+    public long? DepartmentId { get; set; }      // 업로더 소속 부서(org.department.id) 스냅샷
+    public DateTimeOffset UploadedAt { get; set; }
+    public bool IsActive { get; set; }
 }
 
 /// <summary>plant.* — 공정 기준정보: 고객사 → 공장 → 부스 → 존 (MotoSim Launcher와 같은 구조)</summary>

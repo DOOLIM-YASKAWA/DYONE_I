@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -109,6 +111,18 @@ public partial class MainWindow : Window
         Show();
         if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
         Activate();
+    }
+
+    /// <summary>앱 안 화면 경로만 허용한다: '/'로 시작하고 다른 주소(//, 스킴)나 따옴표·공백이 없는 짧은 경로.</summary>
+    public static bool IsAppLink(string? link) =>
+        link is { Length: > 1 and <= 300 } && Regex.IsMatch(link, @"^/(?!/)[A-Za-z0-9_\-/?=&.%]*$");
+
+    /// <summary>알림을 눌렀을 때: 화면(HashRouter)을 그 경로로 옮긴다(새로 고치지 않고 화면 안에서 이동).</summary>
+    public void OpenAppLink(string link)
+    {
+        if (!IsAppLink(link) || Web.CoreWebView2 is not { } core || _config is null) return;
+        if (!_config.IsTrusted(core.Source)) return;
+        _ = core.ExecuteScriptAsync($"location.hash = {JsonSerializer.Serialize("#" + link)}");
     }
 
     public void ExitApp()

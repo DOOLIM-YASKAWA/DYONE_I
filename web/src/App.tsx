@@ -3,9 +3,14 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import { Layout } from './components/Layout'
 import { ChatPage } from './pages/ChatPage'
+import { ModularPage, WorksAppPage } from './pages/GroupwareAppPages'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { ProjectDetailPage } from './pages/projects/ProjectDetailPage'
 import { ProjectsPage } from './pages/projects/ProjectsPage'
+import { SrsAnalyzerPage } from './pages/SrsAnalyzerPage'
+import { SmartLabPage } from './pages/SmartLabPage'
+import { ProcessPage } from './pages/ProcessPage'
 import { AccessPage, ItPage, MealsPage, VehiclesPage } from './pages/ServicePages'
 import { useRealtimeNotifications } from './realtime/useRealtimeNotifications'
 import { enabledRoutes } from './routes'
@@ -15,6 +20,11 @@ import { enabledRoutes } from './routes'
 const pageElements: Record<string, ReactElement> = {
   '/home': <HomePage />,
   '/projects': <ProjectsPage />,
+  '/modular': <ModularPage />,
+  '/works/281': <WorksAppPage appletId={281} title="ES 이슈" />,
+  '/smartlab': <SmartLabPage />,
+  '/process': <ProcessPage />,
+  '/srs-analyzer': <SrsAnalyzerPage />,
   '/chat': <ChatPage />,
   '/it': <ItPage />,
   '/meals': <MealsPage />,
@@ -35,6 +45,7 @@ export function App() {
         {enabledRoutes.map((r) => (
           <Route key={r.path} path={r.path} element={pageElements[r.path]} />
         ))}
+        <Route path="/projects/:id" element={<ProjectDetailPage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </Layout>
