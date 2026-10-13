@@ -1,11 +1,16 @@
+using System.Security.Claims;
 using DyOne.Data;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace DyOne.Api.Modules.Projects;
 
+public record StageUpdate(long StageId);
+
 public record ProjectDto(
     long Id, string Code, string Name, string? PartnerName, long? StatusId, string? Status, string? Type,
-    DateOnly? ErpRegDate, DateOnly? StartDate, DateOnly? EndDate, bool IsActive, DateTimeOffset UpdatedAt, string? Description);
+    DateOnly? ErpRegDate, DateOnly? StartDate, DateOnly? EndDate, bool IsActive, DateTimeOffset UpdatedAt, string? Description,
+    DateTime? SourceUpdatedAt = null, string? EffectiveStage = null, string? EffectiveSource = null);
 
 public record AssignmentDto(string Level, string? Customer, string? Factory, string? Booth, string? Zone);
 
@@ -32,7 +37,7 @@ public static class ProjectsModule
             await db.Codes.Where(c => c.GroupKey == group && c.IsActive).OrderBy(c => c.SortOrder)
                 .Select(c => new { c.Id, c.Code, c.Name }).ToListAsync(ct));
 
-        g.MapGet("/projects", async (string? search, long? statusId, int? page, int? pageSize, DyOneDbContext db, CancellationToken ct) =>
+        g.MapGet("/projects", async (string? search, long? statusId, string? customer, int? page, int? pageSize, DyOneDbContext db, CancellationToken ct) =>
         {
             var size = Math.Clamp(pageSize ?? 50, 1, 200);
             var current = Math.Max(page ?? 1, 1);
@@ -43,6 +48,15 @@ public static class ProjectsModule
                 q = q.Where(p => EF.Functions.ILike(p.Code, s) || EF.Functions.ILike(p.Name, s) || EF.Functions.ILike(p.PartnerName ?? "", s));
             }
             if (statusId is not null) q = statusId == 0 ? q.Where(p => p.StatusId == null) : q.Where(p => p.StatusId == statusId);
+            else
+            {
+                // [진행 중 모집단] 상태 미선택 시: 그룹웨어 영업중(0)/수주(1) '또는' dyone 진행 단계(project_stage)가 있는 것.
+                // → 영업부가 ERP에 넣는 영업·수주 + 대응 인원이 dyone에서 진행시킨 건. 그룹웨어 마감/중단·미지정(단계 없음)은 제외.
+                // 사용자가 상태 드롭다운에서 마감/중단/미지정을 직접 고르면 그 값은 그대로 보여준다.
+                var salesStatusIds = await db.Codes.Where(c => c.GroupKey == "project_status" && (c.SortOrder == 0 || c.SortOrder == 1)).Select(c => c.Id).ToListAsync(ct);
+                q = q.Where(p => (p.StatusId != null && salesStatusIds.Contains(p.StatusId.Value)) || db.ProjectStages.Any(ps => ps.ProjectId == p.Id));
+            }
+            if (!string.IsNullOrWhiteSpace(customer)) q = FilterByCustomer(q, customer.Trim());
 
             var total = await q.CountAsync(ct);
             var rows = await q.OrderBy(p => p.ErpRegDate == null).ThenByDescending(p => p.ErpRegDate).ThenByDescending(p => p.Code)
@@ -66,8 +80,39 @@ public static class ProjectsModule
             var dto = (await ToDtosAsync(db, [p], ct))[0];
             var apps = await db.ProjectApps.Where(a => a.ProjectId == id).Select(a => a.AppKey).ToListAsync(ct);
             var labCount = await db.LabTests.CountAsync(l => l.ProjectId == id, ct);
-            return Results.Ok(new { project = dto, assignments = await AssignmentsAsync(db, id, ct), apps, labTestCount = labCount });
+
+            // dyone 자체 진행 단계(사용자 편집). 없으면 null → 화면은 그룹웨어 상태(영업중/수주)를 기본으로.
+            var dyoneStage = await (from ps in db.ProjectStages.Where(x => x.ProjectId == id)
+                                    join c in db.Codes on ps.StageId equals c.Id
+                                    join e in db.Employees on ps.UpdatedBy equals e.Id into ej
+                                    from e in ej.DefaultIfEmpty()
+                                    select new { stageId = ps.StageId, stageCode = c.Code, stageName = c.Name, ps.UpdatedAt, updatedByName = e != null ? e.Name : null })
+                                    .FirstOrDefaultAsync(ct);
+
+            return Results.Ok(new { project = dto, assignments = await AssignmentsAsync(db, id, ct), apps, labTestCount = labCount, dyoneStage });
         });
+
+        // dyone 자체 진행 단계 변경(사용자 편집). 그룹웨어는 안 건드림. 지금은 로그인한 전원 가능.
+        g.MapPut("/projects/{id:long}/stage", async (long id, StageUpdate body, ClaimsPrincipal principal, IConfiguration config, DyOneDbContext db, CancellationToken ct) =>
+        {
+            if (!await db.Projects.AnyAsync(x => x.Id == id, ct)) return Results.NotFound();
+            if (!await db.Codes.AnyAsync(c => c.Id == body.StageId && c.GroupKey == "project_stage" && c.IsActive, ct))
+                return Results.BadRequest(new { message = "올바르지 않은 단계입니다." });
+            long? empId = long.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var e) ? e : null;
+
+            // 읽기 전용 연결(ConnectionStrings:DyOne)에서 read-only 옵션만 제거해 쓰기 연결을 만든다(사용자 편집 데이터 전용).
+            var writeConn = new NpgsqlConnectionStringBuilder(config.GetConnectionString("DyOne")) { Options = null }.ConnectionString;
+            await using var conn = new NpgsqlConnection(writeConn);
+            await conn.OpenAsync(ct);
+            await using var cmd = new NpgsqlCommand(
+                @"insert into project.project_stage (project_id, stage_id, updated_by, updated_at) values (@pid, @sid, @uid, now())
+                  on conflict (project_id) do update set stage_id = excluded.stage_id, updated_by = excluded.updated_by, updated_at = now()", conn);
+            cmd.Parameters.AddWithValue("pid", id);
+            cmd.Parameters.AddWithValue("sid", body.StageId);
+            cmd.Parameters.AddWithValue("uid", (object?)empId ?? DBNull.Value);
+            await cmd.ExecuteNonQueryAsync(ct);
+            return Results.Ok(new { ok = true });
+        }).RequireAuthorization();
 
         g.MapGet("/lab-tests", async (long? projectId, string? search, int? page, int? pageSize, DyOneDbContext db, CancellationToken ct) =>
         {
@@ -83,13 +128,43 @@ public static class ProjectsModule
         });
     }
 
+    /// <summary>발주처명 기준 고객사 그룹 필터 — 홈 customerCounts(HomeModule.CustomerGroup)와 동일 분류.</summary>
+    private static IQueryable<Data.Entities.Project> FilterByCustomer(IQueryable<Data.Entities.Project> q, string customer) => customer switch
+    {
+        "현대" => q.Where(p => EF.Functions.ILike(p.PartnerName ?? "", "%현대%")),
+        "기아" => q.Where(p => EF.Functions.ILike(p.PartnerName ?? "", "%기아%")),
+        "GM" => q.Where(p => EF.Functions.ILike(p.PartnerName ?? "", "%지엠%") || EF.Functions.ILike(p.PartnerName ?? "", "%GM%")),
+        "르노" => q.Where(p => EF.Functions.ILike(p.PartnerName ?? "", "%르노%")),
+        "쌍용" => q.Where(p => EF.Functions.ILike(p.PartnerName ?? "", "%쌍용%") || EF.Functions.ILike(p.PartnerName ?? "", "%KG%")),
+        "기타" => q.Where(p => p.PartnerName != null && p.PartnerName != ""
+            && !EF.Functions.ILike(p.PartnerName, "%현대%") && !EF.Functions.ILike(p.PartnerName, "%기아%")
+            && !EF.Functions.ILike(p.PartnerName, "%지엠%") && !EF.Functions.ILike(p.PartnerName, "%GM%")
+            && !EF.Functions.ILike(p.PartnerName, "%르노%") && !EF.Functions.ILike(p.PartnerName, "%쌍용%")
+            && !EF.Functions.ILike(p.PartnerName, "%KG%")),
+        _ => q,
+    };
+
     public static async Task<List<ProjectDto>> ToDtosAsync(DyOneDbContext db, List<Data.Entities.Project> rows, CancellationToken ct)
     {
         var codeIds = rows.SelectMany(r => new[] { r.StatusId, r.TypeId }).OfType<long>().Distinct().ToList();
         var codes = await db.Codes.Where(c => codeIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => c.Name, ct);
         string? Name(long? id) => id is { } v && codes.TryGetValue(v, out var n) ? n : null;
-        return rows.Select(p => new ProjectDto(p.Id, p.Code, p.Name, p.PartnerName, p.StatusId, Name(p.StatusId), Name(p.TypeId),
-            p.ErpRegDate, p.StartDate, p.EndDate, p.IsActive, p.UpdatedAt, p.Description)).ToList();
+
+        // 효과적 상태: dyone 단계(project_stage)가 있으면 그 단계, 없으면 그룹웨어 상태(영업중→영업, 수주→수주)
+        var ids = rows.Select(r => r.Id).ToList();
+        var stageMap = await (from ps in db.ProjectStages.Where(x => ids.Contains(x.ProjectId))
+                              join c in db.Codes on ps.StageId equals c.Id
+                              select new { ps.ProjectId, c.Name }).ToDictionaryAsync(x => x.ProjectId, x => x.Name, ct);
+
+        return rows.Select(p =>
+        {
+            var gw = Name(p.StatusId);
+            var dyone = stageMap.GetValueOrDefault(p.Id);
+            var effective = dyone ?? (gw == "영업중" ? "영업 기회" : gw == "수주" ? "수주·착수" : null);
+            var source = dyone != null ? "dyone" : (effective != null ? "gw" : null);
+            return new ProjectDto(p.Id, p.Code, p.Name, p.PartnerName, p.StatusId, gw, Name(p.TypeId),
+                p.ErpRegDate, p.StartDate, p.EndDate, p.IsActive, p.UpdatedAt, p.Description, p.SourceUpdatedAt, effective, source);
+        }).ToList();
     }
 
     /// <summary>배당 레벨(factory·booth·zone)에 따라 비어 있는 상위 공정은 하위에서 거슬러 올라가 채운다.</summary>

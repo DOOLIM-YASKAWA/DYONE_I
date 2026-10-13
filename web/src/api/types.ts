@@ -47,6 +47,9 @@ export interface Project {
   isActive: boolean
   updatedAt: string
   description?: string
+  sourceUpdatedAt?: string
+  effectiveStage?: string
+  effectiveSource?: 'dyone' | 'gw'
 }
 
 /** project.project_assignment → plant.* */
@@ -63,6 +66,7 @@ export interface ProjectDetail {
   assignments: Assignment[]
   apps: string[]
   labTestCount: number
+  dyoneStage?: { stageId: number; stageCode: string; stageName: string; updatedAt: string; updatedByName?: string } | null
 }
 
 /** smartlab.lab_test */
@@ -80,9 +84,9 @@ export interface LabTest {
 }
 
 export interface HomeSummary {
-  statusCounts: { statusId: number; status: string; count: number }[]
-  recentProjects: Project[]
-  recentLabTests: LabTest[]
+  customerCounts: { name: string; count: number }[]
+  recentRegistered: Project[]
+  recentChanged: Project[]
   sync: { source: string; entity: string; updatedAt?: string }[]
 }
 
