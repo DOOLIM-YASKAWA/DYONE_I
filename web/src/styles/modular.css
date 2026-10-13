@@ -1,0 +1,122 @@
+/* 모듈라빌드 프로젝트 정보 (그룹웨어 applet 376 이관) — ModularSection.tsx */
+
+.modular { padding: 0 24px 24px; }
+.modular-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.modular-toolbar .primary { margin-left: auto; }
+.segmented { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.segmented button { border: 0; background: #fff; padding: 9px 16px; font-size: 14px; color: var(--muted); }
+.segmented button.active { background: var(--navy); color: #fff; }
+
+.status-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.status-chips button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 13px; color: #4d5f78; display: inline-flex; align-items: center; gap: 6px; }
+.status-chips button b { color: var(--ink); font-weight: 600; }
+.status-chips button.active { border-color: var(--blue); background: #eaf1ff; color: #2d56b5; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #9aa8bc; display: inline-block; }
+.dot.green { background: var(--green); }
+.dot.blue { background: var(--blue); }
+.dot.amber { background: #d29a43; }
+.dot.red { background: #d4553f; }
+
+.badge.mini { margin-left: 6px; font-size: 11px; padding: 2px 6px; vertical-align: middle; }
+.modular-sync { color: var(--muted); font-size: 12px; margin: 14px 0 0; line-height: 1.7; }
+
+/* 간트 */
+.gantt { --gantt-title: 280px; border: 1px solid var(--line); border-radius: 10px; overflow: auto; max-height: 70vh; background: #fff; }
+.gantt-row { display: grid; width: max-content; min-width: 100%; border-bottom: 1px solid #edf1f7; }
+.gantt-row:last-child { border-bottom: 0; }
+.gantt-head { position: sticky; top: 0; z-index: 3; background: #f7f9fc; font-size: 12px; color: var(--muted); }
+.gantt-title { position: sticky; left: 0; z-index: 1; background: #fff; padding: 8px 12px; font-size: 13px; text-align: left; border: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-right: 1px solid #edf1f7; }
+.gantt-head .gantt-title { background: #f7f9fc; }
+.gantt-title .code { display: block; font-size: 11px; color: var(--muted); }
+.gantt-track { position: relative; min-height: 42px; }
+.gantt-month { position: absolute; top: 12px; transform: translateX(4px); white-space: nowrap; }
+.gantt-grid { position: absolute; top: 0; bottom: 0; border-left: 1px dashed #e8edf5; }
+.gantt-today { position: absolute; top: 0; bottom: 0; border-left: 2px solid #d4553f; opacity: .6; }
+.gantt-bar { position: absolute; top: 10px; height: 22px; border-radius: 6px; border: 0; padding: 0 6px; background: #b8c4d6; color: #fff; font-size: 11px; overflow: hidden; white-space: nowrap; text-align: left; }
+.gantt-bar span { line-height: 22px; }
+.gantt-bar.blue { background: var(--blue); }
+.gantt-bar.green { background: var(--green); }
+.gantt-bar.amber { background: #d29a43; }
+.gantt-bar.red { background: #d4553f; }
+.gantt-bar.estimate { opacity: .55; }
+
+/* 상세 */
+.modular-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+.modular-head .badge { margin-left: 0; }
+.modular-head small { color: var(--muted); width: 100%; }
+.modular-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; background: #f7f9fc; border-radius: 10px; margin-bottom: 14px; font-size: 13px; color: var(--muted); }
+.modular-flow > span { width: 100%; }
+.modular-flow button { padding: 7px 12px; font-size: 13px; }
+.modular-flow button small { color: var(--muted); }
+.modular-flow em { font-style: normal; }
+.modular-tabs { margin-bottom: 4px; }
+.modular-section { border-top: 1px solid var(--line); padding: 16px 0 6px; }
+.modular-section h3 { margin: 0 0 12px; font-size: 15px; }
+.modular-grid { display: grid; gap: 14px 20px; margin: 0; }
+.modular-grid.cols-1 { grid-template-columns: 1fr; }
+.modular-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.modular-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.modular-grid dt { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.modular-grid dd { margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.modular-activities { display: grid; gap: 10px; padding: 12px 0; }
+.modular-activities article { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.modular-activities header { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; margin-bottom: 6px; }
+.modular-activities header small { color: var(--muted); }
+.modular-activities p { margin: 0; font-size: 14px; line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
+
+.modular-activities > .segmented { justify-self: start; }
+.modular-activities article.is-status { border-left: 3px solid var(--blue); }
+.status-move { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); min-width: 0; }
+.status-move .badge { margin-left: 0; white-space: normal; }
+.modular-comments { list-style: none; margin: 10px 0 0; padding: 10px 0 0 12px; border-top: 1px dashed var(--line); display: grid; gap: 8px; }
+.modular-comments small { color: var(--muted); }
+.modular-comments p { margin: 2px 0 0; font-size: 13px; }
+.modular-files { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.modular-files li { display: flex; align-items: center; gap: 8px; font-size: 13px; min-width: 0; }
+.modular-files .file-ext { flex: none; font-size: 10px; font-weight: 600; color: #4d5f78; background: #edf2fa; border-radius: 4px; padding: 3px 5px; min-width: 38px; text-align: center; }
+.modular-files .file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modular-files small { flex: none; color: var(--muted); }
+
+.modular-activities article.is-overwrite { border-left: 3px solid #d29a43; background: #fffaf2; }
+.modular-activities article.is-dyone { border-left: 3px solid var(--green); }
+.modular-sync-note { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; background: #fbfcfe; }
+.modular-sync-note.is-managed { border-color: #b9cdf2; background: #f4f7fd; }
+.modular-sync-note p { margin: 0 0 8px; color: #4d5f78; line-height: 1.6; }
+.modular-sync-note b { display: block; margin: 4px 0 6px; font-size: 13px; }
+.modular-sync-note ul { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 4px; }
+.modular-sync-note li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.modular-sync-note li span { min-width: 110px; color: var(--muted); }
+.modular-sync-note li em { font-style: normal; color: var(--green); overflow-wrap: anywhere; }
+.modular-sync-note li small { color: var(--muted); overflow-wrap: anywhere; }
+.modular-sync-note button { padding: 7px 12px; font-size: 13px; }
+
+/* 입력 폼 */
+.modular-form { display: grid; gap: 12px 16px; }
+.modular-form.cols-2 { grid-template-columns: 1fr 1fr; }
+.modular-form.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.modular-checks { border: 0; padding: 0; margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+.modular-checks legend { font-size: 13px; color: #596d88; margin-bottom: 6px; padding: 0; }
+.modular-checks label { display: inline-flex; align-items: center; gap: 5px; }
+.modular-section textarea { width: 100%; }
+
+@media (max-width: 850px) {
+  .modular { padding: 0 18px 20px; }
+  .modular-toolbar .search-input { width: 100%; }
+  .modular-toolbar .primary { margin-left: 0; }
+  .modular-grid.cols-2, .modular-grid.cols-3, .modular-form.cols-2, .modular-form.cols-3 { grid-template-columns: 1fr; }
+  .gantt { --gantt-title: 150px; }
+}
+
+/* 그룹웨어 앱 공통 폼 배치 (WorksAppSection) */
+.works-form { display: grid; gap: 12px; padding: 12px 0 4px; }
+.works-label { margin: 8px 0 0; font-size: 15px; }
+.works-hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
+.works-columns { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 12px 20px; }
+.works-column { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.works-field { margin: 0; min-width: 0; }
+.works-field dt { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.works-field dd { margin: 0; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.works-field dd.is-long { white-space: pre-line; }
+.works-field.is-readonly dd small { color: var(--muted); }
+.works-field textarea { width: 100%; }
+@media (max-width: 850px) { .works-columns { grid-template-columns: 1fr; } }

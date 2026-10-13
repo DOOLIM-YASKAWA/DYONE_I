@@ -9,6 +9,7 @@ import './styles/styles.css'
 import './styles/project-ai.css'
 import './styles/mobile.css'
 import './styles/app.css'
+import './styles/modular.css'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } },

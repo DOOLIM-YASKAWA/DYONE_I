@@ -7,6 +7,8 @@ import { NotConnected } from '../../components/NotConnected'
 import { Badge, DataTable, ErrorBox, Loading, PageHead } from '../../components/ui'
 import { platform } from '../../platform/bridge'
 import { DesktopTools } from './DesktopTools'
+import { ModularSection } from './ModularSection'
+import { WorksAppSection } from './WorksAppSection'
 import { AssignmentList, LabDetailDialog, ProjectDetailDialog } from './DetailDialogs'
 import { ProjectAI } from './ProjectAI'
 import { isSection, sections } from './sections'
@@ -80,6 +82,10 @@ export function ProjectsPage() {
   let body
   if (!spec.connected) {
     body = <NotConnected what={spec.name} source={`그룹웨어 WORKS applet ${spec.applet}`} />
+  } else if (section === 'modular') {
+    body = <ModularSection projectCode={project?.code ?? null} />
+  } else if (section === 'es') {
+    body = <WorksAppSection appletId={spec.applet} projectCode={project?.code ?? null} />
   } else if (section === 'progress' && scope !== null) {
     body = detail.isLoading ? <Loading /> : detail.data ? <div className="panel-body"><AssignmentList assignments={detail.data.assignments} /></div> : <ErrorBox error={detail.error} />
   } else if (section === 'progress') {
@@ -247,6 +253,8 @@ export function ProjectsPage() {
                   {section === 'progress' && !scope && projects.data && `${projects.data.total.toLocaleString()}개 프로젝트`}
                   {section === 'lab' && labs.data && `${labs.data.total.toLocaleString()}개 테스트`}
                   {section === 'progress' && scope && '프로젝트에 배당된 고객사 › 공장 › 부스 › 존'}
+                  {section === 'modular' && '그룹웨어 모듈라빌드 프로젝트 정보(applet 376)와 같은 목록 · 간트 · 상세'}
+                  {section === 'es' && '그룹웨어 ES 이슈사항 보고(applet 281)와 같은 목록 · 상세'}
                 </p>
               </div>
             </div>

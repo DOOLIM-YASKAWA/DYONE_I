@@ -68,7 +68,8 @@ public sealed class BridgeHost
                     appUrl = _config.Origin,
                 });
             case "notify.toast":
-                _tray.ShowToast(Limit(BrokerRegistry.GetString(args, "title") ?? "DY ONE", 60), Limit(BrokerRegistry.GetString(args, "body") ?? "", 200));
+                _tray.ShowToast(Limit(BrokerRegistry.GetString(args, "title") ?? "DY ONE", 60), Limit(BrokerRegistry.GetString(args, "body") ?? "", 200),
+                    MainWindow.IsAppLink(BrokerRegistry.GetString(args, "link")) ? BrokerRegistry.GetString(args, "link") : null);
                 return Task.FromResult<object?>(new { shown = true });
             case "shell.openExternal":
                 if (!ExternalLinks.Open(BrokerRegistry.GetString(args, "url")))

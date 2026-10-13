@@ -15,7 +15,8 @@
 | 공정 배당 | `project.project_assignment` → `plant.zone` → `booth` → `factory` → `customer` | 연결(읽기) |
 | 랩 테스트 | `smartlab.lab_test` | 연결(읽기) |
 | 원천 적재 상태 | `sync.state` | 연결(읽기, Worker) |
-| 모듈라(376) · 업무일지(296) · ES 이슈(281) | 없음 | 미연결 — DY ONE 전용 스키마 확정 후 |
+| 모듈라빌드 프로젝트 정보(376) | `modular.*` (DY ONE 전용 스키마, `server/db/modular_schema.sql`) — Worker가 그룹웨어 376 미러 | 연결(목록·간트·상세). 입력·상태 전환은 `Modular:EditEnabled` 시범 기능, DY ONE에서 만든 건만 |
+| 업무일지(296) · ES 이슈(281) | 없음 | 미연결 — DY ONE 전용 스키마 확정 후 |
 | IT 요청 · 식단 · 방문 차량 · 알림함 · 감사 로그 | 없음 | 미연결 — 알림은 실시간 전송만, 감사는 서버 로그만 |
 
 - **읽기 전용을 두 겹으로 막는다:** 연결 문자열 `default_transaction_read_only=on`(DB가 쓰기 거부) + `DyOneDbContext.SaveChanges` 차단.
@@ -64,6 +65,57 @@ dotnet run --project src/DyOne.Worker          # 매일 08:00 대기
 ```
 
 바로 확인하려면 `appsettings.Development.json`에서 `GwProjectSync:RunOnStartup=true`(시작 즉시 1회), `DryRun=true`(조회·집계만, 적재 안 함)로 두고 실행한다.
+
+## 모듈라 동기화 (그룹웨어 376 ↔ DY ONE, 두 벌 관리)
+
+`DyOne.Worker`의 `GwModularSyncJob`이 그룹웨어 WORKS applet 376 "모듈라빌드 프로젝트 정보"를 `modular.*`로 가져온다.
+그룹웨어는 조회만 하고, DY ONE에서 바꾼 값은 그룹웨어로 보내지 않는다.
+
+| 테이블 | 담는 것 |
+|---|---|
+| `modular.build` (+ build_option · build_member) | **DY ONE 값** — 화면에 보이고 DY ONE에서 수정·상태 전환하는 값 |
+| `modular.build_gw` | **마지막으로 읽은 그룹웨어 값** (비교용, 칸 키는 `DyOne.Data/Modular/ModularFieldSet.cs`) |
+| `modular.field_change` | 칸별 변경 기록 (source = dyone · groupware, 덮인 DY ONE 값은 overwritten) |
+
+동기화 규칙 (칸 단위):
+
+```
+새 그룹웨어 값 ≠ 지난번 그룹웨어 값  → 그룹웨어에서 바뀐 칸 → DY ONE 값을 덮어씀 (DY ONE에서 고쳤던 칸이면 overwritten에 남김)
+새 그룹웨어 값 = 지난번 그룹웨어 값  → DY ONE 값 유지 (DY ONE에서 고친 값이 살아남음)
+managed_in_dyone = true ('DY ONE 관리 전환')  → 사본만 갱신하고 반영하지 않음
+```
+
+- 변경 감지: `GwChangeFeed` — 그룹웨어 **전체**의 변경 이력(`go_applet_doc_logs.log_id`)을 마지막으로 본 번호부터 색인으로 읽어, 이력이 생긴 376 문서만 다시 읽는다. 1분치 확인 0.6ms, 하루치(약 1만 건)도 약 27ms(2026-10-13 실측) → 앱을 더 감시해도 확인 조회는 하나로 충분하다. 프로세스 시작 직후와 `FullSyncHours`(기본 24)마다 전체 비교(삭제 확인 포함).
+- 그룹웨어 알림 테이블(`go_noti_messages`)은 쓰지 않는다: 사람에게 보내는 알림이라 약 3개월만 남고, 376은 상태 변경 알림이 생기지 않는다(7월 이후 상태 변경 110건, 알림 0건).
+- 실행 간격: `IntervalMinutes = 1` (1분마다 피드 확인, 바뀐 게 없으면 아무것도 읽지 않음). 0이면 매일 `DailyAt` 한 번.
+- 활동 글·댓글·변경 이력·첨부 정보도 옮긴다. 첨부 본체(약 7.6GB, 2,889개)는 그룹웨어 서버 디스크 `/do/TerraceTims/attach/...`에 있어 아직 복사하지 않았다(`modular.file.stored_path`).
+- 그룹웨어에서 문서가 지워지면 DY ONE에서는 지우지 않고 `gw_deleted_at`으로 표시한다.
+- 스키마: `docker exec -i dyone_db psql -U postgres -d dyone < server/db/modular_schema.sql` (운영 .111 미적용 — 스키마가 없는 쓰기 대상은 건너뛴다).
+- API 쓰기는 `Modular:EditEnabled=true` + `ConnectionStrings:DyOneWrite`일 때만 켜진다.
+- 분석·이관 설계: `E:\dy-one\docs\모듈라빌드_376_분석_및_DY_ONE_이관설계.md`
+
+## 그룹웨어 앱 공통 동기화 (works.*, 첫 대상 281 ES 이슈)
+
+그룹웨어 WORKS 앱을 **앱 번호만으로** 옮기는 공통 구조. 필드·선택지·상태·전환·폼 배치·목록 열을 그룹웨어 정의에서 그대로 읽어 화면을 그린다.
+동작은 모듈라와 같다(두 벌 관리, 바뀐 칸만 반영, 1분 변경 이력 피드, DY ONE 관리 전환, 그룹웨어 삭제 표시).
+
+- 앱 추가: Worker 설정 `GwWorksSync:Applets`에 앱 번호를 더하고, 화면 `web/src/pages/projects/sections.ts`에 탭을 연결(`WorksAppSection appletId`)한다.
+- 저장: `works.app/field/status/transition`(정의), `works.doc`(DY ONE 값: values·display jsonb) / `works.doc_gw`(그룹웨어 값), `works.field_change`, `activity/comment/history/file`. DDL `server/db/works_schema.sql`.
+- 칸 값 규칙: `DyOne.Data/Works/WorksValues.cs`. DY ONE에서 고칠 수 있는 칸은 글자·날짜·일시·숫자·선택뿐이다. 사용자·다른 앱 참조·참조 값·파일 칸은 그룹웨어 값 그대로 보여 준다.
+- API `/api/works/apps/{앱}/meta|docs`, `/api/works/docs/{id}`(+ transition · manage). 쓰기는 `Works:EditEnabled=true` + `ConnectionStrings:DyOneWrite`.
+- 281 실측(2026-10-13): 문서 3,251 · 필드 45(DY ONE에서 고칠 수 있는 칸 32) · 변경 이력 33,180 · 첨부 정보 125.
+
+## 그룹웨어 변경 알림 (모듈라 · ES 이슈 공통)
+
+Worker가 그룹웨어 변경을 DY ONE에 반영할 때 같은 트랜잭션으로 `sync.change_notice`에 알림 한 줄을 남긴다(`DyOne.Worker/Jobs/GwNotices.cs`).
+API의 `GwChangeNoticeRelay`가 몇 초마다 새 줄을 읽어 SignalR `notification`으로 보낸다 → 화면 토스트 + 알림함(Windows 앱은 Windows 토스트).
+
+- 알림 내용: 문서 제목 — 상태 이전 → 이후 · 바뀐 칸 이름(3개까지) · DY ONE에서 고친 칸이 덮였는지. 새 문서·그룹웨어 삭제도 알린다.
+- 알림을 누르면 `/modular?doc=번호`, `/works/281?doc=번호`로 가서 문서 상세가 바로 열린다(왼쪽 메뉴 '모듈라', 'ES 이슈'). Windows 앱의 Windows 알림을 눌러도 창이 열리며 같은 문서로 간다(notify.toast의 link → TrayIcon → MainWindow.OpenAppLink, 앱 안 경로만 허용).
+- 처음 전체 적재 때는 알리지 않는다. 한 번에 20건이 넘으면 나머지는 한 줄로 묶는다. 알림 줄은 30일 뒤 지운다.
+- **받는 사람 = 그 앱을 쓰는 부서·사람**(`access.app_department` 하위 부서 포함 선택 · `access.app_employee` 개별 지정, `AppAudience`). 앱에 규칙이 없으면 모두. 앱 키는 `modular`, `works:281`처럼 알림의 entity와 같다. 부서별 메뉴(⑤ 권한)도 이 표를 기준으로 붙인다.
+- **놓친 알림 보기**: 🔔 알림함은 접속할 때 최근 30일 알림(내가 쓰는 앱 것, 100건)을 서버에서 받는다(`GET /api/notifications`). 연결이 끊겼다 붙으면 다시 받는다. 읽음은 `POST /api/notifications/{id}/read`, `/read-all` → `sync.change_notice_read` · `change_notice_seen`(API에 `ConnectionStrings:DyOneWrite` 필요).
+- DDL `server/db/sync_change_notice.sql`, `server/db/app_access.sql`, 설정 `Notifications:GwChangeRelaySeconds`(기본 5, 0이면 끔).
 
 ## 로그인 (그룹웨어 인증)
 

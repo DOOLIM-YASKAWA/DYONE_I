@@ -13,9 +13,13 @@ public static class ConnBuilder
     {
         var baseConn = config.GetConnectionString(csName);
         if (string.IsNullOrWhiteSpace(baseConn)) return null;
+        var b = new NpgsqlConnectionStringBuilder(baseConn);
         var pw = config[pwKey];
-        if (string.IsNullOrEmpty(pw)) return baseConn;
-        return new NpgsqlConnectionStringBuilder(baseConn) { Password = pw }.ConnectionString;
+        if (!string.IsNullOrEmpty(pw)) b.Password = pw;
+        // 그룹웨어(tims)는 조회 전용: 코드의 읽기 전용 트랜잭션과 별개로, 연결 자체를 DB 쪽에서 읽기 전용으로 연다.
+        // (쓰는 SQL이 실수로 들어와도 그룹웨어 DB가 거부한다. 쓰기는 DY ONE DB(DyOneWrite)에만 한다.)
+        if (csName == "Gw") b.Options = "-c default_transaction_read_only=on";
+        return b.ConnectionString;
     }
 
     /// <summary>
