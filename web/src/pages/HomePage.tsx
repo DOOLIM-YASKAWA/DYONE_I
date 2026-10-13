@@ -7,18 +7,20 @@ import { useAuth } from '../auth/AuthContext'
 import { Badge, ErrorBox, Loading, PageHead } from '../components/ui'
 import { formatKoreanDate } from '../routes'
 
-export function ProjectRow({ p }: { p: Project }) {
+const fmtDate = (v?: string) => (v ? new Date(v).toLocaleDateString('ko-KR') : '-')
+
+export function ProjectRow({ p, dateText }: { p: Project; dateText?: string }) {
   const navigate = useNavigate()
   return (
-    <button className="project-row" onClick={() => navigate(`/projects?project=${p.id}`)}>
+    <button className="project-row" onClick={() => navigate(`/projects/${p.id}`)}>
       <span className="project-logo">{(p.partnerName ?? p.code).slice(0, 2)}</span>
       <div>
         <strong>{p.name}</strong>
         <small>
-          {p.code} · {p.partnerName ?? '발주처 미지정'} · ERP {p.erpRegDate ?? '-'}
+          {p.code} · {p.partnerName ?? '발주처 미지정'} · {dateText ?? `ERP ${p.erpRegDate ?? '-'}`}
         </small>
       </div>
-      {p.status && <Badge status={p.status} />}
+      {p.effectiveStage && <Badge status={p.effectiveStage} />}
     </button>
   )
 }
@@ -36,12 +38,12 @@ export function HomePage() {
       {error && <ErrorBox error={error} />}
       {data && (
         <>
-          <div className="stats" style={{ gridTemplateColumns: `repeat(${data.statusCounts.length}, minmax(0, 1fr))` }}>
-            {data.statusCounts.map((s) => (
-              <button key={s.statusId} className="stat stat-button" onClick={() => navigate(`/projects?status=${s.statusId}`)}>
-                <span>{s.status}</span>
-                <strong>{s.count.toLocaleString()}</strong>
-                <small>그룹웨어 프로젝트 기준</small>
+          <div className="stats" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+            {data.customerCounts.map((c) => (
+              <button key={c.name} className="stat stat-button" onClick={() => navigate(`/projects?customer=${encodeURIComponent(c.name)}`)}>
+                <span>{c.name}</span>
+                <strong>{c.count.toLocaleString()}</strong>
+                <small>고객사 기준</small>
               </button>
             ))}
           </div>
@@ -49,37 +51,29 @@ export function HomePage() {
             <section className="panel">
               <div className="panel-head">
                 <div>
-                  <h2>최근 수주 프로젝트</h2>
-                  <p>수주 상태 프로젝트를 ERP 등록 최신순으로 표시합니다.</p>
+                  <h2>최근 등록 프로젝트</h2>
+                  <p>ERP 등록날짜가 최신인 프로젝트입니다.</p>
                 </div>
                 <Link className="text-button" to="/projects">
                   전체 보기 →
                 </Link>
               </div>
-              {data.recentProjects.map((p) => (
+              {data.recentRegistered.map((p) => (
                 <ProjectRow key={p.id} p={p} />
               ))}
+              {data.recentRegistered.length === 0 && <div className="empty">표시할 프로젝트가 없습니다.</div>}
             </section>
             <section className="panel">
               <div className="panel-head">
                 <div>
-                  <h2>최근 랩 테스트</h2>
-                  <p>SmartLab에 등록된 최근 테스트입니다.</p>
+                  <h2>최근 변경 프로젝트</h2>
+                  <p>그룹웨어에서 최근 수정된 프로젝트입니다.</p>
                 </div>
               </div>
-              <div className="attention">
-                {data.recentLabTests.map((l) => (
-                  <button key={l.id} onClick={() => navigate(l.projectId ? `/projects?project=${l.projectId}&tab=lab` : '/projects?tab=lab')}>
-                    <span>LAB</span>
-                    <div>
-                      <strong>{l.name}</strong>
-                      <small>
-                        {l.type ?? '-'} · {l.projectCode ?? '프로젝트 미연결'} · {l.startedAt ? new Date(l.startedAt).toLocaleDateString('ko-KR') : '-'}
-                      </small>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              {data.recentChanged.map((p) => (
+                <ProjectRow key={p.id} p={p} dateText={`변경 ${fmtDate(p.sourceUpdatedAt)}`} />
+              ))}
+              {data.recentChanged.length === 0 && <div className="empty">아직 변경 이력이 없습니다 (Worker 적재 후 표시).</div>}
             </section>
             <section className="panel">
               <div className="panel-head">

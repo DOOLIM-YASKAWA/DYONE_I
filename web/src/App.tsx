@@ -5,6 +5,7 @@ import { Layout } from './components/Layout'
 import { ChatPage } from './pages/ChatPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { ProjectDetailPage } from './pages/projects/ProjectDetailPage'
 import { ProjectsPage } from './pages/projects/ProjectsPage'
 import { AccessPage, ItPage, MealsPage, VehiclesPage } from './pages/ServicePages'
 import { useRealtimeNotifications } from './realtime/useRealtimeNotifications'
@@ -35,6 +36,7 @@ export function App() {
         {enabledRoutes.map((r) => (
           <Route key={r.path} path={r.path} element={pageElements[r.path]} />
         ))}
+        <Route path="/projects/:id" element={<ProjectDetailPage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </Layout>

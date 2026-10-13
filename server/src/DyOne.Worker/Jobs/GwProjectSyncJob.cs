@@ -22,7 +22,7 @@ public class GwProjectSyncJob(IOptions<GwProjectSyncOptions> options, IConfigura
     public override string Name => "gw-project-sync";
     public override bool RunOnStartup => _opt.RunOnStartup;
 
-    private sealed record GwProject(string Code, string Name, string? Partner, int? StatusCode, string? ErpDate);
+    private sealed record GwProject(string Code, string Name, string? Partner, int? StatusCode, string? ErpDate, DateTime? SourceUpdated);
 
     // applet 285 필드키 (go_applet_field 정의 기준)
     private const string KeyCode = "_x3nxrb40v";
@@ -87,12 +87,13 @@ public class GwProjectSyncJob(IOptions<GwProjectSyncOptions> options, IConfigura
               max(v.string_value) filter (where dv.values_key = '{KeyName}')    as name,
               max(v.string_value) filter (where dv.values_key = '{KeyPartner}') as partner,
               max(v.string_value) filter (where dv.values_key = '{KeyErpDate}') as erp_date,
-              max(v.long_value)   filter (where dv.values_key = '{KeyStatus}')  as status_code
+              max(v.long_value)   filter (where dv.values_key = '{KeyStatus}')  as status_code,
+              d.updated_at as source_updated
             from go_applet_docs d
             join go_applet_doc_values dv on dv.applet_doc_id = d.id
             join go_applet_vals v on v.id = dv.value_id
             where d.applet_id = 285
-            group by d.id";
+            group by d.id, d.updated_at";
 
         await using var conn = new NpgsqlConnection(gwConn);
         await conn.OpenAsync(ct);
@@ -109,7 +110,8 @@ public class GwProjectSyncJob(IOptions<GwProjectSyncOptions> options, IConfigura
                 reader.IsDBNull(1) ? "" : reader.GetString(1),
                 reader.IsDBNull(2) ? null : reader.GetString(2),
                 reader.IsDBNull(4) ? null : (int)reader.GetInt64(4),
-                reader.IsDBNull(3) ? null : reader.GetString(3)));
+                reader.IsDBNull(3) ? null : reader.GetString(3),
+                reader.IsDBNull(5) ? null : reader.GetDateTime(5)));
         }
         return list;
     }
@@ -121,10 +123,10 @@ public class GwProjectSyncJob(IOptions<GwProjectSyncOptions> options, IConfigura
         await using var tx = await conn.BeginTransactionAsync(ct);
 
         await using (var create = new NpgsqlCommand(
-            "create temp table _gw_proj (code text primary key, name text, partner text, status_code int, erp_date text) on commit drop", conn, tx))
+            "create temp table _gw_proj (code text primary key, name text, partner text, status_code int, erp_date text, source_updated timestamp) on commit drop", conn, tx))
             await create.ExecuteNonQueryAsync(ct);
 
-        await using (var import = conn.BeginBinaryImport("copy _gw_proj (code, name, partner, status_code, erp_date) from stdin (format binary)"))
+        await using (var import = conn.BeginBinaryImport("copy _gw_proj (code, name, partner, status_code, erp_date, source_updated) from stdin (format binary)"))
         {
             foreach (var r in rows)
             {
@@ -135,6 +137,8 @@ public class GwProjectSyncJob(IOptions<GwProjectSyncOptions> options, IConfigura
                 if (r.StatusCode is { } sc) await import.WriteAsync(sc, NpgsqlTypes.NpgsqlDbType.Integer, ct);
                 else await import.WriteNullAsync(ct);
                 await WriteNullableAsync(import, r.ErpDate, ct);
+                if (r.SourceUpdated is { } su) await import.WriteAsync(su, NpgsqlTypes.NpgsqlDbType.Timestamp, ct);
+                else await import.WriteNullAsync(ct);
             }
             await import.CompleteAsync(ct);
         }
@@ -144,16 +148,17 @@ public class GwProjectSyncJob(IOptions<GwProjectSyncOptions> options, IConfigura
             with src as (
               select g.code, g.name, g.partner,
                      (select c.id from code.code c where c.group_key = 'project_status' and c.sort_order = g.status_code) as status_id,
-                     case when g.erp_date ~ '^\d{8}$' then to_date(g.erp_date, 'YYYYMMDD') end as erp_reg_date
+                     case when g.erp_date ~ '^\d{8}$' then to_date(g.erp_date, 'YYYYMMDD') end as erp_reg_date,
+                     g.source_updated
               from _gw_proj g
             )
             merge into project.project p
             using src on p.code = src.code
             when matched then update set
               name = src.name, partner_name = src.partner, status_id = src.status_id,
-              erp_reg_date = src.erp_reg_date, is_active = true, updated_at = now()
-            when not matched then insert (code, name, partner_name, status_id, erp_reg_date, is_active, created_at, updated_at)
-              values (src.code, src.name, src.partner, src.status_id, src.erp_reg_date, true, now(), now())";
+              erp_reg_date = src.erp_reg_date, source_updated_at = src.source_updated, is_active = true, updated_at = now()
+            when not matched then insert (code, name, partner_name, status_id, erp_reg_date, source_updated_at, is_active, created_at, updated_at)
+              values (src.code, src.name, src.partner, src.status_id, src.erp_reg_date, src.source_updated, true, now(), now())";
 
         int affected;
         await using (var mergeCmd = new NpgsqlCommand(merge, conn, tx))

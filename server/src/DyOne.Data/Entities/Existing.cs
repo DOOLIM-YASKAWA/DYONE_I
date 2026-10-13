@@ -31,6 +31,8 @@ public class Project
     public DateTimeOffset UpdatedAt { get; set; }
     public string? PartnerName { get; set; }
     public DateOnly? ErpRegDate { get; set; }
+    /// <summary>그룹웨어 applet285 문서 수정일(GW에서 마지막으로 바뀐 시각). Worker가 수집. "최근 변경" 정렬용.</summary>
+    public DateTime? SourceUpdatedAt { get; set; }
 }
 
 /// <summary>project.project_assignment — 공정(factory/booth/zone) ↔ 프로젝트 배당</summary>
@@ -51,6 +53,18 @@ public class ProjectApp
 {
     public long ProjectId { get; set; }
     public string AppKey { get; set; } = "";
+}
+
+/// <summary>
+/// project.project_stage — dyone 자체 진행 단계(사용자 편집). 그룹웨어 상태(영업중/수주)와 별개.
+/// 수주 이후 단계(설계/모듈라/현장설치/라인대응/완료)를 대응 인원이 dyone에서 직접 관리한다.
+/// </summary>
+public class ProjectStage
+{
+    public long ProjectId { get; set; }
+    public long StageId { get; set; }          // code.code(group_key=project_stage).id
+    public long? UpdatedBy { get; set; }        // org.employee.id
+    public DateTimeOffset UpdatedAt { get; set; }
 }
 
 /// <summary>plant.* — 공정 기준정보: 고객사 → 공장 → 부스 → 존 (MotoSim Launcher와 같은 구조)</summary>
