@@ -67,6 +67,27 @@ public class ProjectStage
     public DateTimeOffset UpdatedAt { get; set; }
 }
 
+/// <summary>
+/// project.project_file — 프로젝트별 업로드 문서(사양서/설계/모듈라/라인 대응 등). dyone 자체 데이터.
+/// 실물 파일은 파일 저장소(NAS 등)에 두고 여기엔 메타만. 분류=code.code(document_category).
+/// </summary>
+public class ProjectFile
+{
+    public long Id { get; set; }
+    public long ProjectId { get; set; }
+    public long? CategoryId { get; set; }       // code.code(group_key=document_category)
+    public long? StageId { get; set; }          // code.code(group_key=project_stage) — 업로드 당시 단계(선택)
+    public string FileName { get; set; } = "";  // 원본 파일명
+    public string StoredName { get; set; } = ""; // 저장소 Root 기준 상대경로(projects/<코드 이름>/<분류>/<원본파일명>)
+    public string? ContentType { get; set; }
+    public long SizeBytes { get; set; }
+    public string? Description { get; set; }
+    public long? UploadedBy { get; set; }        // org.employee.id
+    public long? DepartmentId { get; set; }      // 업로더 소속 부서(org.department.id) 스냅샷
+    public DateTimeOffset UploadedAt { get; set; }
+    public bool IsActive { get; set; }
+}
+
 /// <summary>plant.* — 공정 기준정보: 고객사 → 공장 → 부스 → 존 (MotoSim Launcher와 같은 구조)</summary>
 public class Customer
 {

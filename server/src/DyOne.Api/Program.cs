@@ -17,6 +17,11 @@ var config = builder.Configuration;
 // --- 데이터: 기존 dyone DB(PostgreSQL 18)를 읽기 전용으로 사용. 개발 연결 정보는 user-secrets ---
 builder.Services.AddDbContext<DyOneDbContext>(o => DyOneDb.Configure(o, config.GetConnectionString("DyOne")));
 
+// --- 프로젝트 문서 업로드 저장소(운영=NAS UNC, 개발=로컬 폴더; FileStorage:Root). 대용량 설계 문서 대비 512MB 허용 ---
+builder.Services.AddSingleton<DyOne.Api.Modules.Projects.FileStorage>();
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = 512L * 1024 * 1024);
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 512L * 1024 * 1024);
+
 // --- 인증: 그룹웨어 로그인 API로 검증 → org.employee(login_id)로 직원 확인 → DY ONE 자체 JWT ---
 var authSection = config.GetSection("Auth");
 builder.Services.Configure<AuthOptions>(authSection);
@@ -88,6 +93,7 @@ app.MapGet("/api/health", () => Results.Ok(new { status = "ok", time = DateTimeO
 app.MapAuth();
 app.MapHome();
 app.MapProjects();
+app.MapProjectFiles();
 app.MapAi();
 app.MapNotifications();
 app.MapHub<NotificationHub>("/hubs/notifications");

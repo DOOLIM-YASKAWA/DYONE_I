@@ -69,6 +69,25 @@ export interface ProjectDetail {
   dyoneStage?: { stageId: number; stageCode: string; stageName: string; updatedAt: string; updatedByName?: string } | null
 }
 
+/** project.project_file — 프로젝트별 업로드 문서(dyone 자체) */
+export interface ProjectFile {
+  id: number
+  projectId: number
+  categoryId?: number
+  category?: string
+  categoryCode?: string
+  stageId?: number
+  stage?: string
+  fileName: string
+  contentType?: string
+  sizeBytes: number
+  description?: string
+  uploadedByName?: string
+  departmentId?: number
+  department?: string
+  uploadedAt: string
+}
+
 /** smartlab.lab_test */
 export interface LabTest {
   id: number

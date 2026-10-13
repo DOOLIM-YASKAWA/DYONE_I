@@ -32,3 +32,21 @@
 .project-search .search-input{flex:1;max-width:520px}
 .stage-panel .panel-head{padding:16px 24px 4px}
 .stage-panel .panel-body{padding-bottom:14px}
+.files-tab .dropzone{border:2px dashed #c6d3e8;border-radius:12px;background:#fafcff;padding:26px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,background .15s}
+.files-tab .dropzone:hover,.files-tab .dropzone.over{border-color:var(--blue);background:#eef4ff}
+.files-tab .dropzone strong{font-size:15px}
+.files-tab .dropzone span{font-size:13px;color:var(--muted)}
+.files-tab .upload-opts{display:flex;gap:12px;align-items:center;margin:14px 0 6px;flex-wrap:wrap}
+.files-tab .upload-opts label{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.files-tab .upload-opts .search-input{flex:1;min-width:180px}
+.file-chips{margin:16px 0 10px}
+.file-list{list-style:none;margin:0;padding:0}
+.file-list li{display:flex;align-items:center;gap:14px;padding:14px 4px;border-top:1px solid #edf1f7}
+.file-list li:first-child{border-top:0}
+.file-ext{flex:none;width:44px;height:44px;border-radius:9px;background:#e9effa;color:#45668f;font-size:11px;font-weight:700;display:grid;place-items:center}
+.file-main{flex:1;min-width:0}
+.file-main .row-title{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-main small{display:block;color:var(--muted);margin-top:5px;line-height:1.7}
+.file-main small .badge{margin-right:4px}
+.text-button.danger{color:#b7584a}
+.file-cat{font:inherit;font-size:12px;padding:2px 6px;border:1px solid #d9e1ed;border-radius:6px;background:#eaf1ff;color:#3c65be;min-width:0;width:auto;cursor:pointer}
