@@ -19,8 +19,8 @@ declare global {
 
 export interface Platform {
   kind: PlatformKind
-  /** 운영체제 알림. Windows 앱은 토스트, 모바일은 (FCM 연결 후) 푸시, PC 웹은 화면 안 알림만 쓴다. */
-  showSystemNotification(title: string, body: string): Promise<void>
+  /** 운영체제 알림. Windows 앱은 토스트(누르면 link 화면으로 이동), 모바일은 (FCM 연결 후) 푸시, PC 웹은 화면 안 알림만 쓴다. */
+  showSystemNotification(title: string, body: string, link?: string): Promise<void>
   openExternal(url: string): Promise<void>
   /** Windows 앱의 Local Broker 명령. 다른 채널에서는 지원하지 않는다. */
   broker<T = unknown>(cmd: string, args?: Record<string, unknown>): Promise<T>
@@ -63,8 +63,8 @@ function createPlatform(): Platform {
 
   return {
     kind,
-    async showSystemNotification(title, body) {
-      if (kind === 'desktop' && desktop) await desktop.invoke('notify.toast', { title, body })
+    async showSystemNotification(title, body, link) {
+      if (kind === 'desktop' && desktop) await desktop.invoke('notify.toast', link ? { title, body, link } : { title, body })
       // mobile: FCM 연결 단계에서 구현 · web: 화면 안 알림만 사용(Web Push 미사용)
     },
     async openExternal(url) {

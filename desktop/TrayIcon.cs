@@ -9,6 +9,8 @@ namespace DyOne.Desktop;
 public sealed class TrayIcon : IDisposable
 {
     private readonly Forms.NotifyIcon _icon;
+    // 지금 떠 있는 알림의 화면 경로(예: /works/281?doc=73). 알림을 누르면 창을 열고 그 문서로 간다.
+    private string? _toastLink;
 
     public TrayIcon(MainWindow window)
     {
@@ -24,7 +26,13 @@ public sealed class TrayIcon : IDisposable
             Visible = true,
         };
         _icon.DoubleClick += (_, _) => window.ShowFromTray();
-        _icon.BalloonTipClicked += (_, _) => window.ShowFromTray();
+        _icon.BalloonTipClicked += (_, _) =>
+        {
+            window.ShowFromTray();
+            if (_toastLink is { } link) window.OpenAppLink(link);
+            _toastLink = null;
+        };
+        _icon.BalloonTipClosed += (_, _) => _toastLink = null;
     }
 
     private static Icon LoadIcon()
@@ -39,8 +47,12 @@ public sealed class TrayIcon : IDisposable
         }
     }
 
-    public void ShowToast(string title, string body) =>
+    /// <param name="link">알림을 눌렀을 때 열 DY ONE 화면 경로(없으면 창만 연다)</param>
+    public void ShowToast(string title, string body, string? link = null)
+    {
+        _toastLink = link;
         _icon.ShowBalloonTip(5000, title, body, Forms.ToolTipIcon.Info);
+    }
 
     public void Dispose()
     {

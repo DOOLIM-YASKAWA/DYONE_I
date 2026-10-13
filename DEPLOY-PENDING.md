@@ -77,3 +77,22 @@
 - [ ] 운영 dyone 설정(환경변수): `WriteTargets`, `SmartLabSso:*`, 각 `*:Password` 시크릿.
 - [ ] `CLAUDE.md`(작업 가이드) 커밋 여부 결정.
 
+## 모듈라빌드(그룹웨어 376) — `modular` 스키마 (2026-10-12 로컬 적용)
+- [ ] 운영 dyone(.111:12678)에 스키마 적용: `server/db/modular_schema.sql` (여러 번 실행해도 안전)
+  - 스키마가 없는 쓰기 대상은 `GwModularSyncJob`이 건너뛴다(오류 아님). 적용 전에는 운영에 모듈라 데이터가 쌓이지 않는다.
+- [ ] Worker 시크릿에 그룹웨어 비번 `Gw:Password` 등록 (현재 Worker user-secrets에 없음 → GW 연결 실패)
+- [ ] 운영 Worker 설정 확인: `GwModularSync:IntervalMinutes`(기본 1분, 변경 이력 피드 확인 1ms 안팎) · `FullSyncHours`(기본 24)
+- [ ] 첨부 파일 본체(약 7.6GB) 복사 여부 결정: 그룹웨어 서버 파일 접근 계정 + DY ONE 저장 위치(NAS/GCS)
+- [ ] API `Modular:EditEnabled` 운영 값 결정: 켜면 DY ONE에서 수정·상태 전환 가능(그룹웨어로는 안 보냄, 그룹웨어가 같은 칸을 바꾸면 덮임). 켤 때 API에 `ConnectionStrings:DyOneWrite` 필요
+
+## 그룹웨어 앱 공통(works.*) — 281 ES 이슈 (2026-10-13 로컬 적용)
+- [ ] 운영 dyone(.111:12678)에 `server/db/works_schema.sql` 적용 (스키마가 없는 쓰기 대상은 GwWorksSyncJob이 건너뛴다)
+- [ ] 운영 Worker 설정 `GwWorksSync:Applets`(예: [281]) — 기본값이 비어 있어 설정하지 않으면 아무 앱도 옮기지 않는다
+- [ ] API `Works:EditEnabled` 운영 값 결정 (켤 때 API에 `ConnectionStrings:DyOneWrite` 필요)
+
+## 그룹웨어 변경 알림 (2026-10-13 로컬 적용)
+- [ ] 운영 dyone(.111:12678)에 `server/db/sync_change_notice.sql` 적용 — 없으면 Worker는 알림 없이 동기화만 하고 API 알림 전달은 1분마다 다시 확인만 한다
+- [ ] API 설정 `Notifications:GwChangeRelaySeconds`(기본 5초, 0이면 끔) 확인
+- [ ] 운영 dyone에 `server/db/app_access.sql` 적용(앱별 사용 부서 access.*) — 모듈라=모듈라팀 초기 값은 부서 이름으로 넣으므로 운영 조직도 id 확인
+- [ ] 받는 사람(app_access.sql에 포함): 모듈라=모듈라팀, ES 이슈=ES영업실(ES영업팀·CS팀), 모든 앱('*')=함유진(DY ONE 개발). 새 앱을 붙일 때마다 받는 부서를 정해 넣는다
+- [ ] 놓친 알림 읽음 표시: API에 `ConnectionStrings:DyOneWrite` 필요(없으면 읽음이 그 화면에서만 남음)

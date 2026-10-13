@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import { Layout } from './components/Layout'
 import { ChatPage } from './pages/ChatPage'
+import { ModularPage, WorksAppPage } from './pages/GroupwareAppPages'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { ProjectDetailPage } from './pages/projects/ProjectDetailPage'
@@ -19,6 +20,8 @@ import { enabledRoutes } from './routes'
 const pageElements: Record<string, ReactElement> = {
   '/home': <HomePage />,
   '/projects': <ProjectsPage />,
+  '/modular': <ModularPage />,
+  '/works/281': <WorksAppPage appletId={281} title="ES 이슈" />,
   '/smartlab': <SmartLabPage />,
   '/process': <ProcessPage />,
   '/srs-analyzer': <SrsAnalyzerPage />,

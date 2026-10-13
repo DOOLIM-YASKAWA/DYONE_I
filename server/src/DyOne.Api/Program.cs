@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 using DyOne.Api.Modules.Ai;
 using DyOne.Api.Modules.Auth;
 using DyOne.Api.Modules.Home;
+using DyOne.Api.Modules.Modular;
+using DyOne.Api.Modules.Works;
 using DyOne.Api.Modules.Notifications;
 using DyOne.Api.Modules.Projects;
 using DyOne.Api.Platform;
@@ -80,6 +82,9 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
 // --- 모듈 서비스 ---
 builder.Services.AddScoped<AuditLog>();
 builder.Services.AddScoped<NotificationService>();
+// 그룹웨어 변경 알림(Worker가 sync.change_notice에 남긴 것)을 실시간 알림으로 보낸다
+builder.Services.AddSingleton<AppAudience>();
+builder.Services.AddHostedService<GwChangeNoticeRelay>();
 builder.Services.AddScoped<IAiAssistant, RuleBasedAssistant>();
 
 var app = builder.Build();
@@ -95,6 +100,8 @@ app.MapAuth();
 app.MapHome();
 app.MapProjects();
 app.MapProjectFiles();
+app.MapModular();
+app.MapWorks();
 app.MapAi();
 app.MapNotifications();
 app.MapSmartLab();
