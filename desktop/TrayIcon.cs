@@ -9,7 +9,7 @@ namespace DyOne.Desktop;
 public sealed class TrayIcon : IDisposable
 {
     private readonly Forms.NotifyIcon _icon;
-    // 지금 떠 있는 알림의 화면 경로(예: /works/281?doc=73). 알림을 누르면 창을 열고 그 문서로 간다.
+    // 지금 떠 있는 알림의 화면 경로(예: /works/281?doc=73) 또는 그룹웨어 문서 주소. 알림을 누르면 그 문서로 간다.
     private string? _toastLink;
 
     public TrayIcon(MainWindow window)
@@ -29,7 +29,12 @@ public sealed class TrayIcon : IDisposable
         _icon.BalloonTipClicked += (_, _) =>
         {
             window.ShowFromTray();
-            if (_toastLink is { } link) window.OpenAppLink(link);
+            // 앱 안 경로는 그 화면으로, 그룹웨어 문서 주소(https)는 기본 브라우저로 연다
+            if (_toastLink is { } link)
+            {
+                if (link.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) ExternalLinks.Open(link);
+                else window.OpenAppLink(link);
+            }
             _toastLink = null;
         };
         _icon.BalloonTipClosed += (_, _) => _toastLink = null;

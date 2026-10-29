@@ -7,7 +7,7 @@ using Microsoft.Web.WebView2.Core;
 namespace DyOne.Desktop;
 
 /// <summary>
-/// React(웹) ↔ .NET 중계. 요청 { id, cmd, args } → 응답 { id, ok, result | error }
+/// React(웹) ↔ .NET 중계. 요청 { id, cmd, args } → 응답 { id, ok, result | error }, 진행 알림은 { event, data }
 /// 앱 공통 명령(app.info · notify.toast · shell.openExternal)은 여기서, PC 작업은 Local Broker 모듈에서 처리한다.
 /// </summary>
 public sealed class BridgeHost
@@ -19,13 +19,18 @@ public sealed class BridgeHost
     private readonly AppConfig _config;
     private readonly BrokerRegistry _broker;
 
-    public BridgeHost(CoreWebView2 core, MainWindow window, TrayIcon tray, AppConfig config, BrokerRegistry broker)
+    public BridgeHost(CoreWebView2 core, MainWindow window, TrayIcon tray, AppConfig config, BrokerRegistry broker, BrokerContext brokerContext)
     {
         _core = core;
         _tray = tray;
         _config = config;
         _broker = broker;
         _core.WebMessageReceived += OnWebMessageReceived;
+        // Broker 진행 이벤트 { event, data } → 웹(bridge.js의 on()). WebView2는 UI 스레드에서만 보낼 수 있다.
+        brokerContext.Emit = (name, data) => window.Dispatcher.BeginInvoke(() =>
+        {
+            if (_config.IsTrusted(_core.Source)) _core.PostWebMessageAsJson(JsonSerializer.Serialize(new { @event = name, data }, Json));
+        });
     }
 
     private sealed record BridgeRequest(string Id, string Cmd, JsonElement Args);
@@ -69,7 +74,7 @@ public sealed class BridgeHost
                 });
             case "notify.toast":
                 _tray.ShowToast(Limit(BrokerRegistry.GetString(args, "title") ?? "DY ONE", 60), Limit(BrokerRegistry.GetString(args, "body") ?? "", 200),
-                    MainWindow.IsAppLink(BrokerRegistry.GetString(args, "link")) ? BrokerRegistry.GetString(args, "link") : null);
+                    BrokerRegistry.GetString(args, "link") is { } link && (MainWindow.IsAppLink(link) || link.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) ? link : null);
                 return Task.FromResult<object?>(new { shown = true });
             case "shell.openExternal":
                 if (!ExternalLinks.Open(BrokerRegistry.GetString(args, "url")))

@@ -6,11 +6,13 @@ import { ChatPage } from './pages/ChatPage'
 import { ModularPage, WorksAppPage } from './pages/GroupwareAppPages'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { OrgChartPage } from './pages/OrgChartPage'
 import { ProjectDetailPage } from './pages/projects/ProjectDetailPage'
 import { ProjectsPage } from './pages/projects/ProjectsPage'
 import { SrsAnalyzerPage } from './pages/SrsAnalyzerPage'
 import { SmartLabPage } from './pages/SmartLabPage'
 import { ProcessPage } from './pages/ProcessPage'
+import { MotosimPage } from './pages/motosim/MotosimPage'
 import { AccessPage, ItPage, MealsPage, VehiclesPage } from './pages/ServicePages'
 import { useRealtimeNotifications } from './realtime/useRealtimeNotifications'
 import { enabledRoutes } from './routes'
@@ -21,9 +23,11 @@ const pageElements: Record<string, ReactElement> = {
   '/home': <HomePage />,
   '/projects': <ProjectsPage />,
   '/modular': <ModularPage />,
+  '/org': <OrgChartPage />,
   '/works/281': <WorksAppPage appletId={281} title="ES 이슈" />,
   '/smartlab': <SmartLabPage />,
   '/process': <ProcessPage />,
+  '/motosim': <MotosimPage />,
   '/srs-analyzer': <SrsAnalyzerPage />,
   '/chat': <ChatPage />,
   '/it': <ItPage />,
