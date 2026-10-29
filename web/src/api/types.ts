@@ -50,6 +50,18 @@ export interface Project {
   sourceUpdatedAt?: string
   effectiveStage?: string
   effectiveSource?: 'dyone' | 'gw'
+  /** 대표 단계의 상태(진행·완료). 목록·홈·상세가 같은 규칙으로 계산 */
+  effectiveStatus?: ProgressStatus
+  /** 최근 변경 = 그룹웨어 문서 수정일과 DY ONE 단계·진행 상황 변경 중 더 최근 것 */
+  lastChangedAt?: string
+  /** 최근 활동 종류(진행 상황 변경·파일 업로드·인원 배정·그룹웨어 수정·ERP 등록·모듈라 작업·ES 이슈·SmartLab 테스트·SRS 측정) */
+  lastChangedSource?: string
+  /** 최근 활동을 한 사람(알 수 있을 때) */
+  lastChangedBy?: string
+  /** 최근 7일 활동 수 */
+  recentActivity7d?: number
+  /** 프로젝트 PM(project.project_member, DY ONE에서 지정) */
+  pmName?: string
 }
 
 /** project.project_assignment → plant.* */
@@ -66,7 +78,11 @@ export interface ProjectDetail {
   assignments: Assignment[]
   apps: string[]
   labTestCount: number
-  dyoneStage?: { stageId: number; stageCode: string; stageName: string; updatedAt: string; updatedByName?: string } | null
+  dyoneStage?: { stageId: number; stageCode: string; stageName: string; updatedAt: string; updatedByName?: string; updatedByDept?: string } | null
+  /** 단계별 진행 상황(S1~S9 순서). 저장 전이면 대표 단계로 추정한 값(updatedAt 없음) */
+  progress?: ProgressItem[]
+  /** 대표(현재) 단계 — 목록의 진행 단계와 같음 */
+  currentStageId?: number | null
 }
 
 /** project.project_file — 프로젝트별 업로드 문서(dyone 자체) */
@@ -104,7 +120,8 @@ export interface LabTest {
 
 export interface HomeSummary {
   customerCounts: { name: string; count: number }[]
-  recentRegistered: Project[]
+  /** 내가 관여한 프로젝트: PM·투입 인원 또는 내가 진행 상황 변경·파일 업로드·인원 배정 */
+  myProjects: { project: Project; myLastAt: string; reasons: string[] }[]
   recentChanged: Project[]
   sync: { source: string; entity: string; updatedAt?: string }[]
 }
@@ -373,4 +390,41 @@ export interface WorksDocDetail {
   history: ModularHistoryItem[]
   editable: boolean
   gwUrl?: string
+}
+
+/** project.project_stage_history — 프로젝트 진행 단계 변경 이력(최신순). fromStage가 없으면 DY ONE에서 처음 지정 */
+export interface StageHistoryItem {
+  id: number
+  changedAt: string
+  changedByName?: string
+  changedByDept?: string
+  changedByPosition?: string
+  fromStageId?: number
+  fromStage?: string
+  fromOrder?: number
+  toStageId?: number
+  toStage?: string
+  toOrder?: number
+  note?: string
+  /** 단계별 진행 상황 변경이면 전·후 상태 */
+  fromStatus?: ProgressStatus
+  toStatus?: ProgressStatus
+  /** dyone(화면에서 변경) · groupware(그룹웨어 상태 동기화: gwFrom → gwTo) */
+  source?: 'dyone' | 'groupware'
+  gwFrom?: string
+  gwTo?: string
+}
+
+/** 단계별 진행 상황: 대기 · 진행 · 완료 */
+export type ProgressStatus = 'wait' | 'run' | 'done'
+
+export interface ProgressItem {
+  stageId: number
+  code: string
+  name: string
+  status: ProgressStatus
+  updatedAt?: string
+  updatedByName?: string
+  /** 영업·수주처럼 그룹웨어 상태로 계산되는 단계(DY ONE에서 바꾸지 않음) */
+  fromGroupware?: boolean
 }

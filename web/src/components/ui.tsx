@@ -2,7 +2,11 @@ import { useEffect, useRef, type ReactNode } from 'react'
 
 /** 데모와 같은 상태 배지 색상 규칙 */
 export function Badge({ status }: { status: string }) {
-  const tone = /완료/.test(status)
+  const tone = /중단/.test(status)
+    ? 'red'
+    : /마감/.test(status)
+      ? 'closed'
+      : /완료/.test(status)
     ? 'green'
     : /진행|시운전/.test(status)
       ? 'blue'
@@ -101,4 +105,15 @@ export function Modal({ title, onClose, children, footer }: { title: string; onC
       </div>
     </dialog>
   )
+}
+
+/** 그룹웨어에서 끝난 프로젝트(마감·중단) 표시. DY ONE 진행 상황과 별개로 그룹웨어 상태를 알려 준다. 그 밖의 상태면 아무것도 그리지 않는다. */
+export function GwEndBadge({ status }: { status?: string | null }) {
+  if (status !== '마감' && status !== '중단') return null
+  return <span className={`badge ${status === '중단' ? 'red' : 'closed'}`} title={`그룹웨어 상태: ${status}`}>그룹웨어 {status}</span>
+}
+
+/** 프로젝트 진행 단계 표시(목록·홈·상세 공통): 진행 중이면 파랑, 완료면 초록 '○○ 완료' */
+export function StageBadge({ name, status }: { name: string; status?: string | null }) {
+  return <span className={`badge ${status === 'done' ? 'green' : 'blue'}`}>{status === 'done' ? `${name} 완료` : name}</span>
 }

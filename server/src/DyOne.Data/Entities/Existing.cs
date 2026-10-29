@@ -67,6 +67,16 @@ public class ProjectStage
     public DateTimeOffset UpdatedAt { get; set; }
 }
 
+/// <summary>project.project_stage_status — 단계별 진행 상황(DY ONE에서 관리하는 설계·구매 이후 단계만). status: wait · run · done</summary>
+public class ProjectStageStatus
+{
+    public long ProjectId { get; set; }
+    public long StageId { get; set; }
+    public string Status { get; set; } = "wait";
+    public long? UpdatedBy { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
 /// <summary>
 /// project.project_file — 프로젝트별 업로드 문서(사양서/설계/모듈라/라인 대응 등). dyone 자체 데이터.
 /// 실물 파일은 파일 저장소(NAS 등)에 두고 여기엔 메타만. 분류=code.code(document_category).

@@ -86,7 +86,7 @@ export function ProjectDetailDialog({ projectId, onClose }: { projectId: number;
           ['시작 · 종료', `${p.startDate ?? '-'} ~ ${p.endDate ?? '-'}`],
           ['앱 소속', data.apps.join(', ') || '없음'],
           ['랩 테스트', `${data.labTestCount}건`],
-          ['최근 변경', date(p.updatedAt)],
+          ['최근 변경', p.lastChangedAt ? `${date(p.lastChangedAt)} (${p.lastChangedSource ?? '변경'})` : '-'],
           ['설명', p.description, true],
         ]}
       />
