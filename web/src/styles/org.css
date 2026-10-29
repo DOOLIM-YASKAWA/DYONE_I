@@ -1,0 +1,70 @@
+/* 조직도 · 인원 선택 · 프로젝트 인원 */
+.org-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}
+.org-side{position:sticky;top:16px;max-height:calc(100vh - 140px);overflow:auto}
+.org-tree,.org-tree ul{list-style:none;margin:0;padding:0}
+.org-node{display:flex;align-items:center;gap:2px;border-radius:7px}
+.org-node.on{background:#eaf1ff}
+.org-node.on .org-name{color:#2f5bb8;font-weight:600}
+.org-toggle{border:0;background:none;width:22px;height:28px;flex-shrink:0;color:var(--muted);font-size:12px;padding:0}
+.org-name{border:0;background:none;text-align:left;padding:6px 6px;font-size:14px;flex:1;border-radius:6px}
+.org-name:hover{background:#f2f6fc}
+.org-name small{color:var(--muted);font-size:12px;margin-left:4px}
+.org-group{margin-bottom:22px}
+.org-group h3{font-size:14px;color:#4d5f7a;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.org-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.org-card{display:flex;gap:10px;align-items:flex-start;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px}
+.org-card:hover{border-color:#bcd0f3}
+.org-card.on{border-color:var(--blue);box-shadow:0 0 0 2px #dbe6fb}
+.org-card b{font-size:15px}
+.org-card small{color:var(--muted)}
+.org-card .org-mail{display:block;margin-top:4px;font-size:12px;word-break:break-all}
+.org-person{position:fixed;right:24px;bottom:24px;width:min(420px,calc(100vw - 32px));max-height:70vh;overflow:auto;z-index:30;box-shadow:0 12px 40px rgba(18,36,66,.18)}
+.org-projects{list-style:none;margin:0;padding:0}
+.org-projects li{border-top:1px solid var(--line);padding:10px 0}
+.org-projects li:first-child{border-top:0}
+.org-projects small{display:block;color:var(--muted);margin-top:4px}
+@media (max-width:900px){.org-layout{grid-template-columns:1fr}.org-side{position:static;max-height:300px}}
+
+.picker{display:grid;grid-template-columns:240px minmax(0,1fr);gap:12px;min-height:340px;width:min(680px,calc(100vw - 110px))}
+.picker-tree{border:1px solid var(--line);border-radius:9px;padding:6px;max-height:420px;overflow:auto}
+.picker-list{display:flex;flex-direction:column;gap:8px;min-width:0}
+.picker-list ul{list-style:none;margin:0;padding:0;max-height:370px;overflow:auto;border:1px solid var(--line);border-radius:9px}
+.picker-list li button{width:100%;border:0;border-top:1px solid #eef2f8;background:#fff;text-align:left;padding:9px 12px}
+.picker-list li:first-child button{border-top:0}
+.picker-list li button:hover:not(:disabled){background:#f4f7fd}
+.picker-list li button.on{background:#eaf1ff}
+.picker-list li button:disabled{color:#a3adbd;cursor:default}
+.picker-list small{color:var(--muted)}
+.picker-dept{display:block;font-size:12px;margin-top:2px}
+.picker-hint{color:var(--muted);font-size:13px;margin:4px 0}
+.picker-task{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px;color:var(--muted)}
+.picker-task input{flex:1}
+@media (max-width:700px){.picker{grid-template-columns:1fr}.picker-tree{max-height:180px}}
+
+.members .muted{color:var(--muted)}
+.member-pm{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border:1px solid #d9e5fb;background:#f7faff;border-radius:11px;padding:16px 18px;margin-bottom:22px}
+.member-label{display:inline-block;font-size:12px;font-weight:700;color:#3c65be;letter-spacing:1px;margin-bottom:8px}
+.member-person{display:flex;gap:12px;align-items:flex-start}
+.member-person b{font-size:17px}
+.member-person small{color:var(--muted)}
+.member-sub{display:block;margin-top:4px}
+.member-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.member-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.member-head h3{margin:0;font-size:16px}
+.member-head h3 small{color:var(--muted);font-weight:400}
+.member-task{border:0;background:none;padding:2px 4px;text-align:left;border-radius:5px;color:inherit;font-size:inherit}
+.member-task:hover{background:#eef3fb}
+.member-task-edit{display:inline-flex;gap:4px;align-items:center}
+.member-task-edit input{padding:5px 8px;width:180px}
+.scope-pm{display:inline-flex;align-items:center;gap:6px;border:0;background:rgba(255,255,255,.12);color:inherit;border-radius:6px;padding:4px 10px;font-size:13px;margin-top:8px}
+.scope-pm:hover{background:rgba(255,255,255,.2)}
+.org-card .org-phone{display:block;margin-top:4px;font-size:12px;color:#3d5375}
+.org-person-phone{margin-top:4px!important;font-size:13px}
+.phone{white-space:nowrap}
+.phone-label{color:var(--muted);margin-right:2px}
+.picker-list li button{display:flex;gap:10px;align-items:flex-start}
+.picker-list li button input[type=checkbox]{margin-top:4px;flex-shrink:0;width:auto}
+.picker-all{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.picker-all input{width:auto}
+.picker-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.picker-chips .chip{font-size:13px;padding:4px 10px}
