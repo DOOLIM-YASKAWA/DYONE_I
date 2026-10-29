@@ -46,7 +46,8 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
     let message = `요청에 실패했습니다. (${res.status})`
     try {
       const problem = await res.json()
-      message = problem.detail ?? problem.title ?? message
+      // ASP.NET ProblemDetails(detail/title) + 우리 커스텀 오류({message}) 모두 노출
+      message = problem.detail ?? problem.title ?? problem.message ?? message
     } catch {
       /* 본문 없는 오류 */
     }

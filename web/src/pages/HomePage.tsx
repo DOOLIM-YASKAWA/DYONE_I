@@ -4,12 +4,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import type { HomeSummary, Project } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import { Badge, ErrorBox, Loading, PageHead } from '../components/ui'
+import { ErrorBox, Loading, PageHead, GwEndBadge, StageBadge } from '../components/ui'
 import { formatKoreanDate } from '../routes'
+import '../styles/project-detail.css'
 
-const fmtDate = (v?: string) => (v ? new Date(v).toLocaleDateString('ko-KR') : '-')
+const fmtWhen = (v?: string) => (v ? new Date(v).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-')
 
-export function ProjectRow({ p, dateText }: { p: Project; dateText?: string }) {
+export function ProjectRow({ p, dateText, tags }: { p: Project; dateText?: string; tags?: string[] }) {
   const navigate = useNavigate()
   return (
     <button className="project-row" onClick={() => navigate(`/projects/${p.id}`)}>
@@ -19,8 +20,12 @@ export function ProjectRow({ p, dateText }: { p: Project; dateText?: string }) {
         <small>
           {p.code} · {p.partnerName ?? '발주처 미지정'} · {dateText ?? `ERP ${p.erpRegDate ?? '-'}`}
         </small>
+        {tags && tags.length > 0 && (
+          <span className="badge-row row-tags">{tags.map((t) => <span key={t} className={`badge ${t === 'PM' ? 'blue' : ''}`}>{t}</span>)}</span>
+        )}
       </div>
-      {p.effectiveStage && <Badge status={p.effectiveStage} />}
+      {p.effectiveStage && <StageBadge name={p.effectiveStage} status={p.effectiveStatus} />}
+      <GwEndBadge status={p.status} />
     </button>
   )
 }
@@ -51,29 +56,34 @@ export function HomePage() {
             <section className="panel">
               <div className="panel-head">
                 <div>
-                  <h2>최근 등록 프로젝트</h2>
-                  <p>ERP 등록날짜가 최신인 프로젝트입니다.</p>
+                  <h2>MY 프로젝트</h2>
+                  <p>내가 PM·투입 인원이거나, 진행 상황을 바꾸거나 파일을 올린 프로젝트입니다.</p>
                 </div>
                 <Link className="text-button" to="/projects">
                   전체 보기 →
                 </Link>
               </div>
-              {data.recentRegistered.map((p) => (
-                <ProjectRow key={p.id} p={p} />
+              {data.myProjects.map((m) => (
+                <ProjectRow key={m.project.id} p={m.project} dateText={`내 작업 ${fmtWhen(m.myLastAt)}`} tags={m.reasons} />
               ))}
-              {data.recentRegistered.length === 0 && <div className="empty">표시할 프로젝트가 없습니다.</div>}
+              {data.myProjects.length === 0 && <div className="empty">아직 관여한 프로젝트가 없습니다. 프로젝트 인원으로 배정되거나 진행 상황·파일을 올리면 여기에 모입니다.</div>}
             </section>
             <section className="panel">
               <div className="panel-head">
                 <div>
-                  <h2>최근 변경 프로젝트</h2>
-                  <p>그룹웨어에서 최근 수정된 프로젝트입니다.</p>
+                  <h2>최근 활동 프로젝트</h2>
+                  <p>새로 등록됐거나 최근에 작업이 있었던 프로젝트입니다(진행 상황·파일·인원·그룹웨어·모듈라·ES·SmartLab·SRS).</p>
                 </div>
               </div>
               {data.recentChanged.map((p) => (
-                <ProjectRow key={p.id} p={p} dateText={`변경 ${fmtDate(p.sourceUpdatedAt)}`} />
+                <ProjectRow
+                  key={p.id}
+                  p={p}
+                  dateText={`${p.lastChangedSource ?? '변경'}${p.lastChangedBy ? ` · ${p.lastChangedBy}` : ''} · ${fmtWhen(p.lastChangedAt)}`}
+                  tags={(p.recentActivity7d ?? 0) > 1 ? [`최근 7일 ${p.recentActivity7d}건`] : undefined}
+                />
               ))}
-              {data.recentChanged.length === 0 && <div className="empty">아직 변경 이력이 없습니다 (Worker 적재 후 표시).</div>}
+              {data.recentChanged.length === 0 && <div className="empty">아직 활동 기록이 없습니다.</div>}
             </section>
             <section className="panel">
               <div className="panel-head">

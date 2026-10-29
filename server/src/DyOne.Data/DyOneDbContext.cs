@@ -15,6 +15,7 @@ public class DyOneDbContext(DbContextOptions<DyOneDbContext> options) : DbContex
     public DbSet<ProjectAssignment> Assignments => Set<ProjectAssignment>();
     public DbSet<ProjectApp> ProjectApps => Set<ProjectApp>();
     public DbSet<ProjectStage> ProjectStages => Set<ProjectStage>();
+    public DbSet<ProjectStageStatus> ProjectStageStatuses => Set<ProjectStageStatus>();
     public DbSet<ProjectFile> ProjectFiles => Set<ProjectFile>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Factory> Factories => Set<Factory>();
@@ -67,7 +68,13 @@ public class DyOneDbContext(DbContextOptions<DyOneDbContext> options) : DbContex
             e.ToTable("project_stage", "project");
             e.HasKey(x => x.ProjectId);
         });
+        b.Entity<ProjectStageStatus>(e =>
+        {
+            e.ToTable("project_stage_status", "project");
+            e.HasKey(x => new { x.ProjectId, x.StageId });
+        });
         b.Entity<ProjectFile>().ToTable("project_file", "project");
+
         b.Entity<Customer>().ToTable("customer", "plant");
         b.Entity<Factory>().ToTable("factory", "plant");
         b.Entity<Booth>().ToTable("booth", "plant");

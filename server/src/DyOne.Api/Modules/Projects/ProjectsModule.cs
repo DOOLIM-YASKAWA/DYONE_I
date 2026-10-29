@@ -5,12 +5,29 @@ using Npgsql;
 
 namespace DyOne.Api.Modules.Projects;
 
-public record StageUpdate(long StageId);
+/// <param name="Note">변경 사유(선택). 이력에 남는다.</param>
+public record StageUpdate(long StageId, string? Note = null);
+
+/// <summary>단계 변경 이력 한 줄. FromStage가 null이면 DY ONE에서 처음 지정한 것(그 전엔 그룹웨어 상태 기준).
+/// FromStatus/ToStatus가 있으면 단계별 진행 상황 변경(ToStageId 단계가 FromStatus → ToStatus), 없으면 예전 방식의 대표 단계 이동.</summary>
+public record StageHistoryDto(long Id, DateTimeOffset ChangedAt, string? ChangedByName, string? ChangedByDept, string? ChangedByPosition,
+    long? FromStageId, string? FromStage, int? FromOrder, long? ToStageId, string? ToStage, int? ToOrder, string? Note,
+    string? FromStatus = null, string? ToStatus = null, string Source = "dyone", string? GwFrom = null, string? GwTo = null);
+
+/// <summary>단계별 진행 상황 한 칸. Status: wait(대기) · run(진행) · done(완료). UpdatedAt이 없으면 저장된 적 없음.
+/// FromGroupware: 영업·수주처럼 그룹웨어 상태로 계산되는 단계(DY ONE에서 바꾸지 않음).</summary>
+public record ProgressItem(long StageId, string Code, string Name, string Status, DateTimeOffset? UpdatedAt, string? UpdatedByName, bool FromGroupware = false);
+public record ProgressChange(long StageId, string Status);
+/// <param name="Note">변경 사유(선택). 바뀐 단계마다 이력에 같이 남는다.</param>
+public record ProgressUpdate(List<ProgressChange> Changes, string? Note = null);
 
 public record ProjectDto(
     long Id, string Code, string Name, string? PartnerName, long? StatusId, string? Status, string? Type,
     DateOnly? ErpRegDate, DateOnly? StartDate, DateOnly? EndDate, bool IsActive, DateTimeOffset UpdatedAt, string? Description,
-    DateTime? SourceUpdatedAt = null, string? EffectiveStage = null, string? EffectiveSource = null);
+    DateTime? SourceUpdatedAt = null, string? EffectiveStage = null, string? EffectiveSource = null, string? EffectiveStatus = null,
+    DateTimeOffset? LastChangedAt = null, string? LastChangedSource = null, string? PmName = null,
+    string? LastChangedBy = null, int RecentActivity7d = 0);
+// LastChangedAt·Source·By = 최근 활동(ProjectActivity: 단계·파일·인원·그룹웨어·모듈라·ES·SmartLab·SRS 중 가장 최근). Source = 활동 종류 문구
 
 public record AssignmentDto(string Level, string? Customer, string? Factory, string? Booth, string? Zone);
 
@@ -58,10 +75,17 @@ public static class ProjectsModule
             }
             if (!string.IsNullOrWhiteSpace(customer)) q = FilterByCustomer(q, customer.Trim());
 
-            var total = await q.CountAsync(ct);
-            var rows = await q.OrderBy(p => p.ErpRegDate == null).ThenByDescending(p => p.ErpRegDate).ThenByDescending(p => p.Code)
-                .Skip((current - 1) * size).Take(size).ToListAsync(ct);
-            return new PagedResult<ProjectDto>(total, current, size, await ToDtosAsync(db, rows, ct));
+            // 정렬: 최근 변경(ProjectActivity — 단계·파일·인원·그룹웨어·모듈라·ES·SmartLab·SRS 중 가장 최근 작업) 최신순.
+            // 조건에 맞는 id만 읽고, 프로젝트별 최근 활동(한 번의 조회)과 붙여 메모리에서 정렬·페이지를 자른다(수천 건 수준).
+            var keys = await q.Select(p => new { p.Id, p.Code }).ToListAsync(ct);
+            var activity = await ActivityAsync(db, null, ct);
+            var pageIds = keys
+                .Select(k => new { k.Id, k.Code, At = activity.TryGetValue(k.Id, out var a) ? a.At : (DateTimeOffset?)null })
+                .OrderBy(k => k.At == null).ThenByDescending(k => k.At).ThenByDescending(k => k.Code)
+                .Skip((current - 1) * size).Take(size).Select(k => k.Id).ToList();
+            var byId = await db.Projects.Where(p => pageIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id, ct);
+            var rows = pageIds.Select(id => byId[id]).ToList();
+            return new PagedResult<ProjectDto>(keys.Count, current, size, await ToDtosAsync(db, rows, ct));
         });
 
         // 프로젝트 선택 상자용 검색(최대 20건)
@@ -73,7 +97,7 @@ public static class ProjectsModule
                 .Select(p => new { p.Id, p.Code, p.Name }).ToListAsync(ct);
         });
 
-        g.MapGet("/projects/{id:long}", async (long id, DyOneDbContext db, CancellationToken ct) =>
+        g.MapGet("/projects/{id:long}", async (long id, IConfiguration config, DyOneDbContext db, CancellationToken ct) =>
         {
             var p = await db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
             if (p is null) return Results.NotFound();
@@ -86,33 +110,182 @@ public static class ProjectsModule
                                     join c in db.Codes on ps.StageId equals c.Id
                                     join e in db.Employees on ps.UpdatedBy equals e.Id into ej
                                     from e in ej.DefaultIfEmpty()
-                                    select new { stageId = ps.StageId, stageCode = c.Code, stageName = c.Name, ps.UpdatedAt, updatedByName = e != null ? e.Name : null })
+                                    join d in db.Departments on e.DepartmentId equals d.Id into dj
+                                    from d in dj.DefaultIfEmpty()
+                                    select new { stageId = ps.StageId, stageCode = c.Code, stageName = c.Name, ps.UpdatedAt, updatedByName = e != null ? e.Name : null, updatedByDept = d != null ? d.Name : null })
                                     .FirstOrDefaultAsync(ct);
 
-            return Results.Ok(new { project = dto, assignments = await AssignmentsAsync(db, id, ct), apps, labTestCount = labCount, dyoneStage });
+            var (progress, currentStageId) = await ProgressAsync(db, id, dto.Status, ct);
+            return Results.Ok(new { project = dto, assignments = await AssignmentsAsync(db, id, ct), apps, labTestCount = labCount, dyoneStage, progress, currentStageId });
         });
 
         // dyone 자체 진행 단계 변경(사용자 편집). 그룹웨어는 안 건드림. 지금은 로그인한 전원 가능.
+        // 바꿀 때마다 project.project_stage_history에 누가·언제·전→후·메모를 같은 트랜잭션으로 남긴다. 같은 단계로 바꾸면 아무것도 하지 않는다.
         g.MapPut("/projects/{id:long}/stage", async (long id, StageUpdate body, ClaimsPrincipal principal, IConfiguration config, DyOneDbContext db, CancellationToken ct) =>
         {
             if (!await db.Projects.AnyAsync(x => x.Id == id, ct)) return Results.NotFound();
-            if (!await db.Codes.AnyAsync(c => c.Id == body.StageId && c.GroupKey == "project_stage" && c.IsActive, ct))
-                return Results.BadRequest(new { message = "올바르지 않은 단계입니다." });
+            if (!await db.Codes.AnyAsync(c => c.Id == body.StageId && c.GroupKey == "project_stage" && c.IsActive && !GwStageCodes.Contains(c.Code), ct))
+                return Results.BadRequest(new { message = "올바르지 않은 단계입니다(영업·수주는 그룹웨어 상태를 따릅니다)." });
             long? empId = long.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var e) ? e : null;
+            var note = string.IsNullOrWhiteSpace(body.Note) ? null : body.Note.Trim();
+            if (note is { Length: > 500 }) return Results.BadRequest(new { message = "메모는 500자까지 쓸 수 있습니다." });
 
             // 읽기 전용 연결(ConnectionStrings:DyOne)에서 read-only 옵션만 제거해 쓰기 연결을 만든다(사용자 편집 데이터 전용).
             var writeConn = new NpgsqlConnectionStringBuilder(config.GetConnectionString("DyOne")) { Options = null }.ConnectionString;
             await using var conn = new NpgsqlConnection(writeConn);
             await conn.OpenAsync(ct);
-            await using var cmd = new NpgsqlCommand(
+            await using var tx = await conn.BeginTransactionAsync(ct);
+
+            long? from;
+            await using (var cur = new NpgsqlCommand("select stage_id from project.project_stage where project_id = @pid for update", conn, tx))
+            {
+                cur.Parameters.AddWithValue("pid", id);
+                from = await cur.ExecuteScalarAsync(ct) as long?;
+            }
+            if (from == body.StageId) return Results.Ok(new { ok = true, changed = false });
+
+            await using (var cmd = new NpgsqlCommand(
                 @"insert into project.project_stage (project_id, stage_id, updated_by, updated_at) values (@pid, @sid, @uid, now())
-                  on conflict (project_id) do update set stage_id = excluded.stage_id, updated_by = excluded.updated_by, updated_at = now()", conn);
-            cmd.Parameters.AddWithValue("pid", id);
-            cmd.Parameters.AddWithValue("sid", body.StageId);
-            cmd.Parameters.AddWithValue("uid", (object?)empId ?? DBNull.Value);
-            await cmd.ExecuteNonQueryAsync(ct);
-            return Results.Ok(new { ok = true });
+                  on conflict (project_id) do update set stage_id = excluded.stage_id, updated_by = excluded.updated_by, updated_at = now()", conn, tx))
+            {
+                cmd.Parameters.AddWithValue("pid", id);
+                cmd.Parameters.AddWithValue("sid", body.StageId);
+                cmd.Parameters.AddWithValue("uid", (object?)empId ?? DBNull.Value);
+                await cmd.ExecuteNonQueryAsync(ct);
+            }
+            await using (var hist = new NpgsqlCommand(
+                @"insert into project.project_stage_history (project_id, from_stage_id, to_stage_id, changed_by, changed_at, note)
+                  values (@pid, @from, @to, @uid, now(), @note)", conn, tx))
+            {
+                hist.Parameters.AddWithValue("pid", id);
+                hist.Parameters.AddWithValue("from", (object?)from ?? DBNull.Value);
+                hist.Parameters.AddWithValue("to", body.StageId);
+                hist.Parameters.AddWithValue("uid", (object?)empId ?? DBNull.Value);
+                hist.Parameters.AddWithValue("note", (object?)note ?? DBNull.Value);
+                await hist.ExecuteNonQueryAsync(ct);
+            }
+            await tx.CommitAsync(ct);
+            return Results.Ok(new { ok = true, changed = true });
         }).RequireAuthorization();
+
+        // 단계별 진행 상황 변경(대기·진행·완료, 여러 단계 동시 진행 가능). 바뀐 단계마다 이력을 남기고, 대표 단계(project_stage)를 맞춘다.
+        // 영업·수주는 그룹웨어 상태로 계산되므로 여기서 바꾸지 않는다. 저장된 적 없는 단계는 대기로 본다.
+        g.MapPut("/projects/{id:long}/progress", async (long id, ProgressUpdate body, ClaimsPrincipal principal, IConfiguration config, DyOneDbContext db, CancellationToken ct) =>
+        {
+            var p = await db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
+            if (p is null) return Results.NotFound();
+            if (body.Changes is not { Count: > 0 }) return Results.BadRequest(new { message = "바꿀 단계가 없습니다." });
+            if (body.Changes.Any(c => c.Status is not ("wait" or "run" or "done")))
+                return Results.BadRequest(new { message = "상태는 대기·진행·완료만 쓸 수 있습니다." });
+            var stages = (await StagesAsync(db, ct)).Where(s => !GwStageCodes.Contains(s.Code)).ToList(); // DY ONE에서 바꾸는 단계(설계·구매부터)
+            if (body.Changes.Any(c => stages.All(s => s.Id != c.StageId)))
+                return Results.BadRequest(new { message = "바꿀 수 없는 단계입니다(영업·수주는 그룹웨어 상태를 따릅니다)." });
+            var note = string.IsNullOrWhiteSpace(body.Note) ? null : body.Note.Trim();
+            if (note is { Length: > 500 }) return Results.BadRequest(new { message = "메모는 500자까지 쓸 수 있습니다." });
+            long? empId = long.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var e) ? e : null;
+
+            var writeConn = new NpgsqlConnectionStringBuilder(config.GetConnectionString("DyOne")) { Options = null }.ConnectionString;
+            await using var conn = new NpgsqlConnection(writeConn);
+            await conn.OpenAsync(ct);
+            await using var tx = await conn.BeginTransactionAsync(ct);
+
+            var current = new Dictionary<long, string>();
+            await using (var cur = new NpgsqlCommand("select stage_id, status from project.project_stage_status where project_id = @pid for update", conn, tx))
+            {
+                cur.Parameters.AddWithValue("pid", id);
+                await using var r = await cur.ExecuteReaderAsync(ct);
+                while (await r.ReadAsync(ct)) current[r.GetInt64(0)] = r.GetString(1);
+            }
+            var changed = 0;
+            foreach (var c in body.Changes.DistinctBy(c => c.StageId))
+            {
+                var from = current.GetValueOrDefault(c.StageId, "wait");
+                if (from == c.Status) continue;
+                await using (var up = new NpgsqlCommand(
+                    @"insert into project.project_stage_status (project_id, stage_id, status, updated_by, updated_at) values (@pid, @sid, @st, @uid, now())
+                      on conflict (project_id, stage_id) do update set status = excluded.status, updated_by = excluded.updated_by, updated_at = now()", conn, tx))
+                {
+                    up.Parameters.AddWithValue("pid", id);
+                    up.Parameters.AddWithValue("sid", c.StageId);
+                    up.Parameters.AddWithValue("st", c.Status);
+                    up.Parameters.AddWithValue("uid", (object?)empId ?? DBNull.Value);
+                    await up.ExecuteNonQueryAsync(ct);
+                }
+                await using (var hist = new NpgsqlCommand(
+                    @"insert into project.project_stage_history (project_id, from_stage_id, to_stage_id, changed_by, changed_at, note, from_status, to_status)
+                      values (@pid, null, @sid, @uid, now(), @note, @from, @to)", conn, tx))
+                {
+                    hist.Parameters.AddWithValue("pid", id);
+                    hist.Parameters.AddWithValue("sid", c.StageId);
+                    hist.Parameters.AddWithValue("uid", (object?)empId ?? DBNull.Value);
+                    hist.Parameters.AddWithValue("note", (object?)note ?? DBNull.Value);
+                    hist.Parameters.AddWithValue("from", from);
+                    hist.Parameters.AddWithValue("to", c.Status);
+                    await hist.ExecuteNonQueryAsync(ct);
+                }
+                current[c.StageId] = c.Status;
+                changed++;
+            }
+            if (changed == 0) return Results.Ok(new { ok = true, changed });
+
+            // 대표 단계(목록·홈 모집단용 project_stage): DY ONE 단계 중 진행 중 가장 뒤, 없으면 완료 중 가장 뒤, 둘 다 없으면 지정 해제(그룹웨어 상태 기준)
+            var order = stages.Select((st, i) => (st.Id, i)).ToDictionary(x => x.Id, x => x.i);
+            long? Last(string status) => current.Where(kv => kv.Value == status).OrderByDescending(kv => order.GetValueOrDefault(kv.Key))
+                .Select(kv => (long?)kv.Key).FirstOrDefault();
+            var main = Last("run") ?? Last("done");
+            await using (var ms = main is not null
+                ? new NpgsqlCommand(@"insert into project.project_stage (project_id, stage_id, updated_by, updated_at) values (@pid, @sid, @uid, now())
+                      on conflict (project_id) do update set stage_id = excluded.stage_id, updated_by = excluded.updated_by, updated_at = now()", conn, tx)
+                : new NpgsqlCommand("delete from project.project_stage where project_id = @pid", conn, tx))
+            {
+                ms.Parameters.AddWithValue("pid", id);
+                if (main is { } m)
+                {
+                    ms.Parameters.AddWithValue("sid", m);
+                    ms.Parameters.AddWithValue("uid", (object?)empId ?? DBNull.Value);
+                }
+                await ms.ExecuteNonQueryAsync(ct);
+            }
+            await tx.CommitAsync(ct);
+            return Results.Ok(new { ok = true, changed });
+        }).RequireAuthorization();
+
+        // 단계 변경 이력(최신순). 변경자 이름·부서·직위와 전→후 단계(S 번호 = 단계 정렬 순서)를 함께 준다.
+        g.MapGet("/projects/{id:long}/stage-history", async (long id, IConfiguration config, CancellationToken ct) =>
+        {
+            await using var conn = new NpgsqlConnection(config.GetConnectionString("DyOne"));
+            await conn.OpenAsync(ct);
+            await using var cmd = new NpgsqlCommand(@"
+                select h.id, h.changed_at, e.name, d.name, p.name,
+                       h.from_stage_id, f.name, f.sort_order, h.to_stage_id, t.name, t.sort_order, h.note, h.from_status, h.to_status,
+                       h.source, h.gw_from, h.gw_to
+                from project.project_stage_history h
+                left join code.code t on t.id = h.to_stage_id
+                left join code.code f on f.id = h.from_stage_id
+                left join org.employee e on e.id = h.changed_by
+                left join org.department d on d.id = e.department_id
+                left join org.position p on p.id = e.position_id
+                where h.project_id = @pid
+                order by h.changed_at desc, h.id desc
+                limit 200", conn);
+            cmd.Parameters.AddWithValue("pid", id);
+            var list = new List<StageHistoryDto>();
+            try
+            {
+                await using var r = await cmd.ExecuteReaderAsync(ct);
+                string? S(int i) => r.IsDBNull(i) ? null : r.GetString(i);
+                while (await r.ReadAsync(ct))
+                    list.Add(new StageHistoryDto(r.GetInt64(0), r.GetFieldValue<DateTimeOffset>(1), S(2), S(3), S(4),
+                        r.IsDBNull(5) ? null : r.GetInt64(5), S(6), r.IsDBNull(7) ? null : r.GetInt32(7),
+                        r.IsDBNull(8) ? null : r.GetInt64(8), S(9), r.IsDBNull(10) ? null : r.GetInt32(10), S(11), S(12), S(13),
+                        S(14) ?? "dyone", S(15), S(16)));
+            }
+            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                // 이력 테이블 적용 전(server/db/project_stage_history.sql): 빈 목록
+            }
+            return Results.Ok(list);
+        });
 
         g.MapGet("/lab-tests", async (long? projectId, string? search, int? page, int? pageSize, DyOneDbContext db, CancellationToken ct) =>
         {
@@ -126,6 +299,61 @@ public static class ProjectsModule
                 .Skip((current - 1) * size).Take(size).ToListAsync(ct);
             return new PagedResult<LabTestDto>(total, current, size, await LabDtosAsync(db, rows, ct));
         });
+    }
+
+    private sealed record StageDef(long Id, string Code, string Name);
+
+    /// <summary>진행 단계 목록(S1~S9, 정렬 순서)</summary>
+    private static async Task<List<StageDef>> StagesAsync(DyOneDbContext db, CancellationToken ct) =>
+        await db.Codes.Where(c => c.GroupKey == "project_stage" && c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Id)
+            .Select(c => new StageDef(c.Id, c.Code, c.Name)).ToListAsync(ct);
+
+    /// <summary>그룹웨어 상태로 계산하는 단계(영업 · 수주). 이 뒤 단계(설계·구매부터)는 DY ONE에서 대기·진행·완료로 직접 관리한다.</summary>
+    private static readonly string[] GwStageCodes = ["opportunity", "order"];
+
+    private sealed record StageView(StageDef Stage, string Status, bool FromGw);
+
+    /// <summary>
+    /// 단계별 진행 상황과 대표(현재) 단계 계산 — 목록·홈·상세가 모두 이 규칙 하나로 표시한다.
+    /// 영업·수주(그룹웨어): 영업중 = 영업 진행 / 수주 = 영업 완료 · 수주 진행(설계 이후가 시작되면 수주 완료) / 마감 = 둘 다 완료 / 중단 = 영업 완료 · 수주 대기 / 없음 = 대기.
+    /// 설계·구매 이후(DY ONE): 저장된 값, 없으면 대기.
+    /// 대표 단계: DY ONE 단계 중 진행 중 가장 뒤 → 완료 중 가장 뒤 → 그룹웨어 단계 중 진행 중인 것 → 없음(-1).
+    /// </summary>
+    private static (List<StageView> Steps, int Current) Compute(List<StageDef> stages, string? gw, IReadOnlyDictionary<long, string> saved)
+    {
+        var started = stages.Any(st => !GwStageCodes.Contains(st.Code) && saved.GetValueOrDefault(st.Id) is "run" or "done");
+        string Gw(string code) => (gw, code) switch
+        {
+            ("영업중", "opportunity") => "run",
+            ("수주", "opportunity") => "done",
+            ("수주", _) => started ? "done" : "run",
+            ("마감", _) => "done",
+            ("중단", "opportunity") => "done",
+            _ => "wait",
+        };
+        var steps = stages.Select(st => GwStageCodes.Contains(st.Code)
+            ? new StageView(st, Gw(st.Code), true)
+            : new StageView(st, saved.GetValueOrDefault(st.Id, "wait"), false)).ToList();
+        var cur = steps.FindLastIndex(x => !x.FromGw && x.Status == "run");
+        if (cur < 0) cur = steps.FindLastIndex(x => !x.FromGw && x.Status == "done");
+        if (cur < 0) cur = steps.FindLastIndex(x => x.FromGw && x.Status == "run");
+        return (steps, cur);
+    }
+
+    /// <summary>프로젝트 상세의 단계별 진행 상황 + 대표 단계 id</summary>
+    private static async Task<(List<ProgressItem> Items, long? CurrentStageId)> ProgressAsync(DyOneDbContext db, long projectId, string? gwStatus, CancellationToken ct)
+    {
+        var stages = await StagesAsync(db, ct);
+        var saved = await (from st in db.ProjectStageStatuses.Where(x => x.ProjectId == projectId)
+                           join e in db.Employees on st.UpdatedBy equals e.Id into ej
+                           from e in ej.DefaultIfEmpty()
+                           select new { st.StageId, st.Status, st.UpdatedAt, By = e != null ? e.Name : null }).ToListAsync(ct);
+        var map = saved.ToDictionary(x => x.StageId);
+        var (steps, cur) = Compute(stages, gwStatus, saved.ToDictionary(x => x.StageId, x => x.Status));
+        var items = steps.Select(v => map.TryGetValue(v.Stage.Id, out var m) && !v.FromGw
+            ? new ProgressItem(v.Stage.Id, v.Stage.Code, v.Stage.Name, v.Status, m.UpdatedAt, m.By, false)
+            : new ProgressItem(v.Stage.Id, v.Stage.Code, v.Stage.Name, v.Status, null, null, v.FromGw)).ToList();
+        return (items, cur >= 0 ? steps[cur].Stage.Id : null);
     }
 
     /// <summary>발주처명 기준 고객사 그룹 필터 — 홈 customerCounts(HomeModule.CustomerGroup)와 동일 분류.</summary>
@@ -150,21 +378,37 @@ public static class ProjectsModule
         var codes = await db.Codes.Where(c => codeIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => c.Name, ct);
         string? Name(long? id) => id is { } v && codes.TryGetValue(v, out var n) ? n : null;
 
-        // 효과적 상태: dyone 단계(project_stage)가 있으면 그 단계, 없으면 그룹웨어 상태(영업중→영업, 수주→수주)
+        // 진행 단계(목록·홈 표시): 상세 화면과 같은 규칙(Compute)으로 대표 단계와 그 상태를 구한다
         var ids = rows.Select(r => r.Id).ToList();
-        var stageMap = await (from ps in db.ProjectStages.Where(x => ids.Contains(x.ProjectId))
-                              join c in db.Codes on ps.StageId equals c.Id
-                              select new { ps.ProjectId, c.Name }).ToDictionaryAsync(x => x.ProjectId, x => x.Name, ct);
+        var stages = await StagesAsync(db, ct);
+        var saved = (await db.ProjectStageStatuses.Where(x => ids.Contains(x.ProjectId)).Select(x => new { x.ProjectId, x.StageId, x.Status }).ToListAsync(ct))
+            .GroupBy(x => x.ProjectId).ToDictionary(g => g.Key, g => (IReadOnlyDictionary<long, string>)g.ToDictionary(x => x.StageId, x => x.Status));
+        var empty = new Dictionary<long, string>();
+        var activity = await ActivityAsync(db, ids, ct);
+        // PM(project.project_member): 엔티티 없이 같은 연결로 읽는다
+        await db.Database.OpenConnectionAsync(ct);
+        Dictionary<long, string> pms;
+        try { pms = await Org.OrgModule.PmNamesAsync((NpgsqlConnection)db.Database.GetDbConnection(), ids, ct); }
+        finally { await db.Database.CloseConnectionAsync(); }
 
         return rows.Select(p =>
         {
             var gw = Name(p.StatusId);
-            var dyone = stageMap.GetValueOrDefault(p.Id);
-            var effective = dyone ?? (gw == "영업중" ? "영업 기회" : gw == "수주" ? "수주·착수" : null);
-            var source = dyone != null ? "dyone" : (effective != null ? "gw" : null);
+            var (steps, cur) = Compute(stages, gw, saved.GetValueOrDefault(p.Id) ?? empty);
+            var v = cur >= 0 ? steps[cur] : null;
+            var act = activity.GetValueOrDefault(p.Id);
             return new ProjectDto(p.Id, p.Code, p.Name, p.PartnerName, p.StatusId, gw, Name(p.TypeId),
-                p.ErpRegDate, p.StartDate, p.EndDate, p.IsActive, p.UpdatedAt, p.Description, p.SourceUpdatedAt, effective, source);
+                p.ErpRegDate, p.StartDate, p.EndDate, p.IsActive, p.UpdatedAt, p.Description, p.SourceUpdatedAt,
+                v?.Stage.Name, v is null ? null : v.FromGw ? "gw" : "dyone", v?.Status, act?.At, act?.Label, pms.GetValueOrDefault(p.Id), act?.By, act?.Recent7d ?? 0);
         }).ToList();
+    }
+
+    /// <summary>프로젝트별 최근 활동(ids가 null이면 전체). EF 연결을 그대로 빌려 쓴다.</summary>
+    public static async Task<Dictionary<long, ProjectActivityInfo>> ActivityAsync(DyOneDbContext db, IReadOnlyCollection<long>? ids, CancellationToken ct)
+    {
+        await db.Database.OpenConnectionAsync(ct);
+        try { return await ProjectActivity.LatestAsync((NpgsqlConnection)db.Database.GetDbConnection(), ids, ct); }
+        finally { await db.Database.CloseConnectionAsync(); }
     }
 
     /// <summary>배당 레벨(factory·booth·zone)에 따라 비어 있는 상위 공정은 하위에서 거슬러 올라가 채운다.</summary>

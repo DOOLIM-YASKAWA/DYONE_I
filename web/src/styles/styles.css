@@ -57,3 +57,78 @@
 .text-button.danger{color:#b7584a}
 .embed-app{position:relative;overflow:hidden;border-radius:12px;background:#fff}.embed-loading{position:absolute;inset:0;display:grid;place-items:center;background:#fff;border-radius:12px;z-index:2}.embed-loading-card{max-width:420px;text-align:center;padding:32px}.embed-loading-icon{display:inline-grid;place-items:center;background:#eef4ff;color:#3267d9;width:54px;height:54px;border-radius:16px;font-size:25px;margin-bottom:20px}.embed-loading-card h2{font-size:20px;margin-bottom:12px}.embed-loading-card p{font-size:14px;color:#738198;line-height:1.7;margin-bottom:24px}.embed-loading-bar{width:280px;max-width:100%;height:5px;overflow:hidden;border-radius:10px;background:#eaf0f9;margin:0 auto}.embed-loading-bar span{display:block;width:38%;height:100%;background:#3267d9;border-radius:10px;animation:embed-progress 1.3s ease-in-out infinite}@keyframes embed-progress{0%{transform:translateX(-110%)}100%{transform:translateX(370%)}}@media(prefers-reduced-motion:reduce){.embed-loading-bar span{animation:none;width:100%;opacity:.65}}
 .file-cat{font:inherit;font-size:12px;padding:2px 6px;border:1px solid #d9e1ed;border-radius:6px;background:#eaf1ff;color:#3c65be;min-width:0;width:auto;cursor:pointer}
+.stage-step.selected{background:#f1f6ff;border-radius:10px;box-shadow:inset 0 0 0 1.5px #b9cdf3}
+.stage-edit{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.stage-edit select{min-width:170px}
+.stage-sub{font-size:14px;color:#51607a;margin:6px 0 10px}
+.stage-sub:not(:first-child){margin-top:22px}
+.stage-history{list-style:none;margin:0;padding:4px 0 0 6px}
+.stage-history li{position:relative;display:flex;gap:14px;padding:0 0 20px 18px;border-left:2px solid var(--line)}
+.stage-history li:last-child{border-left-color:transparent;padding-bottom:4px}
+.stage-history .dot{position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--blue)}
+.stage-history li:first-child .dot{background:var(--blue)}
+.stage-history .sh-change{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stage-history .sh-arrow{color:var(--muted)}
+.stage-history .sh-first{font-size:12px;color:var(--muted)}
+.stage-history .sh-note{margin:8px 0 0;font-size:14px;line-height:1.7;color:var(--ink);white-space:pre-line;overflow-wrap:anywhere}
+.stage-history small{display:block;margin-top:6px;color:var(--muted);line-height:1.6}
+.stage-edit{flex-wrap:nowrap;flex:none}.stage-edit .search-input{width:240px;flex:none}
+/* 사양서 AI 요약·개정 비교 */
+.ai-summary{border:1px solid #d6e3f8;background:#f7faff;border-radius:11px;padding:14px 16px;margin:4px 0 14px}
+.ai-summary-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ai-summary-head small{color:var(--muted);font-size:12px}
+.ai-summary-head button{margin-left:auto}
+.ai-summary-text{margin:10px 0 0;padding-left:20px;font-size:14px;line-height:1.75}
+.ai-cite .text-button{padding:0 3px;font-size:12px}
+.ai-warnings{margin-top:8px;font-size:12px;color:#a1712f}
+.ai-warnings ul{margin:6px 0 0;padding-left:18px}
+.ai-empty{font-size:13px;color:var(--muted);margin:8px 0 0}
+.cmp-changed{border-left-color:#d08a2b}
+.cmp-added{border-left-color:#258268}
+.cmp-removed{border-left-color:#b7584a}
+.cmp-moved{border-left-color:#3267d9}
+.d-del{background:#fbeaea;color:#a03a2c;text-decoration:line-through}
+.d-ins{background:#e6f4f1;color:#1f6f58}
+.stage-history .sh-stage{font-size:14px;color:var(--ink)}
+.stage-step{position:relative}
+.stage-step .s-view{border:0;background:none;padding:0;width:100%;color:inherit;cursor:pointer;display:block}
+.stage-step .s-state-btn{border:0;background:none;font:inherit;font-size:11px;color:inherit;padding:2px 10px;border-radius:999px;cursor:pointer;margin-top:3px}
+.stage-step .s-state-btn:hover,.stage-step .s-state-btn[aria-expanded=true]{background:#eaf1ff;color:var(--blue)}
+.stage-step .s-state-btn:hover::after,.stage-step .s-state-btn[aria-expanded=true]::after{content:' ▾'}
+.s-menu{transform:translateX(-50%);z-index:60;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px #14284b1f;padding:6px;display:flex;flex-direction:column;gap:2px;width:150px;text-align:left}
+.s-menu button{border:0;background:none;border-radius:7px;padding:7px 10px;font-size:13px;text-align:left;cursor:pointer;color:var(--ink)}
+.s-menu button:hover{background:#f1f6ff}.s-menu button.on{color:var(--blue);font-weight:600}
+.s-menu button small{color:#a1712f;font-size:11px}
+.s-menu input{margin-top:4px;padding:6px 8px;font-size:12px}
+.stage-last{margin:8px 0 0;font-size:13px;color:var(--green)}
+.stage-panel{overflow:visible}
+/* 진행 상황: 글자 키우기 + 상태 선택칸 항상 보이기 */
+.stage-panel .stage-step{min-width:110px}
+.stage-panel .stage-step .s-num{font-size:13px}
+.stage-panel .stage-step .s-name{font-size:14px;min-height:34px}
+.stage-panel .stage-step .s-state-btn{font-size:13px;padding:4px 10px 4px 12px;margin-top:6px;border:1px solid #d6e0ee;border-radius:7px;background:#fff;min-width:74px;color:#51607a}
+.stage-panel .stage-step .s-state-btn::after{content:' ▾';color:#9aa7bd}
+.stage-panel .stage-step .s-state-btn:hover,.stage-panel .stage-step .s-state-btn[aria-expanded=true]{border-color:var(--blue);background:#f4f8ff;color:var(--blue)}
+.stage-panel .stage-step.current .s-state-btn{border-color:#9db8ef;background:#eaf1ff;color:var(--blue);font-weight:600}
+.stage-panel .stage-step.done .s-state-btn{border-color:#bfe2cf;background:#eef8f2;color:var(--green)}
+.s-menu button{font-size:14px}
+/* 선택한 단계 · 상태 선택칸 hover는 회색 */
+.stage-panel .stage-step.selected{background:#f3f5f8;box-shadow:inset 0 0 0 1.5px #d5dbe4}
+.stage-panel .stage-step .s-state-btn:hover,.stage-panel .stage-step .s-state-btn[aria-expanded=true]{border-color:#b8c2d0;background:#eef1f5;color:var(--ink)}
+.stage-panel .stage-step.current .s-state-btn:hover,.stage-panel .stage-step.current .s-state-btn[aria-expanded=true]{border-color:#9db8ef;background:#dfe8fb;color:var(--blue)}
+.stage-panel .stage-step.done .s-state-btn:hover,.stage-panel .stage-step.done .s-state-btn[aria-expanded=true]{border-color:#a9d6bd;background:#e2f3ea;color:var(--green)}
+.s-menu button:hover{background:#f1f3f6}
+/* 그룹웨어 마감·중단 표시 */
+.badge.closed{background:#e8ebf0;color:#4d5a6e}
+.badge-row{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
+.gw-end-note{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid #dfe3ea;background:#f5f7fa;border-radius:10px;padding:12px 16px;margin:-8px 0 16px;font-size:14px;color:#4d5a6e}
+.gw-end-note.stop{border-color:#f3d3cf;background:#fff6f5;color:#9a4a3f}
+/* 영업·수주(그룹웨어 상태) 표시 — 선택칸 대신 고정 표시 */
+.stage-panel .stage-step .s-state-gw{display:inline-flex;flex-direction:column;align-items:center;font-size:13px;margin-top:6px;padding:3px 10px;color:#51607a;line-height:1.3}
+.stage-panel .stage-step .s-state-gw small{font-size:10px;color:#9aa7bd}
+.stage-panel .stage-step.current .s-state-gw{color:var(--blue);font-weight:600}
+.stage-panel .stage-step.done .s-state-gw{color:var(--green)}
+.stage-hint{font-size:12px;color:var(--muted);margin:8px 0 0}
+/* 영업 단계: [영업 일지 | 사양서 분석] 탭 */
+.stage-tabs{margin:-4px 0 16px}
+.stage-tabs button{padding:10px 16px}
