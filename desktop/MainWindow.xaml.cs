@@ -85,7 +85,8 @@ public partial class MainWindow : Window
             ExternalLinks.Open(e.Uri);
         };
 
-        _bridge = new BridgeHost(core, this, _tray, config, BrokerRegistry.CreateDefault(this));
+        var brokerContext = new BrokerContext(config, this);
+        _bridge = new BridgeHost(core, this, _tray, config, BrokerRegistry.CreateDefault(brokerContext), brokerContext);
         var script = (await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "bridge.js")))
             .Replace("__DYONE_ORIGIN__", config.Origin);
         await core.AddScriptToExecuteOnDocumentCreatedAsync(script);

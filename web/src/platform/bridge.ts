@@ -9,6 +9,8 @@ export type PlatformKind = 'web' | 'desktop' | 'mobile'
 interface DesktopBridge {
   isDesktop: true
   invoke<T = unknown>(cmd: string, args?: Record<string, unknown>): Promise<T>
+  /** Broker 진행 알림 구독(업로드·다운로드·설치). 반환값을 부르면 구독 해제. 옛 앱에는 없을 수 있다. */
+  on?(event: string, cb: (data: unknown) => void): () => void
 }
 
 declare global {
@@ -24,6 +26,8 @@ export interface Platform {
   openExternal(url: string): Promise<void>
   /** Windows 앱의 Local Broker 명령. 다른 채널에서는 지원하지 않는다. */
   broker<T = unknown>(cmd: string, args?: Record<string, unknown>): Promise<T>
+  /** Broker 진행 알림 구독. Windows 앱이 아니면 아무것도 하지 않는다. */
+  onBrokerEvent<T = unknown>(event: string, cb: (data: T) => void): () => void
   storage: { get(key: string): string | null; set(key: string, value: string): void; remove(key: string): void }
 }
 
@@ -74,6 +78,10 @@ function createPlatform(): Platform {
     async broker(cmd, args) {
       if (kind !== 'desktop' || !desktop) throw new Error('설치형 앱(DY ONE Desktop)에서만 사용할 수 있는 기능입니다.')
       return desktop.invoke(cmd, args)
+    },
+    onBrokerEvent(event, cb) {
+      if (kind !== 'desktop' || !desktop?.on) return () => {}
+      return desktop.on(event, cb as (data: unknown) => void)
     },
     // 토큰 보관: 지금은 모든 채널에서 localStorage. Windows 앱은 추후 DPAPI(브리지)로 옮긴다.
     storage: webStorage,
