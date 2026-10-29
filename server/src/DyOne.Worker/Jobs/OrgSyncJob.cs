@@ -183,7 +183,7 @@ public class OrgSyncJob(IOptions<OrgSyncOptions> options, IConfiguration config,
         await using (var cmd = new NpgsqlCommand(spanSql, conn) { CommandTimeout = 120 })
         await using (var r = await cmd.ExecuteReaderAsync(ct))
             while (await r.ReadAsync(ct))
-                spans.Add(new ApprovalSpan(r.GetInt64(0), r.GetInt64(1), S(r, 2), r.GetFieldValue<DateOnly>(3), r.GetFieldValue<DateOnly>(4)));
+                spans.Add(new ApprovalSpan(r.GetInt64(0), r.GetInt64(1), S(r, 2), D(r, 3)!.Value, D(r, 4)!.Value));
 
         var depts = new List<DeptLife>();
         await using (var cmd = new NpgsqlCommand(
@@ -212,7 +212,7 @@ public class OrgSyncJob(IOptions<OrgSyncOptions> options, IConfiguration config,
         await using (var cmd = new NpgsqlCommand(nameSql, conn) { CommandTimeout = 120 })
         await using (var r = await cmd.ExecuteReaderAsync(ct))
             while (await r.ReadAsync(ct))
-                names.Add(new DeptNameSpan(r.GetInt64(0), r.GetString(1), r.GetFieldValue<DateOnly>(2), r.GetFieldValue<DateOnly>(3)));
+                names.Add(new DeptNameSpan(r.GetInt64(0), r.GetString(1), D(r, 2)!.Value, D(r, 3)!.Value));
 
         return new Backfill(spans, depts, names);
     }
@@ -488,5 +488,6 @@ public class OrgSyncJob(IOptions<OrgSyncOptions> options, IConfiguration config,
     private static string? S(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : r.GetString(i);
     private static long? N(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : Convert.ToInt64(r.GetValue(i));
     private static int? I(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : Convert.ToInt32(r.GetValue(i));
-    private static DateOnly? D(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : r.GetFieldValue<DateOnly>(i);
+    // 그룹웨어 DB는 ::date 도 timestamp 로 돌려주므로 DateTime 으로 읽어 날짜만 쓴다(PG date 도 그대로 읽힘).
+    private static DateOnly? D(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : DateOnly.FromDateTime(r.GetDateTime(i));
 }
