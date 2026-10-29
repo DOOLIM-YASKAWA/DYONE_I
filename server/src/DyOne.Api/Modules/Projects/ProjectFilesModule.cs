@@ -63,6 +63,9 @@ public static class ProjectFilesModule
                 categoryName = await db.Codes.Where(c => c.Id == categoryId && c.GroupKey == "document_category" && c.IsActive).Select(c => c.Name).FirstOrDefaultAsync(ct);
                 if (categoryName is null) return Results.BadRequest(new { message = "올바르지 않은 분류입니다." });
             }
+            // 단계 화면에서 올리면 그 단계로 기록(stage_id). 진행 단계 코드만 허용.
+            if (stageId is not null && !await db.Codes.AnyAsync(c => c.Id == stageId && c.GroupKey == "project_stage" && c.IsActive, ct))
+                return Results.BadRequest(new { message = "올바르지 않은 단계입니다." });
             long? empId = long.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var e2) ? e2 : null;
             // 업로더 소속 부서 스냅샷(앱 부서별 검색용)
             long? deptId = empId is not null ? await db.Employees.Where(x => x.Id == empId).Select(x => x.DepartmentId).FirstOrDefaultAsync(ct) : null;
