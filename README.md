@@ -113,7 +113,8 @@ API의 `GwChangeNoticeRelay`가 몇 초마다 새 줄을 읽어 SignalR `notific
 - 알림 내용: 문서 제목 — 상태 이전 → 이후 · 바뀐 칸 이름(3개까지) · DY ONE에서 고친 칸이 덮였는지. 새 문서·그룹웨어 삭제도 알린다.
 - 알림을 누르면 `/modular?doc=번호`, `/works/281?doc=번호`로 가서 문서 상세가 바로 열린다(왼쪽 메뉴 '모듈라', 'ES 이슈'). Windows 앱의 Windows 알림을 눌러도 창이 열리며 같은 문서로 간다(notify.toast의 link → TrayIcon → MainWindow.OpenAppLink, 앱 안 경로만 허용).
 - 처음 전체 적재 때는 알리지 않는다. 한 번에 20건이 넘으면 나머지는 한 줄로 묶는다. 알림 줄은 30일 뒤 지운다.
-- **받는 사람 = 그 앱을 쓰는 부서·사람**(`access.app_department` 하위 부서 포함 선택 · `access.app_employee` 개별 지정, `AppAudience`). 앱에 규칙이 없으면 모두. 앱 키는 `modular`, `works:281`처럼 알림의 entity와 같다. 부서별 메뉴(⑤ 권한)도 이 표를 기준으로 붙인다.
+- **그룹웨어 알림 그대로 받기(화면 없는 앱)**: `GwNotiMirrorJob`이 그룹웨어 WORKS 알림(go_noti_messages)을 1분마다 읽어 같은 문구로 알림을 만든다. 대상은 `GwNotiMirror:Applets`(30개 앱). 문서 값은 옮기지 않고, 누르면 그룹웨어 문서가 새 창(Windows 앱은 기본 브라우저)으로 열린다. 앱 키는 `works:{번호}`. 데이터를 옮긴 앱(`GwNotiMirror:SyncedApplets` 376·281)은 동기화 작업이 알리는 등록·변경·상태를 빼고 활동기록·댓글 알림만 받아 DY ONE 문서로 연다.
+- **받는 사람 = 그 앱을 쓰는 부서·사람**(`access.app_department` 하위 부서 포함 선택 · `access.app_employee` 개별 지정, `AppAudience`). 부서를 정하지 않은 앱은 모든 앱(`*`) 지정자만 받는다. 앱 키는 `modular`, `works:281`처럼 알림의 entity와 같다. 부서별 메뉴(⑤ 권한)도 이 표를 기준으로 붙인다.
 - **놓친 알림 보기**: 🔔 알림함은 접속할 때 최근 30일 알림(내가 쓰는 앱 것, 100건)을 서버에서 받는다(`GET /api/notifications`). 연결이 끊겼다 붙으면 다시 받는다. 읽음은 `POST /api/notifications/{id}/read`, `/read-all` → `sync.change_notice_read` · `change_notice_seen`(API에 `ConnectionStrings:DyOneWrite` 필요).
 - DDL `server/db/sync_change_notice.sql`, `server/db/app_access.sql`, 설정 `Notifications:GwChangeRelaySeconds`(기본 5, 0이면 끔).
 
@@ -147,8 +148,11 @@ dotnet user-secrets set "ConnectionStrings:DyOne" $cs --project src/DyOne.Worker
 **실행**
 
 ```powershell
-.\dev.ps1            # API(5080) + 웹(5173)
+.\dev.ps1            # API(5080) + Worker + 웹(5173) + 연계 프로그램(SmartLab 4174 · SRS 4175 · 공정 4176). API·Worker는 dotnet watch(코드 저장 시 자동 재시작)
 .\dev.ps1 -Desktop   # 위 + Windows 앱
+.\dev.ps1 -NoApps    # 연계 프로그램 빼고
+.\dev.ps1 -AppsOnly  # 연계 프로그램만 (PC 재시작 뒤 SmartLab·SRS 연결이 끊겼을 때)
+.\dev.ps1 -Stop      # 전부 끄기 (다시 실행하면 켜져 있던 API·Worker를 먼저 끄고 새로 켬, Docker Desktop이 꺼져 있으면 켬)
 ```
 
 브라우저에서 http://localhost:5173 → 개발용 로그인(직원 선택).
