@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
+    <PackageReference Include="ExcelDataReader" Version="3.9.0" />
+    <PackageReference Include="PdfPig" Version="0.1.16" />
+  </ItemGroup>
+
+  <!-- PDF 표 인식 도우미(Python/PyMuPDF). 빌드 출력의 python/ 아래로 복사되어 API·도구가 함께 쓴다. -->
+  <ItemGroup>
+    <None Include="python\**\*.py" CopyToOutputDirectory="PreserveNewest" LinkBase="python" />
+  </ItemGroup>
+
+  <!-- 사양정리 초안 빈 틀(영업부 V5 양식). python/render_spec_summary.py가 이 틀에 값만 채운다. -->
+  <ItemGroup>
+    <None Include="templates\**\*.pptx" CopyToOutputDirectory="PreserveNewest" LinkBase="templates" />
+  </ItemGroup>
+
+</Project>

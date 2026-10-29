@@ -2,6 +2,7 @@ using DyOne.Api.Modules.Integrations;
 using System.Text;
 using System.Text.Json.Serialization;
 using DyOne.Api.Modules.Ai;
+using DyOne.Api.Modules.Demo;
 using DyOne.Api.Modules.Auth;
 using DyOne.Api.Modules.Home;
 using DyOne.Api.Modules.Modular;
@@ -24,6 +25,17 @@ builder.Services.AddDbContext<DyOneDbContext>(o => DyOneDb.Configure(o, config.G
 builder.Services.AddSingleton<DyOne.Api.Modules.Projects.FileStorage>();
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = 512L * 1024 * 1024);
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 512L * 1024 * 1024);
+
+// --- 사양서 분석: 문서 읽기(DyOne.Spec) + NAS 사양정리 라이브러리(읽기 전용, 캐시 파일). PDF 표 인식은 Spec:PythonPath(PyMuPDF)가 있으면 사용 ---
+builder.Services.AddSingleton(new DyOne.Spec.Extraction.SpecExtractor(new DyOne.Spec.Extraction.SpecExtractorOptions
+{
+    PythonPath = config["Spec:PythonPath"],
+}));
+builder.Services.AddSingleton<DyOne.Api.Modules.Spec.SpecLibrary>();
+// 사양정리 초안: 설비 이력 색인(NAS 도면 제목·사양정리 표, 캐시 파일) + 사내 AI(Llm:BaseUrl·Model·ApiKey, 키 없으면 규칙 초안)
+builder.Services.AddSingleton<DyOne.Api.Modules.Spec.SpecEquipment>();
+builder.Services.AddHttpClient("llm");
+builder.Services.AddSingleton<DyOne.Api.Modules.Spec.SpecAi>();
 
 // --- 인증: 그룹웨어 로그인 API로 검증 → org.employee(login_id)로 직원 확인 → DY ONE 자체 JWT ---
 var authSection = config.GetSection("Auth");
@@ -100,6 +112,11 @@ app.MapAuth();
 app.MapHome();
 app.MapProjects();
 app.MapProjectFiles();
+DyOne.Api.Modules.Spec.SpecModule.MapSpec(app);
+DyOne.Api.Modules.Spec.SpecDraftModule.MapSpecDraft(app);
+DyOne.Api.Modules.Spec.SpecDeptModule.MapSpecDept(app);
+DyOne.Api.Modules.Org.OrgModule.MapOrg(app);
+app.MapProjectTestData();
 app.MapModular();
 app.MapWorks();
 app.MapAi();
@@ -107,6 +124,8 @@ app.MapNotifications();
 app.MapSmartLab();
 app.MapSrsAnalyzer();
 app.MapProcess();
+DyOne.Api.Modules.Motosim.MotosimModule.MapMotosim(app); // MotoSim Launcher 이관 1단계(조회)
+app.MapDemoMemos(config); // [임시 · 데모] 화면 메모(포스트잇). DemoMemo:Enabled일 때만
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
