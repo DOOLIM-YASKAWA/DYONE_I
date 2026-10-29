@@ -13,5 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DyOne.Data\DyOne.Data.csproj" />
+    <ProjectReference Include="..\DyOne.Spec\DyOne.Spec.csproj" />
   </ItemGroup>
 </Project>

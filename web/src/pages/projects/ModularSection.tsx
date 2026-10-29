@@ -150,15 +150,17 @@ export function ModularSection({ projectCode, openDocId = null, onDocClosed }: {
   )
 }
 
-/** 그룹웨어 기본 보기(view 459)와 같은 20열. 제목 열 = 프로젝트명. */
+/** 그룹웨어 기본 보기(view 459) 20열 중 앞 11열('국내/해외'까지)만 보여 준다 — 나머지는 행을 눌러 상세에서. 제목 열 = 프로젝트명. */
+const LIST_COLS = 11
 function BuildTable({ rows, onOpen }: { rows: ModularBuild[]; onOpen(id: number): void }) {
+  const cut = <T,>(a: T[]) => a.slice(0, LIST_COLS)
   return (
     <DataTable
-      headers={['연도', '상태', '설치위치', '프로젝트 코드', '프로젝트명', '출하 월', '설치 시작', '시운전 시작', '구분', '출하 예정일',
-        '국내/해외', '로봇 수', '로봇기종', '도장기 사양', '통신 사양', '공장', '고객사', '공정', '공정세부', '외부검수']}
+      headers={cut(['연도', '상태', '설치위치', '프로젝트 코드', '프로젝트명', '출하 월', '설치 시작', '시운전 시작', '구분', '출하 예정일',
+        '국내/해외', '로봇 수', '로봇기종', '도장기 사양', '통신 사양', '공장', '고객사', '공정', '공정세부', '외부검수'])}
       rows={rows.map((b) => ({
         key: String(b.id),
-        cells: [
+        cells: cut([
           b.year ?? '-',
           <StatusBadge status={b.status} />,
           list(b.installLocations),
@@ -184,7 +186,7 @@ function BuildTable({ rows, onOpen }: { rows: ModularBuild[]; onOpen(id: number)
           b.process ?? '-',
           b.processDetail ?? '-',
           b.externalInspection ?? '-',
-        ],
+        ]),
       }))}
       empty="조건에 맞는 모듈라 건이 없습니다."
     />

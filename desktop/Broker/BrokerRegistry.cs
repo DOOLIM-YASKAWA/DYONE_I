@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace DyOne.Desktop.Broker;
 
@@ -21,14 +20,23 @@ public sealed class BrokerRegistry
 
     public bool TryGet(string command, out Func<JsonElement, Task<object?>> handler) => _commands.TryGetValue(command, out handler!);
 
-    public static BrokerRegistry CreateDefault(Window owner)
+    public static BrokerRegistry CreateDefault(BrokerContext ctx)
     {
         var registry = new BrokerRegistry();
-        CellModule.Register(registry, owner);
-        MotoSimModule.Register(registry);
-        SmartCellModule.Register(registry);
+        // 오래 걸리는 작업(업로드·다운로드·설치) 취소
+        registry.Register("job.cancel", args =>
+            Task.FromResult<object?>(new { canceled = ctx.CancelJob(GetString(args, "jobId") ?? "") }));
+        CellModule.Register(registry, ctx);
+        MotoSimModule.Register(registry, ctx);
+        SmartCellModule.Register(registry, ctx);
         return registry;
     }
+
+    internal static string Required(JsonElement args, string name) =>
+        GetString(args, name) is { Length: > 0 } v ? v : throw new BrokerException($"{name} 값이 없습니다.");
+
+    internal static long? GetLong(JsonElement args, string name) =>
+        args.ValueKind == JsonValueKind.Object && args.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetInt64(out var n) ? n : null;
 
     internal static string? GetString(JsonElement args, string name) =>
         args.ValueKind == JsonValueKind.Object && args.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;

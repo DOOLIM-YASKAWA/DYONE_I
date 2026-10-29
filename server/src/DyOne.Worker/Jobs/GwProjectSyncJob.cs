@@ -116,7 +116,7 @@ public class GwProjectSyncJob(IOptions<GwProjectSyncOptions> options, IConfigura
         return list;
     }
 
-    private static async Task<(int inserted, int updated, int deactivated)> UpsertAsync(string writeConn, List<GwProject> rows, CancellationToken ct)
+    private async Task<(int inserted, int updated, int deactivated)> UpsertAsync(string writeConn, List<GwProject> rows, CancellationToken ct)
     {
         await using var conn = new NpgsqlConnection(writeConn);
         await conn.OpenAsync(ct);
@@ -144,6 +144,7 @@ public class GwProjectSyncJob(IOptions<GwProjectSyncOptions> options, IConfigura
         }
 
         // 상태코드(0~3) → project_status 코드 id (sort_order로 매핑). ERP날짜 YYYYMMDD → date.
+        // 그룹웨어 값이 실제로 바뀐 행만 갱신한다(안 바뀐 행까지 updated_at을 덮어쓰지 않게).
         const string merge = @"
             with src as (
               select g.code, g.name, g.partner,
@@ -154,11 +155,32 @@ public class GwProjectSyncJob(IOptions<GwProjectSyncOptions> options, IConfigura
             )
             merge into project.project p
             using src on p.code = src.code
-            when matched then update set
+            when matched and (p.name, p.partner_name, p.status_id, p.erp_reg_date, p.source_updated_at, p.is_active)
+                 is distinct from (src.name, src.partner, src.status_id, src.erp_reg_date, src.source_updated, true) then update set
               name = src.name, partner_name = src.partner, status_id = src.status_id,
               erp_reg_date = src.erp_reg_date, source_updated_at = src.source_updated, is_active = true, updated_at = now()
             when not matched then insert (code, name, partner_name, status_id, erp_reg_date, source_updated_at, is_active, created_at, updated_at)
               values (src.code, src.name, src.partner, src.status_id, src.erp_reg_date, src.source_updated, true, now(), now())";
+
+        // 그룹웨어 상태가 바뀐 기존 프로젝트(영업중 → 수주 등)는 진행 상황 이력에 한 줄 남긴다(merge 전에 비교).
+        // 이력 표에 source 칸이 없는 DB(project_stage_v2.sql 적용 전)는 건너뛴다.
+        await using (var has = new NpgsqlCommand(
+            "select exists(select 1 from information_schema.columns where table_schema = 'project' and table_name = 'project_stage_history' and column_name = 'gw_to')", conn, tx))
+        {
+            if ((bool)(await has.ExecuteScalarAsync(ct))!)
+            {
+                await using var hist = new NpgsqlCommand(@"
+                    insert into project.project_stage_history (project_id, from_stage_id, to_stage_id, changed_by, changed_at, note, source, gw_from, gw_to)
+                    select p.id, null, null, null, now(), '그룹웨어 동기화', 'groupware', oc.name, nc.name
+                    from _gw_proj g
+                    join project.project p on p.code = g.code
+                    left join code.code nc on nc.group_key = 'project_status' and nc.sort_order = g.status_code
+                    left join code.code oc on oc.id = p.status_id
+                    where p.status_id is distinct from nc.id", conn, tx);
+                var changedStatus = await hist.ExecuteNonQueryAsync(ct);
+                if (changedStatus > 0) logger.LogInformation("그룹웨어 상태가 바뀐 프로젝트 {Count}건 — 진행 상황 이력에 기록", changedStatus);
+            }
+        }
 
         int affected;
         await using (var mergeCmd = new NpgsqlCommand(merge, conn, tx))

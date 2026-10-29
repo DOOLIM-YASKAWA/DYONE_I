@@ -9,8 +9,16 @@
   const pending = new Map();
   let seq = 0;
 
+  const listeners = new Map(); // 이벤트 이름 → Set(콜백). Broker 진행 알림(업로드·다운로드·설치)
+
   webview.addEventListener('message', (event) => {
     const msg = event.data;
+    if (msg && typeof msg.event === 'string') {
+      for (const cb of listeners.get(msg.event) || []) {
+        try { cb(msg.data); } catch (e) { console.error(e); }
+      }
+      return;
+    }
     const waiter = msg && pending.get(msg.id);
     if (!waiter) return;
     pending.delete(msg.id);
@@ -24,5 +32,11 @@
     webview.postMessage({ id, cmd, args });
   });
 
-  Object.defineProperty(window, 'dyoneDesktop', { value: Object.freeze({ isDesktop: true, invoke }) });
+  const on = (name, cb) => {
+    if (!listeners.has(name)) listeners.set(name, new Set());
+    listeners.get(name).add(cb);
+    return () => listeners.get(name).delete(cb);
+  };
+
+  Object.defineProperty(window, 'dyoneDesktop', { value: Object.freeze({ isDesktop: true, invoke, on }) });
 })();

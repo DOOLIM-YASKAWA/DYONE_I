@@ -6,6 +6,7 @@ import type { AppNotification } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { platform } from '../platform/bridge'
 import { enabledRoutes as routes } from '../routes'
+import { DemoMemos } from './DemoMemos' // [임시 · 데모] 화면 메모(포스트잇)
 
 const channelLabel = { web: 'PC 웹', desktop: 'Windows 앱', mobile: '모바일 앱' }[platform.kind]
 
@@ -76,6 +77,9 @@ export function Layout({ children }: { children: ReactNode }) {
         </footer>
       </div>
 
+      {/* [임시 · 데모 기간] 화면 메모(포스트잇) — 데모가 끝나면 이 줄과 DemoMemos 파일을 지운다 */}
+      <DemoMemos />
+
       <nav id="bottomNav" aria-label="모바일 바로가기">
         {routes.slice(0, 4).map((r) => (
           <NavLink key={r.path} to={r.path} className={({ isActive }) => (isActive ? 'active' : '')}>
@@ -135,7 +139,9 @@ function NotificationBell() {
               className={`bell-item${n.readAt ? '' : ' unread'}`}
               onClick={() => {
                 if (!n.readAt) read.mutate(n.id)
-                if (n.link) navigate(n.link)
+                // 그룹웨어 알림(그대로 받기)은 그룹웨어 문서 주소 → 새 창(Windows 앱은 기본 브라우저)으로 연다
+                if (n.link && /^https?:\/\//.test(n.link)) void platform.openExternal(n.link)
+                else if (n.link) navigate(n.link)
                 setOpen(false)
               }}
             >

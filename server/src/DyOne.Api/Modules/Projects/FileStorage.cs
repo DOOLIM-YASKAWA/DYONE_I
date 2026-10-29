@@ -15,6 +15,25 @@ public class FileStorage(IConfiguration config)
 
     private const string Uncategorized = "_미분류";
 
+    /// <summary>저장소 최상위(운영 NAS UNC). MotoSim처럼 자체 폴더 규칙을 쓰는 모듈용.</summary>
+    public string Root => _root;
+
+    /// <summary>폴더 이름 한 칸: 금지문자는 '_'로 바꾸고 끝 공백·점을 지운다.</summary>
+    public static string SafeSegment(string s) => SafeDir(string.IsNullOrWhiteSpace(s) ? "_" : s);
+
+    /// <summary>파일 이름: 금지문자는 '_'로 바꾼다.</summary>
+    public static string SafeFileName(string s) => SafeFile(s);
+
+    /// <summary>다 받은 임시 파일을 Root 기준 상대 폴더로 옮긴다(같은 이름이 있으면 " (2)"). 반환값은 상대경로.</summary>
+    public string MoveInto(string sourceAbs, string dirRel, string fileName)
+    {
+        var dirAbs = Path.Combine(_root, dirRel.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(dirAbs);
+        var name = UniqueName(dirAbs, SafeFile(fileName));
+        File.Move(sourceAbs, Path.Combine(dirAbs, name));
+        return ToRel(Path.Combine(dirRel, name));
+    }
+
     public string FullPath(string relativePath) =>
         Path.Combine(_root, relativePath.Replace('/', Path.DirectorySeparatorChar));
 

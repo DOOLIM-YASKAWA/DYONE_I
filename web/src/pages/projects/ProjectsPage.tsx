@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../../api/client'
 import type { AiSource, Code, LabTest, PagedResult, Project, ProjectDetail, Section } from '../../api/types'
 import { NotConnected } from '../../components/NotConnected'
-import { Badge, DataTable, ErrorBox, Loading, PageHead } from '../../components/ui'
+import { Badge, DataTable, ErrorBox, GwEndBadge, Loading, PageHead, StageBadge } from '../../components/ui'
 import { platform } from '../../platform/bridge'
 import { DesktopTools } from './DesktopTools'
 import { ModularSection } from './ModularSection'
@@ -12,6 +12,7 @@ import { WorksAppSection } from './WorksAppSection'
 import { AssignmentList, LabDetailDialog, ProjectDetailDialog } from './DetailDialogs'
 import { ProjectAI } from './ProjectAI'
 import { isSection, sections } from './sections'
+import '../../styles/project-detail.css'
 
 type DialogState = { kind: 'project'; id: number } | { kind: 'lab'; lab: LabTest } | null
 const PAGE_SIZE = 50
@@ -96,7 +97,7 @@ export function ProjectsPage() {
     ) : (
       <>
         <DataTable
-          headers={['프로젝트 코드·명', '발주처', '진행 단계', '종류', 'ERP 등록날짜', '최근 변경']}
+          headers={['프로젝트 코드·명', '발주처', '진행 단계', 'PM', '종류', 'ERP 등록날짜', '최근 변경']}
           rows={(projects.data?.items ?? []).map((p) => ({
             key: String(p.id),
             cells: [
@@ -108,10 +109,12 @@ export function ProjectsPage() {
                 </button>
               </>,
               p.partnerName ?? '-',
-              p.effectiveStage ? <Badge status={p.effectiveStage} /> : (p.status ?? '미지정'),
+              // 진행 단계 + 그룹웨어에서 마감·중단이면 따로 표시
+              p.effectiveStage ? <span className="badge-row"><StageBadge name={p.effectiveStage} status={p.effectiveStatus} /><GwEndBadge status={p.status} /></span> : p.status ? <Badge status={p.status} /> : '미지정',
+              p.pmName ?? '-',
               p.type ?? '-',
               p.erpRegDate ?? '-',
-              date(p.updatedAt),
+              <span>{date(p.lastChangedAt)}{p.lastChangedSource && <small className="last-kind">{p.lastChangedSource}{p.lastChangedBy ? ` · ${p.lastChangedBy}` : ''}</small>}</span>,
             ],
           }))}
           empty="검색 조건에 맞는 프로젝트가 없습니다."
@@ -226,7 +229,9 @@ export function ProjectsPage() {
                 상세
               </button>
               <span />
-              {project.status ? <Badge status={project.status} /> : <span className="badge">상태 미지정</span>}
+              {project.effectiveStage ? (
+                <span className="badge-row"><StageBadge name={project.effectiveStage} status={project.effectiveStatus} /><GwEndBadge status={project.status} /></span>
+              ) : project.status ? <Badge status={project.status} /> : <span className="badge">상태 미지정</span>}
             </div>
           )}
           <div className="source-note">
@@ -248,7 +253,8 @@ export function ProjectsPage() {
           <section className="panel">
             <div className="panel-head">
               <div>
-                <h2>{section === 'progress' && scope ? '공정 배당' : spec.name}</h2>
+                {/* 프로젝트 목록은 제목 없이 건수만 */}
+                {!(section === 'progress' && !scope) && <h2>{section === 'progress' && scope ? '공정 배당' : spec.name}</h2>}
                 <p>
                   {section === 'progress' && !scope && projects.data && `${projects.data.total.toLocaleString()}개 프로젝트`}
                   {section === 'lab' && labs.data && `${labs.data.total.toLocaleString()}개 테스트`}

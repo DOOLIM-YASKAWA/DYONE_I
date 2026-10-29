@@ -1,0 +1,35 @@
+/* [임시 · 데모 기간] 화면 메모(포스트잇) — 데모가 끝나면 components/DemoMemos.tsx와 함께 지운다 */
+#main{position:relative}
+.memo-dock{position:fixed;right:22px;bottom:22px;z-index:90;display:flex;gap:6px;background:#fff;border:1px solid #e8dfb8;border-radius:12px;padding:6px;box-shadow:0 8px 24px #14284b1f}
+.memo-dock button{border:0;background:#fffbe6;color:#7a5b00;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.memo-dock button:hover,.memo-dock button.on{background:#ffe98a}
+.memo-dock b{background:#e0a400;color:#fff;border-radius:999px;font-size:11px;padding:1px 7px}
+.memo-placing{position:absolute;inset:0;z-index:70;cursor:crosshair;background:#fffbe633;outline:2px dashed #e0a400;outline-offset:-2px}
+.memo-placing span{position:sticky;top:12px;display:block;width:max-content;margin:12px auto;background:#7a5b00;color:#fff;font-size:13px;padding:6px 12px;border-radius:8px}
+.memo-pin{position:absolute;z-index:75;transform:translate(-14px,-14px)}
+.memo-pin.open{z-index:100}
+.memo-dot{width:28px;height:28px;border-radius:8px 8px 8px 2px;border:0;background:#ffd84d;color:#5c4400;font-size:13px;font-weight:700;display:grid;place-items:center;box-shadow:0 3px 10px #7a5b0040;cursor:pointer}
+.memo-pin.resolved .memo-dot{background:#d9dee6;color:#5f6b7d}
+.memo-card{position:absolute;top:34px;left:0;width:320px;background:#fffdf0;border:1px solid #eadb9a;border-radius:10px;box-shadow:0 10px 30px #14284b2a;padding:12px;display:flex;flex-direction:column;gap:8px}
+.memo-card textarea{min-height:80px;font-size:14px;background:#fff}
+.memo-pin.flip .memo-card{left:auto;right:-28px}
+.memo-answer{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#7a6a2c}
+.memo-answer textarea{min-height:44px;font-size:13px}
+.memo-body{margin:0;font-size:14px;line-height:1.7;white-space:pre-line;overflow-wrap:anywhere;color:var(--ink)}
+.memo-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.memo-head small{color:#8a7a3c;font-size:12px}
+.memo-x{border:0;background:none;font-size:20px;line-height:1;color:#8a7a3c;cursor:pointer;padding:0 4px}
+.memo-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.memo-actions small{color:#9a8a4c;margin-right:auto;font-size:11px}
+.memo-actions .primary,.memo-actions .secondary{padding:6px 12px;font-size:13px}
+.memo-err{margin:0;color:#b7584a;font-size:12px}
+.memo-list{position:fixed;right:22px;bottom:80px;z-index:95;width:min(420px,calc(100vw - 32px));max-height:min(70vh,640px);overflow:auto;background:#fffdf0;border:1px solid #eadb9a;border-radius:12px;box-shadow:0 12px 36px #14284b30;padding:14px}
+.memo-list h4{margin:14px 0 6px;font-size:14px}
+.memo-list h4 small{color:#9a8a4c;font-weight:400;margin-left:6px}
+.memo-row{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px dashed #eadb9a}
+.memo-row input{margin-top:5px}
+.memo-row-body{border:0;background:none;text-align:left;font-size:14px;line-height:1.6;color:var(--ink);cursor:pointer;padding:0;white-space:pre-line;overflow-wrap:anywhere}
+.memo-row-body small{display:block;color:var(--green);font-size:12px;margin-top:2px}
+.memo-row.resolved .memo-row-body{color:#9aa3b0;text-decoration:line-through}
+.memo-empty{font-size:13px;color:#8a7a3c}
+@media (max-width:820px){.memo-dock{bottom:86px;right:12px}.memo-list{bottom:140px;right:12px}.memo-card{width:260px}}
