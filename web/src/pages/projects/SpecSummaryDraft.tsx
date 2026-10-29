@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { API_BASE, api, downloadFile, tokenStore } from '../../api/client'
 import { ErrorBox, Loading, Modal } from '../../components/ui'
 import { SpecSheet, type SheetRow } from './SpecSheet'
@@ -909,7 +910,8 @@ function PageZoom({ projectId, fileId, page, marks, max, onPage, onClose }: {
     document.body.style.overflow = 'hidden'
     return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prev }
   })
-  return (
+  // body에 바로 띄운다 — 미리보기 칸(sticky) 안에 그리면 그 쌓임 순서에 갇혀 표 머리줄·도구 막대가 위로 올라온다
+  return createPortal(
     <div className="sd-zoom" role="dialog" aria-label={`사양서 ${page}쪽 크게 보기`} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div className="sd-zoom-bar">
         <button className="secondary" disabled={page <= 1} onClick={() => onPage(page - 1)} title="이전 쪽 (←)">‹</button>
@@ -953,7 +955,8 @@ function PageZoom({ projectId, fileId, page, marks, max, onPage, onClose }: {
           />
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
