@@ -2,9 +2,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DyOne.Data\DyOne.Data.csproj" />
+    <ProjectReference Include="..\DyOne.Spec\DyOne.Spec.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

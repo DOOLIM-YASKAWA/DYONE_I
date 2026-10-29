@@ -1,0 +1,33 @@
+/* 영업 단계 '영업 에이전트': 화면 위에 떠 있는 창(머리 부분을 끌어 옮기기), 접으면 떠 있는 버튼 (SalesAgentPanel.tsx) */
+.sa-panel{position:fixed;z-index:92;width:360px;max-width:calc(100vw - 16px);height:620px;max-height:calc(100vh - 16px);display:flex;flex-direction:column;border:1px solid #d6e0ef;border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 18px 60px #14284b33}
+.sa-head{cursor:move;user-select:none;touch-action:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:#f7f9ff}
+.sa-head>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sa-head b{font-size:15px}
+.sa-head .badge.mini{margin-left:0}
+.sa-head .text-button{font-size:13px}
+.sa-icon{color:var(--blue);margin-right:6px}
+.sa-context{padding:10px 14px;border-bottom:1px solid #edf1f7;font-size:13px}
+.sa-context label{display:flex;flex-direction:column;gap:5px}
+.sa-context em{font-style:normal;color:var(--muted);font-size:12px}
+.sa-context select{width:100%;font-size:13px;padding:7px 9px}
+.sa-muted{color:var(--muted);font-size:12px;line-height:1.6}
+.sa-actions{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid #edf1f7}
+.sa-action{border:1px solid #d6e2f8;background:#f3f7ff;color:#3c65be;border-radius:999px;padding:5px 11px;font-size:12px}
+.sa-action:hover{background:#e6eeff}
+.sa-messages{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.sa-start p{font-size:13px;color:var(--muted);line-height:1.7;margin:0 0 12px}
+.sa-start small{display:block;font-size:12px;color:#8b98ab;margin-bottom:6px}
+.sa-example{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fafcff;border-radius:8px;padding:9px 11px;font-size:13px;line-height:1.6;margin-bottom:6px;color:var(--ink)}
+.sa-example:hover{border-color:#b9cdf4}
+.sa-msg{font-size:13px;line-height:1.7;border-radius:10px;padding:9px 12px;white-space:pre-line;max-width:92%}
+.sa-msg.user{align-self:flex-end;background:#eaf1ff}
+.sa-msg.agent{align-self:flex-start;border:1px solid #f2d9b6;background:#fff9f1;color:#7a5a2b}
+.sa-msg-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.sa-msg-actions button{border:1px solid #e3d3bb;background:#fff;border-radius:6px;padding:3px 8px;font-size:11px;color:#a08a6a}
+.sa-msg-actions button:disabled{cursor:not-allowed}
+.sa-form{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line)}
+.sa-form input{flex:1;font-size:13px;padding:8px 10px}
+.sa-form .primary{padding:8px 12px;font-size:13px}
+
+.sa-fab{position:fixed;z-index:92;display:inline-flex;align-items:center;gap:2px;border:1px solid #c9d8f5;background:#fff;color:#3c65be;border-radius:999px;padding:10px 16px;font-size:14px;font-weight:600;cursor:move;user-select:none;touch-action:none;box-shadow:0 8px 28px #14284b2e}
+.sa-fab:hover{background:#f3f7ff}

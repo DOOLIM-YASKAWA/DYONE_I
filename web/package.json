@@ -13,6 +13,7 @@
     "@capacitor/core": "8.5.2",
     "@microsoft/signalr": "^10.0.11",
     "@tanstack/react-query": "^5.104.1",
+    "jspreadsheet-ce": "5.0.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router-dom": "^7.18.4"
