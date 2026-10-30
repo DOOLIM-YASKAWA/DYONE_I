@@ -124,6 +124,7 @@ app.MapNotifications();
 app.MapSmartLab();
 app.MapSrsAnalyzer();
 app.MapProcess();
+DyOne.Api.Modules.Meals.MealsModule.MapMeals(app); // 수담푸드 식단(Worker 캐시 파일 읽기)
 DyOne.Api.Modules.Motosim.MotosimModule.MapMotosim(app); // MotoSim Launcher 이관 1단계(조회)
 app.MapDemoMemos(config); // [임시 · 데모] 화면 메모(포스트잇). DemoMemo:Enabled일 때만
 app.MapHub<NotificationHub>("/hubs/notifications");

@@ -219,4 +219,20 @@
 
 ---
 
+## 13. 수담푸드 메뉴 (구내식당 식단, 2026-10-30)
+
+- 기능: 사이드바 '수담푸드 메뉴'(`/meals`, `MealsPage.tsx`). 주간 점심 식단을 DY ONE 디자인(요일 탭·오늘 카드·주간 표)으로 보여 준다.
+- 출처: 위탁 급식업체 수담푸드가 매주(보통 일요일) 올리는 **네이버 QR '메뉴판' 페이지** `https://m.site.naver.com/25qXx` — 이미지 6장(주간표 1 + 월~금 1장씩). 로그인 없음, 읽기만.
+- **Worker `sudam-menu` 작업**(`SudamMenu` 설정, 매일 06:30): 페이지의 `__NEXT_DATA__`에서 이미지 주소를 읽고, 바뀌었을 때만 사내 AI(`Llm:*`, 이미지 입력)로 날짜별 메뉴 글자를 읽어 캐시 파일 `FileStorage:Root\_meals\sudam.json`에 쓴다. API `GET /api/meals/sudam`은 그 파일을 그대로 준다.
+- **DB 변경 없음.** 사내 AI 키가 없거나 실패하면 글자 없이 원본 이미지(요일별)로 보여 준다.
+
+| 항목 | 로컬 | 운영 |
+|---|---|---|
+| Worker `SudamMenu` | `Times [06:30]`(하루 한 번, AI 글자 읽기는 이미지가 바뀐 날만 = 주 1회), `RunOnStartup false` | 같음. Worker 서버가 **외부 인터넷(m.site.naver.com·qrcodethumb-phinf.pstatic.net)** 에 나갈 수 있어야 함 |
+| Worker `Llm:BaseUrl`·`Llm:Model`·`Llm:ApiKey` | BaseUrl·Model은 Worker appsettings, ApiKey는 Worker user-secrets(2026-10-30 넣음). qwen3.8-27b 이미지 입력 확인 — 10/26~30 메뉴 50개 중 48개 원문 그대로, 2개는 맞춤법만 고쳐 읽음(깍뚜기→깍두기, 모듬→모둠), 메인 메뉴 5/5 | 사내 AI 키(Worker user-secrets/환경변수 `Llm__ApiKey`). 모델이 **이미지 입력**을 받아야 함 |
+| 캐시 `Meals:SudamCache` | 비움 → `FileStorage:Root\_meals\sudam.json` | **API와 Worker가 같은 경로**, Worker 쓰기·API 읽기 권한 |
+| 브라우저 | 이미지는 `qrcodethumb-phinf.pstatic.net`에서 바로 받음 | 사용자 PC·모바일이 외부 이미지를 열 수 있어야 '원본 이미지' 보임 |
+
+---
+
 *갱신: 새 기능·설정 변경 때마다 이 표와 DEPLOY-PENDING을 같이 수정할 것.*

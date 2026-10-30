@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 import { NotConnected } from '../components/NotConnected'
 import { PageHead } from '../components/ui'
 
-// IT 요청 · 식단 · 방문 차량은 dyone DB에 테이블이 없다. DY ONE 전용 스키마가 확정되면 화면을 연결한다.
+// IT 요청 · 방문 차량은 dyone DB에 테이블이 없다. DY ONE 전용 스키마가 확정되면 화면을 연결한다. (식단은 MealsPage.tsx — 수담푸드 메뉴)
 
 export function ItPage() {
   return (
@@ -11,17 +11,6 @@ export function ItPage() {
       <PageHead eyebrow="IT SERVICE DESK" title="IT 요청" sub="장비·계정·소프트웨어·네트워크 요청과 처리 현황" />
       <section className="panel">
         <NotConnected what="IT 요청" />
-      </section>
-    </>
-  )
-}
-
-export function MealsPage() {
-  return (
-    <>
-      <PageHead eyebrow="DAILY MENU" title="오늘의 식단" sub="구내식당 식단" />
-      <section className="panel">
-        <NotConnected what="식단" />
       </section>
     </>
   )
