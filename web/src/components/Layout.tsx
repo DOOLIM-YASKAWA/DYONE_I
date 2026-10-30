@@ -5,13 +5,15 @@ import { api } from '../api/client'
 import type { AppNotification } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { platform } from '../platform/bridge'
-import { enabledRoutes as routes } from '../routes'
+import { visibleRoutes } from '../routes'
 import { DemoMemos } from './DemoMemos' // [임시 · 데모] 화면 메모(포스트잇)
 
 const channelLabel = { web: 'PC 웹', desktop: 'Windows 앱', mobile: '모바일 앱' }[platform.kind]
 
 export function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
+  const partner = user?.kind === 'partner'
+  const routes = visibleRoutes(partner)
   const location = useLocation()
   // 메뉴를 연 화면 경로를 기억해 두고, 다른 화면으로 이동하면 자연스럽게 닫힌 상태가 된다.
   const [menuOpenAt, setMenuOpenAt] = useState<string | null>(null)
@@ -27,7 +29,7 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       <aside id="sidebar" className={menuOpen ? 'open' : ''}>
-        <NavLink className="brand" to="/home">
+        <NavLink className="brand" to={partner ? '/projects' : '/home'}>
           <span className="brand-mark">D</span>
           <span>
             DY <b>ONE</b>
@@ -42,6 +44,12 @@ export function Layout({ children }: { children: ReactNode }) {
               {r.name}
             </NavLink>
           ))}
+          {user?.isAdmin && (
+            <NavLink to="/admin/partners" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+              <span className="nav-icon">⚿</span>
+              협력사 관리
+            </NavLink>
+          )}
         </nav>
         <div className="sidebar-foot">
           <span className="avatar">{user?.name[0]}</span>
@@ -61,11 +69,11 @@ export function Layout({ children }: { children: ReactNode }) {
             <button className="icon-btn mobile-only" aria-label="전체 메뉴 열기" onClick={() => setMenuOpen(true)}>
               ☰
             </button>
-            <span id="breadcrumb">워크스페이스 / {current.name}</span>
+            <span id="breadcrumb">워크스페이스 / {location.pathname.startsWith('/admin/partners') ? '협력사 관리' : current.name}</span>
           </div>
           <div>
             <span className="demo-chip">개발 · dyone DB 읽기 전용</span>
-            <NotificationBell />
+            {!partner && <NotificationBell />}
             <button className="avatar mini avatar-button" title="로그아웃" onClick={logout}>
               {user?.name[0]}
             </button>
@@ -78,7 +86,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </div>
 
       {/* [임시 · 데모 기간] 화면 메모(포스트잇) — 데모가 끝나면 이 줄과 DemoMemos 파일을 지운다 */}
-      <DemoMemos />
+      {!partner && <DemoMemos />}
 
       <nav id="bottomNav" aria-label="모바일 바로가기">
         {routes.slice(0, 4).map((r) => (

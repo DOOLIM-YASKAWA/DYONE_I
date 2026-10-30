@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using DyOne.Api.Platform;
 using DyOne.Data;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -20,7 +21,8 @@ public static class ProjectFilesModule
 {
     public static void MapProjectFiles(this IEndpointRouteBuilder app)
     {
-        var g = app.MapGroup("/api/projects/{projectId:long}/files").WithTags("ProjectFiles").RequireAuthorization();
+        // 그룹 수준 권한은 걸지 않는다: 기본(Fallback)이 직원 전용이고, 목록·내려받기만 협력사 허용(.PartnerAllowed, 배정 프로젝트만)
+        var g = app.MapGroup("/api/projects/{projectId:long}/files").WithTags("ProjectFiles");
 
         // 목록(활성 문서만, 최신 업로드 순). 분류·단계·업로더 이름을 함께 내려준다.
         g.MapGet("", async (long projectId, DyOneDbContext db, CancellationToken ct) =>
@@ -41,7 +43,7 @@ public static class ProjectFilesModule
                                   f.Description, e != null ? e.Name : null, f.DepartmentId, d != null ? d.Name : null, f.UploadedAt))
                               .ToListAsync(ct);
             return Results.Ok(rows);
-        });
+        }).PartnerAllowed();
 
         // 업로드(여러 개 가능). multipart/form-data: files[], categoryId?, stageId?, description?
         g.MapPost("", async (long projectId, HttpRequest request, ClaimsPrincipal principal,
@@ -114,7 +116,7 @@ public static class ProjectFilesModule
             if (!storage.Exists(f.StoredName)) return Results.NotFound(new { message = "저장소에 파일이 없습니다." });
             var stream = new FileStream(storage.FullPath(f.StoredName), FileMode.Open, FileAccess.Read, FileShare.Read);
             return Results.File(stream, f.ContentType ?? "application/octet-stream", f.FileName);
-        });
+        }).PartnerAllowed();
 
         // 분류 변경(업로드 후). 실물 파일을 새 분류 폴더로 옮기고 경로도 갱신. 지금은 로그인 전원 가능(권한은 추후).
         g.MapPut("/{fileId:long}", async (long projectId, long fileId, FileCategoryUpdate body, IConfiguration config, FileStorage storage, DyOneDbContext db, CancellationToken ct) =>

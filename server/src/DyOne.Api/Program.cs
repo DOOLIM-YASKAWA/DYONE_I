@@ -12,7 +12,6 @@ using DyOne.Api.Modules.Projects;
 using DyOne.Api.Platform;
 using DyOne.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -77,9 +76,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         },
     };
 });
-// 명시적으로 AllowAnonymous가 없는 모든 엔드포인트는 로그인 필요
-builder.Services.AddAuthorizationBuilder()
-    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+// 명시적으로 AllowAnonymous가 없는 모든 엔드포인트는 로그인 필요 + 기본은 직원 전용.
+// 협력사(kind=partner)는 .PartnerAllowed()를 붙인 엔드포인트와 배정된 프로젝트만(Platform/ProjectAccess.cs, docs/partner-access)
+builder.Services.AddAuthorizationBuilder().AddProjectAccessPolicies();
+builder.Services.AddScoped<ProjectScope>();
+builder.Services.AddScoped<DyOne.Api.Modules.Partners.PartnerDirectory>(); // 협력사 로그인(주소록 이메일 + 회사 공용 비밀번호)
 
 // --- 공통 ---
 builder.Services.AddHttpContextAccessor();
@@ -127,5 +128,7 @@ app.MapProcess();
 DyOne.Api.Modules.Motosim.MotosimModule.MapMotosim(app); // MotoSim Launcher 이관 1단계(조회)
 app.MapDemoMemos(config); // [임시 · 데모] 화면 메모(포스트잇). DemoMemo:Enabled일 때만
 app.MapHub<NotificationHub>("/hubs/notifications");
+DyOne.Api.Modules.Partners.PartnersModule.MapPartners(app); // 협력사 회사별 공용 비밀번호(관리자)
+if (app.Environment.IsDevelopment()) ProjectAccess.WarnIfPartnerSurfaceChanged(app);
 
 app.Run();

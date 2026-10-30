@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useMemo, useRef, useState } from 'react'
 import { api, downloadFile } from '../../api/client'
+import { useIsPartner } from '../../auth/AuthContext'
 import type { Code, ProjectFile } from '../../api/types'
 import { ErrorBox, Loading } from '../../components/ui'
 
@@ -35,6 +36,7 @@ export function ProjectFilesTab({ projectId, stage, filterByStage = false, onlyC
   rowActions?: (f: ProjectFile) => ReactNode
 }) {
   const qc = useQueryClient()
+  const partner = useIsPartner() // 협력사: 목록·내려받기만(올리기는 협력사 일지 단계에서)
   const inputRef = useRef<HTMLInputElement>(null)
   const [filter, setFilter] = useState<number | 'all'>('all')
   const [uploadCategory, setUploadCategory] = useState<number | null>(null)
@@ -100,6 +102,7 @@ export function ProjectFilesTab({ projectId, stage, filterByStage = false, onlyC
       {/* 업로드 영역 */}
       <div
         className={drag ? 'dropzone over' : 'dropzone'}
+        hidden={partner}
         onDragOver={(e) => { e.preventDefault(); setDrag(true) }}
         onDragLeave={() => setDrag(false)}
         onDrop={(e) => { e.preventDefault(); setDrag(false); pick(e.dataTransfer.files) }}
@@ -116,7 +119,7 @@ export function ProjectFilesTab({ projectId, stage, filterByStage = false, onlyC
           {stage ? ` · '${stage.name}' 단계로 기록됩니다` : ''}
         </span>
       </div>
-      {!onlyCategory && (
+      {!onlyCategory && !partner && (
       <div className="upload-opts">
         <label>
           분류
@@ -159,7 +162,7 @@ export function ProjectFilesTab({ projectId, stage, filterByStage = false, onlyC
                 </button>
                 <small>
                   {/* 한 분류만 보는 화면(예: 사양서 분석 탭)은 분류가 고정이라 바꾸는 칸 대신 이름만 */}
-                  {onlyCategory ? (
+                  {onlyCategory || partner ? (
                     <span className="badge">{f.category ?? '-'}</span>
                   ) : (
                     <select
@@ -181,7 +184,7 @@ export function ProjectFilesTab({ projectId, stage, filterByStage = false, onlyC
               </div>
               {rowActions?.(f)}
               <button className="secondary" onClick={() => downloadFile(`/api/projects/${projectId}/files/${f.id}/download`, f.fileName)}>다운로드</button>
-              <button className="text-button danger" onClick={() => confirm(`"${f.fileName}"을(를) 삭제할까요?`) && del.mutate(f.id)} disabled={del.isPending}>삭제</button>
+              {!partner && <button className="text-button danger" onClick={() => confirm(`"${f.fileName}"을(를) 삭제할까요?`) && del.mutate(f.id)} disabled={del.isPending}>삭제</button>}
             </li>
           ))}
         </ul>

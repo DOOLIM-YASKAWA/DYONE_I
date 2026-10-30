@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useAuth } from '../auth/AuthContext'
 
 /**
- * 로그인. 그룹웨어 계정(아이디·비밀번호)으로 로그인한다.
+ * 로그인. 그룹웨어 계정(아이디·비밀번호)으로 로그인한다. 협력사는 주소록 이메일 + 회사 공용 비밀번호(서버가 이메일로 구분).
  * 서버가 그룹웨어 인증 API로 검증 → org.employee(login_id)로 직원 확인 → DY ONE 토큰 발급.
  * (dy-chat-agent-app의 그룹웨어 SSO 로그인 방식과 동일)
  */
@@ -58,6 +58,8 @@ export function LoginPage() {
           </button>
         </form>
         <p className="login-help">그룹웨어와 같은 아이디·비밀번호를 사용합니다. 로그인이 안 되면 조직도 등록 여부를 관리자에게 문의하세요.</p>
+        {/* 협력사: 그룹웨어 주소록 이메일 + 회사 공용 비밀번호(docs/partner-access). 배정된 프로젝트가 있어야 로그인된다 */}
+        <p className="login-help">협력사는 이메일 주소와 안내받은 회사 공용 비밀번호로 로그인합니다.</p>
       </section>
     </div>
   )

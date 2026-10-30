@@ -86,6 +86,15 @@
 - [ ] (선택) 사내 AI 키 `Llm:ApiKey`(user-secrets/환경변수) — 없으면 규칙 초안(빈 칸·기타 사항은 사람이 채움)
 - 이전 판(pilot 이식본, `spec` 스키마)은 2026-10-15 삭제 — 운영 적용할 것 없음. 백업은 side-session-notes
 
+## 3g. 협력사 로그인 · API 기본 차단 (2026-10-30 로컬, DEPLOY.md 14장)
+- [ ] 운영 dyone(.111)에 `server/db/partner.sql` 적용 — **API 배포 전**(project_member.sql 다음). 데이터 없음
+- [ ] 운영 DB 접속 계정에 `partner.company`·`partner.person` SELECT/UPDATE, `project.project_member` 새 칸 권한. Worker 쓰기 계정에 `partner.*` INSERT/UPDATE
+- [ ] 운영 Worker 설정 `PartnerSync`(DailyAt 08:10, BookId 15) → 배포 후 1회 실행해 `select company_id, count(*) from partner.person where is_active group by 1` 확인(로컬 기준 71:77 · 72:19 · 439:17 · 450:14 · 640:6)
+- [ ] 운영 관리자 화면 `/admin/partners`에서 5개 회사 공용 비밀번호 입력(로컬 해시 복사 금지)
+- [ ] 배포 후 직원 로그인·홈·프로젝트·조직도·SmartLab 임베드가 그대로인지(기본 정책이 직원 전용으로 바뀜). 옛 토큰으로 접속 중인 직원도 그대로여야 함
+- [ ] 로컬 시험 배정 행(task '[시험]…')은 운영에 없어야 함 — `check_prod_clean.sql`에 넣을지 검토
+- [ ] (5단계) 현장 협력사 외부 접속 방식(https 리버스 프록시 vs VPN) 결정
+
 ## 3e. 조직도 · 프로젝트 인원(PM·투입 인원) (2026-10-15 로컬 적용)
 - [ ] **결정 필요**: DY ONE 전용 테이블 추가 → 스키마 소유자(팀장님) 확인 후 운영 적용
 - [ ] 운영 dyone(.111:12678)에 `server/db/project_member.sql` 적용(`project.project_member`, 여러 번 실행해도 안전). 데이터는 넣지 않음(로컬 지정 값은 시험 데이터)

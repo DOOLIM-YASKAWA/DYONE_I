@@ -20,5 +20,9 @@ export const routes = [
 
 export const enabledRoutes = routes.filter((r) => r.enabled)
 
+// 협력사(kind=partner)에게 보이는 메뉴. 서버도 이 화면들의 API만 협력사에게 연다(Platform/ProjectAccess.cs).
+export const partnerPaths: readonly string[] = ['/projects']
+export const visibleRoutes = (partner: boolean) => (partner ? enabledRoutes.filter((r) => partnerPaths.includes(r.path)) : enabledRoutes)
+
 export const formatKoreanDate = (d: Date) =>
   d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })

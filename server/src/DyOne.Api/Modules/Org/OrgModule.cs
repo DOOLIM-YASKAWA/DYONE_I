@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using DyOne.Api.Platform;
 using Npgsql;
 
 namespace DyOne.Api.Modules.Org;
@@ -27,7 +28,8 @@ public static class OrgModule
 {
     public static void MapOrg(this IEndpointRouteBuilder app)
     {
-        var g = app.MapGroup("/api").WithTags("Org").RequireAuthorization();
+        // 그룹 수준 권한은 걸지 않는다: 기본(Fallback)이 직원 전용이고, 프로젝트 인원 보기만 협력사 허용(.PartnerAllowed, 배정 프로젝트만)
+        var g = app.MapGroup("/api").WithTags("Org");
 
         // 조직도: 재직 중인 부서·직원 전체(부서 62 · 직원 150 수준이라 한 번에 준다). 화면이 부서 트리를 만든다.
         g.MapGet("/org", async (IConfiguration config, CancellationToken ct) =>
@@ -94,7 +96,7 @@ public static class OrgModule
             await using var conn = new NpgsqlConnection(config.GetConnectionString("DyOne"));
             await conn.OpenAsync(ct);
             return Results.Ok(await MembersAsync(conn, null, id, ct));
-        });
+        }).PartnerAllowed();
 
         g.MapPost("/projects/{id:long}/members", async (long id, ProjectMemberAdd body, ClaimsPrincipal principal, IConfiguration config, CancellationToken ct) =>
         {
@@ -111,7 +113,7 @@ public static class OrgModule
 
             // 이 프로젝트의 현재 인원을 잠그고 읽는다(동시에 PM을 둘 지정하는 것을 막는다)
             var current = new Dictionary<long, (long Id, string Role)>();
-            await using (var cur = new NpgsqlCommand("select id, employee_id, role from project.project_member where project_id = @pid and is_active for update", conn, tx))
+            await using (var cur = new NpgsqlCommand("select id, employee_id, role from project.project_member where project_id = @pid and is_active and employee_id is not null for update", conn, tx))
             {
                 cur.Parameters.AddWithValue("pid", id);
                 await using var r = await cur.ExecuteReaderAsync(ct);
