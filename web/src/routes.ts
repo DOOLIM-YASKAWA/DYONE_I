@@ -13,7 +13,7 @@ export const routes = [
   { path: '/motosim', icon: '◈', name: 'MotoSim', enabled: true },
   { path: '/chat', icon: '✦', name: 'AI 챗봇', enabled: false },
   { path: '/it', icon: '⌘', name: 'IT 요청', enabled: false },
-  { path: '/meals', icon: '◉', name: '오늘의 식단', enabled: false },
+  { path: '/meals', icon: '◉', name: '수담푸드 메뉴', enabled: true },
   { path: '/vehicles', icon: '▱', name: '방문 차량', enabled: false },
   { path: '/access', icon: '⌁', name: '모바일 출입', enabled: false },
 ] as const

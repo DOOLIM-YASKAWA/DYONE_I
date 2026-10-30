@@ -10,6 +10,7 @@ builder.Services.Configure<GwModularSyncOptions>(builder.Configuration.GetSectio
 builder.Services.Configure<GwWorksSyncOptions>(builder.Configuration.GetSection("GwWorksSync"));
 builder.Services.Configure<GwNotiMirrorOptions>(builder.Configuration.GetSection("GwNotiMirror"));
 builder.Services.Configure<SpecIndexOptions>(builder.Configuration.GetSection("SpecIndex"));
+builder.Services.Configure<SudamMenuOptions>(builder.Configuration.GetSection("SudamMenu"));
 
 // 주기 작업 등록. GW(tims) 읽기 + dyone 쓰기는 Job이 ConnectionStrings:Gw / DyOneWrite로 직접 연결한다.
 builder.Services.AddSingleton<IWorkerJob, GwProjectSyncJob>();
@@ -19,6 +20,8 @@ builder.Services.AddSingleton<IWorkerJob, GwWorksSyncJob>();
 builder.Services.AddSingleton<IWorkerJob, GwNotiMirrorJob>();
 // 사양서 분석용 NAS 색인(라이브러리 → 설비 이력, 매일 03:00). DB는 쓰지 않고 API와 같은 캐시 파일을 새로 쓴다.
 builder.Services.AddSingleton<IWorkerJob, SpecIndexJob>();
+// 수담푸드(구내식당) 식단: 네이버 QR 메뉴판 이미지 → 사내 AI 글자 읽기 → 캐시 파일(_meals\sudam.json). DB는 쓰지 않는다.
+builder.Services.AddSingleton<IWorkerJob, SudamMenuJob>();
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();

@@ -86,6 +86,13 @@
 - [ ] (선택) 사내 AI 키 `Llm:ApiKey`(user-secrets/환경변수) — 없으면 규칙 초안(빈 칸·기타 사항은 사람이 채움)
 - 이전 판(pilot 이식본, `spec` 스키마)은 2026-10-15 삭제 — 운영 적용할 것 없음. 백업은 side-session-notes
 
+## 3f. 수담푸드 메뉴 (2026-10-30 로컬, DB 변경 없음)
+- [ ] 운영 Worker 설정 `SudamMenu`(SourceUrl·Times) + `FileStorage:Root`를 **API와 같은 값**으로, Worker 계정에 `_meals` 폴더 쓰기 권한
+- [ ] 운영 Worker 서버에서 외부 인터넷 `m.site.naver.com`·`qrcodethumb-phinf.pstatic.net` 접속 가능한지(방화벽·프록시)
+- [ ] 운영 Worker에 사내 AI `Llm:BaseUrl`·`Llm:Model`·`Llm:ApiKey` — 모델이 이미지 입력을 받는지 확인. 없으면 화면은 원본 이미지로만 보임
+- [ ] 배포 후 Worker `RunOnStartup` 한 번(또는 다음 확인 시각) → `_meals\sudam.json`의 `extracted: true`·`days` 5일 확인, 화면 '수담푸드 메뉴'에서 원본 이미지와 글자 대조
+- [ ] (권장) 수담푸드에 사내 게시·자동 수집 양해
+
 ## 3e. 조직도 · 프로젝트 인원(PM·투입 인원) (2026-10-15 로컬 적용)
 - [ ] **결정 필요**: DY ONE 전용 테이블 추가 → 스키마 소유자(팀장님) 확인 후 운영 적용
 - [ ] 운영 dyone(.111:12678)에 `server/db/project_member.sql` 적용(`project.project_member`, 여러 번 실행해도 안전). 데이터는 넣지 않음(로컬 지정 값은 시험 데이터)

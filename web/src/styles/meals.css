@@ -1,0 +1,31 @@
+/* 수담푸드 메뉴 — MealsPage.tsx. 기본 .meal-days·.meal-head·.meal-meta는 styles.css */
+
+.meal-days button { display: inline-flex; align-items: center; gap: 6px; }
+.meal-today { font-style: normal; font-size: 11px; background: #e6f4ef; color: var(--green); border-radius: 999px; padding: 2px 7px; }
+.meal-days button.active .meal-today { background: #ffffff26; color: #fff; }
+
+.meal-layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 22px; align-items: start; }
+.meal-card .meal-head { flex-wrap: wrap; gap: 10px; }
+.meal-card .meal-head small { font-size: 13px; }
+.meal-card .meal-head h2 { margin-top: 4px; }
+.meal-main-chip { background: var(--navy); color: #fff; border-radius: 999px; padding: 7px 14px; font-size: 14px; font-weight: 600; }
+
+.meal-list { list-style: none; margin: 0; padding: 18px 24px 22px; display: grid; gap: 2px; }
+.meal-list li { padding: 7px 0; font-size: 16px; color: #4d5f78; border-bottom: 1px dashed var(--line); display: flex; align-items: center; gap: 8px; }
+.meal-list li:last-child { border-bottom: 0; }
+.meal-list li.main { color: var(--ink); font-weight: 700; font-size: 18px; }
+.meal-list li small { font-size: 11px; font-weight: 600; color: var(--blue); background: #edf3ff; border-radius: 999px; padding: 2px 8px; }
+.meal-image { display: block; width: 100%; height: auto; border-top: 1px solid var(--line); }
+.meal-card .meal-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+.meal-week { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; padding: 0 18px 20px; }
+.meal-week-day { border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 12px 10px; text-align: left; display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted); line-height: 1.4; cursor: pointer; }
+.meal-week-day strong { color: var(--ink); font-size: 14px; margin-bottom: 4px; }
+.meal-week-day strong small { color: var(--muted); font-weight: 400; }
+.meal-week-day span.main { color: var(--ink); font-weight: 700; }
+.meal-week-day.today { background: #f7f9fc; }
+.meal-week-day.active { border-color: var(--navy); box-shadow: 0 0 0 1px var(--navy) inset; }
+.meal-footnote { color: var(--muted); font-size: 12px; margin: 14px 2px 0; }
+
+@media (max-width: 1250px) { .meal-layout { grid-template-columns: 1fr; } }
+@media (max-width: 550px) { .meal-week { grid-template-columns: repeat(5, minmax(120px, 1fr)); overflow-x: auto; } }
