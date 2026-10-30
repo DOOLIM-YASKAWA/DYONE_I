@@ -39,6 +39,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext value={value}>{children}</AuthContext>
 }
 
+/** 협력사 로그인이면 true — 직원 전용 메뉴·편집 버튼을 숨긴다(서버도 막는다) */
+export const useIsPartner = () => useAuth().user?.kind === 'partner'
+
 export function useAuth() {
   const ctx = use(AuthContext)
   if (!ctx) throw new Error('AuthProvider가 필요합니다.')

@@ -46,6 +46,7 @@
 | `org_contact.sql` | 직원 연락처 테이블(휴대폰·직통, 2026-10-15) | ✅ 적용(데이터는 운영 Worker가 그룹웨어에서) |
 | `org_history.sql` | 직원 소속·부서 이름 이력 테이블(부서 자동 부여 P1, 2026-10-28) | ✅ 적용(데이터 없음 — 운영 Worker가 적용 다음 날부터 날마다 기록하고, 처음 한 번 그룹웨어 결재·부서 정보로 그 이전을 채움). 로컬 이력을 옮기지 않음 |
 | `project_member.sql` | 프로젝트 인원(PM·투입 인원) 테이블 (2026-10-15) | ✅ 적용(데이터 없음 — 로컬에서 지정한 PM·인원은 시험 데이터라 옮기지 않음). **운영 적용 전 스키마 소유자(팀장님) 확인** |
+| `partner.sql` | 협력사 미러(`partner.company`·`partner.person`) + `project.project_member.partner_person_id`(2026-10-30) | ✅ 적용(데이터 없음 — 명단은 운영 Worker `partner-sync`가 주소록에서, 공용 비밀번호는 **운영 관리자 화면에서 새로** 넣는다). 로컬 비밀번호 해시·시험 배정 행(협력사 1명 → 프로젝트 1건)은 옮기지 않음. **API 배포 전에 먼저 적용**(로그인·프로젝트 목록이 partner 표를 읽음) |
 | `demo_memo.sql` | 데모 기간 화면 메모 | ❌ 운영에서는 기능 꺼짐(`DemoMemo:Enabled=false`) — 적용하지 않거나 데이터 없이 |
 
 ---
@@ -94,6 +95,7 @@
 | `FileStorage__Root` | 업로드 문서 저장 경로 | `E:\dy-one-internal\.filestore` | **사내 NAS UNC(예 `\\nas\dyone-files`) — 실제 경로 미정** |
 | `ConnectionStrings__DyOneWrite`(+`DyOneWriteProd`) + `*__Password` | Worker/쓰기 대상 | user-secrets(로컬) | 운영 .111 + 비번 |
 | `Gw__Password` | Worker 그룹웨어 읽기 | user-secrets | 운영 시크릿 |
+| `Auth__PartnerTokenMinutes` | 협력사 토큰 만료(분) | 기본 240(직원 480) | 그대로 또는 더 짧게 |
 | (SmartLab) `SLAB_SECRET`, `DYONE_SSO_SECRET`, `PG*` | SmartLab 서버 | 로컬 임시값 | 운영 시크릿(아래 7장) |
 
 ---
@@ -102,7 +104,7 @@
 
 - **읽기**: API는 `ConnectionStrings:DyOne`(읽기 전용, `default_transaction_read_only=on`). 운영은 `.111:12678`.
 - **쓰기(dyone 자체 데이터만)**: 사용자 편집(진행 단계·프로젝트 문서 등)은 읽기 연결에서 read-only 옵션만 제거해 쓴다. Worker 미러 적재는 `DyOneWrite`/`DyOneWriteProd`.
-- ⚠️ **운영 DB 접속 계정에 아래 테이블 INSERT/UPDATE 권한 필요**: `project.project_stage`, `project.project_file`, `project.project_member`(+ 앞으로 추가되는 dyone 자체 테이블), 미러 테이블 전체.
+- ⚠️ **운영 DB 접속 계정에 아래 테이블 INSERT/UPDATE 권한 필요**: `project.project_stage`, `project.project_file`, `project.project_member`, `partner.company`(공용 비밀번호 해시·로그인 중지)·`partner.person`(마지막 로그인)(+ 앞으로 추가되는 dyone 자체 테이블), 미러 테이블 전체.
 
 ---
 
@@ -120,6 +122,7 @@
 | **프로젝트 인원(PM·투입 인원)** | `project.project_member`(조직도 `org.employee` 참조) | `server/db/project_member.sql` |
 | **직원 연락처(휴대폰·직통)** | `org.employee_contact`(Worker 조직도 동기화가 채움) — API 배포 전 필수 | `server/db/org_contact.sql` |
 | **소속·부서 이력(부서 자동 부여)** | `org.employee_dept_history`·`org.department_history`(Worker 조직도 동기화가 채움, 표가 없으면 건너뜀). 운영은 적용한 날이 sync 이력 시작일이 되고 그 이전은 결재 근사 이력 | `server/db/org_history.sql` |
+| **협력사(주소록 미러 + 공용 비밀번호)** | `partner.company`·`partner.person` + `project.project_member.partner_person_id`(employee_id nullable, 둘 중 하나 check) — API 배포 전 필수 | `server/db/partner.sql` |
 | **MotoSim(런처 이관)** | `motosim.*`(Cell 파일 이력·NAS 업로드 조각·공지·활동·Drive 폴더 매핑·즐겨찾기·런처 권한·플러그인 버전) — API 배포 전 필수. NAS 폴더 규칙·프록시 크기 제한은 DEPLOY-PENDING. 이력은 전환 직전 `E:\dy-one\etl\etl-motosim.mjs --allow-prod`로 복사(DEPLOY-PENDING) | `server/db/motosim_schema.sql` |
 
 > ⚠️ `source_updated_at` 컬럼을 **먼저** 안 만들면 Worker 운영 적재(MERGE)가 실패한다.
@@ -160,6 +163,7 @@
   - `WriteTargets__1=DyOneWriteProd` 추가 + `ConnectionStrings__DyOneWriteProd`(.111) + `DyOneWriteProd__Password`.
   - `Gw__Password`(그룹웨어 읽기) 시크릿.
   - **매일 08:00 자동 적재**가 필요하면 운영 서버에 Worker를 **서비스로 상주**(Project/Org Sync `DailyAt=08:00`, Modular/Works Sync는 `IntervalMinutes=1`로 상시 변경 감지).
+  - 협력사 명단 `PartnerSync`(`DailyAt=08:10`, `BookId=15` 그룹웨어 회사 공용 주소록) — `partner.sql` 적용 전에는 건너뜀.
 - ⚠️ 5장 `source_updated_at` 적용 **후에만** 운영 타깃 포함 실행.
 
 ---
@@ -232,6 +236,23 @@
 | Worker `Llm:BaseUrl`·`Llm:Model`·`Llm:ApiKey` | BaseUrl·Model은 Worker appsettings, ApiKey는 Worker user-secrets(2026-10-30 넣음). qwen3.8-27b 이미지 입력 확인 — 10/26~30 메뉴 50개 중 48개 원문 그대로, 2개는 맞춤법만 고쳐 읽음(깍뚜기→깍두기, 모듬→모둠), 메인 메뉴 5/5 | 사내 AI 키(Worker user-secrets/환경변수 `Llm__ApiKey`). 모델이 **이미지 입력**을 받아야 함 |
 | 캐시 `Meals:SudamCache` | 비움 → `FileStorage:Root\_meals\sudam.json` | **API와 Worker가 같은 경로**, Worker 쓰기·API 읽기 권한 |
 | 브라우저 | 이미지는 `qrcodethumb-phinf.pstatic.net`에서 바로 받음 | 사용자 PC·모바일이 외부 이미지를 열 수 있어야 '원본 이미지' 보임 |
+
+---
+
+## 14. 협력사 로그인 · API 기본 차단 (2026-10-30, docs/partner-access)
+
+- **API 기본 차단**: 인증 Default·Fallback 정책 = `staff`(직원 전용). 협력사 토큰(`kind=partner`)은 `.PartnerAllowed()`를 붙인 9개 API(내 정보·기준 코드·배정된 프로젝트 목록/상세/단계 이력/인원/자료 목록·내려받기)만 통과하고, 배정 안 된 프로젝트는 404. 개발 환경은 시작할 때 허용 목록과 실제가 같은지 로그로 확인(`ProjectAccess`). kind 없는 옛 토큰은 직원으로 본다 → 배포해도 직원 로그인이 끊기지 않음.
+- **협력사 로그인**: 아이디 = 그룹웨어 주소록 이메일(`partner.person`), 비밀번호 = 회사 공용 비밀번호(`partner.company.password_hash`, 해시만). 주소록에 있고·회사 로그인 중지가 아니고·**배정된 진행 프로젝트가 1개 이상**일 때만. 계정별 5회 실패 15분 잠금(메모리 — API 재시작 시 풀림), 토큰 240분.
+- **관리자 화면** `/admin/partners`(관리자 = `access.app_employee` app_key='*'): 회사별 공용 비밀번호 설정·교체, 회사 로그인 중지.
+- 이번 단계에서 협력사는 **보기만**(올리기·단계 변경·인원 배정은 4단계). 협력사 배정 화면이 아직 없어 운영에서는 4단계 전까지 실제로 로그인할 수 있는 협력사가 없다.
+
+| 항목 | 로컬 | 운영 |
+|---|---|---|
+| 스키마 | `partner.sql` 적용(2026-10-30) | API 배포 전 적용 |
+| 명단 | Worker 1회 실행 — 5개 회사 133명(구매처 0명, 이메일 없는 1명·우리 직원 1명 제외) | 운영 Worker `partner-sync`가 채움(로컬 복사 X) |
+| 공용 비밀번호 | 5개 회사 같은 초기값(사용자 결정, 값은 저장소에 없음) | **운영 관리자 화면에서 새로 입력**. DB 복사 금지 |
+| 시험 배정 | 협력사 1명 → 프로젝트 1건(`project_member.task`가 '[시험]'로 시작) | ❌ 옮기지 않음 |
+| 외부 접속 | 사내망만 | 현장 협력사용 https/VPN — 미정(5단계) |
 
 ---
 

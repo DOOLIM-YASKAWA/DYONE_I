@@ -11,6 +11,10 @@ export interface User {
   displayName: string
   department: string
   role: string
+  /** staff(직원) · partner(협력사 — 배정된 프로젝트 보기만, docs/partner-access) */
+  kind?: 'staff' | 'partner'
+  /** 관리자(모든 앱 지정) — 협력사 관리 메뉴 */
+  isAdmin?: boolean
 }
 
 export interface LoginResponse {

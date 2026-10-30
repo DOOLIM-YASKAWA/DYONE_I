@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { api } from '../../api/client'
+import { useIsPartner } from '../../auth/AuthContext'
 import type { ProjectMember } from '../../api/orgTypes'
 import { EmployeePicker } from '../../components/org/EmployeePicker'
 import { jobTitle, Phone } from '../../components/org/OrgTree'
@@ -17,6 +18,7 @@ export const useProjectMembers = (projectId: number) =>
  */
 export function ProjectMembersTab({ projectId }: { projectId: number }) {
   const qc = useQueryClient()
+  const partner = useIsPartner() // 협력사: 보기만(배정은 직원이)
   const members = useProjectMembers(projectId)
   const [picker, setPicker] = useState<'pm' | 'member' | null>(null)
   const [editing, setEditing] = useState<{ id: number; task: string } | null>(null)
@@ -58,7 +60,7 @@ export function ProjectMembersTab({ projectId }: { projectId: number }) {
   )
 
   const taskCell = (m: ProjectMember) =>
-    editing?.id === m.id ? (
+    partner ? (m.task || '-') : editing?.id === m.id ? (
       <form className="member-task-edit" onSubmit={(e) => { e.preventDefault(); update.mutate(editing) }}>
         <input autoFocus value={editing.task} maxLength={100} onChange={(e) => setEditing({ id: m.id, task: e.target.value })} aria-label="맡은 일" />
         <button className="text-button" disabled={update.isPending}>저장</button>
@@ -93,7 +95,7 @@ export function ProjectMembersTab({ projectId }: { projectId: number }) {
             <p className="muted" style={{ margin: '6px 0 0' }}>아직 PM이 지정되지 않았습니다.</p>
           )}
         </div>
-        <div className="member-actions">
+        {!partner && <div className="member-actions">
           <button className="primary" onClick={() => { add.reset(); setPicker('pm') }}>{pm ? 'PM 변경' : 'PM 지정'}</button>
           {pm && (
             <button className="text-button danger" disabled={remove.isPending}
@@ -101,12 +103,12 @@ export function ProjectMembersTab({ projectId }: { projectId: number }) {
               해제
             </button>
           )}
-        </div>
+        </div>}
       </div>
 
       <div className="member-head">
         <h3>투입 인원 <small>{team.length}명</small></h3>
-        <button className="secondary" onClick={() => { addMany.reset(); setPicker('member') }}>+ 인원 추가</button>
+        {!partner && <button className="secondary" onClick={() => { addMany.reset(); setPicker('member') }}>+ 인원 추가</button>}
       </div>
       {team.length === 0 ? (
         <div className="empty" style={{ padding: 24 }}>투입 인원이 없습니다. '인원 추가'로 조직도에서 고르세요.</div>
@@ -125,7 +127,7 @@ export function ProjectMembersTab({ projectId }: { projectId: number }) {
                   <td data-label="휴대폰"><Phone value={m.mobile} /></td>
                   <td data-label="맡은 일">{taskCell(m)}</td>
                   <td data-label="투입일">{date(m.assignedAt)}</td>
-                  <td>
+                  <td>{!partner && <>
                     <button className="text-button" disabled={add.isPending}
                       onClick={() => confirm(`${m.name}님을 PM으로 지정할까요?${pm ? ` (${pm.name}님은 투입 인원으로 남습니다)` : ''}`) && add.mutate({ employeeId: m.employeeId, role: 'pm', task: '' })}>
                       PM으로
@@ -133,7 +135,7 @@ export function ProjectMembersTab({ projectId }: { projectId: number }) {
                     <button className="text-button danger" disabled={remove.isPending} onClick={() => confirm(`${m.name}님을 이 프로젝트에서 뺄까요?`) && remove.mutate(m.id)}>
                       빼기
                     </button>
-                  </td>
+                  </>}</td>
                 </tr>
               ))}
             </tbody>

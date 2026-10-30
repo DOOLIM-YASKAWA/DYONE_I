@@ -15,8 +15,9 @@ import { ProcessPage } from './pages/ProcessPage'
 import { MotosimPage } from './pages/motosim/MotosimPage'
 import { AccessPage, ItPage, VehiclesPage } from './pages/ServicePages'
 import { MealsPage } from './pages/MealsPage'
+import { PartnersAdminPage } from './pages/PartnersAdminPage'
 import { useRealtimeNotifications } from './realtime/useRealtimeNotifications'
-import { enabledRoutes } from './routes'
+import { visibleRoutes } from './routes'
 
 // 전체 화면 매핑. 이번 단계는 routes.ts의 enabled=true(=홈)만 라우팅하고, 나머지는 /home으로 보낸다.
 // 숨긴 화면 코드는 그대로 두고 routes.ts에서 enabled를 켜면 다시 노출된다.
@@ -39,7 +40,8 @@ const pageElements: Record<string, ReactElement> = {
 
 export function App() {
   const { user, loading } = useAuth()
-  useRealtimeNotifications(user !== null)
+  const partner = user?.kind === 'partner'
+  useRealtimeNotifications(user !== null && !partner) // 협력사는 알림 허브를 쓰지 않는다(서버도 막음)
 
   if (loading) return <div className="login-wrap">불러오는 중…</div>
   if (!user) return <LoginPage />
@@ -47,11 +49,12 @@ export function App() {
   return (
     <Layout>
       <Routes>
-        {enabledRoutes.map((r) => (
+        {visibleRoutes(partner).map((r) => (
           <Route key={r.path} path={r.path} element={pageElements[r.path]} />
         ))}
         <Route path="/projects/:id" element={<ProjectDetailPage />} />
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        {user.isAdmin && <Route path="/admin/partners" element={<PartnersAdminPage />} />}
+        <Route path="*" element={<Navigate to={partner ? '/projects' : '/home'} replace />} />
       </Routes>
     </Layout>
   )

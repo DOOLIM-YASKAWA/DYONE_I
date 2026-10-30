@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../../api/client'
+import { useIsPartner } from '../../auth/AuthContext'
 import type { Code, ProgressStatus, ProjectDetail, StageHistoryItem } from '../../api/types'
 import { ErrorBox, GwEndBadge, Loading } from '../../components/ui'
 import { ProjectFilesTab } from './ProjectFiles'
@@ -23,6 +24,7 @@ export function ProjectDetailPage() {
   const { id } = useParams()
   const pid = Number(id)
   const qc = useQueryClient()
+  const partner = useIsPartner() // 협력사: 보기만(진행 상황 변경·단계 업무 기능 숨김)
   const [tab, setTab] = useState<Tab>('프로젝트 인원')
   // 프로젝트 섹션(인원·진행 상황 이력·파일, 진행 상황보다 위)은 접어 두고, 관련 버튼을 누르면 펼치기만 한다(스크롤은 하지 않음)
   const [sectionOpen, setSectionOpen] = useState(false)
@@ -173,11 +175,11 @@ export function ProjectDetailPage() {
                     <div className="s-name">{s.name}</div>
                     <div className="s-marker"><span className="dot" /></div>
                   </button>
-                  {progress[i]?.fromGroupware ? (
-                    // 영업·수주: 그룹웨어 상태로 자동 표시(바꾸지 않음)
-                    <span className="s-state s-state-gw" title="그룹웨어 프로젝트 상태를 따릅니다">
+                  {progress[i]?.fromGroupware || partner ? (
+                    // 영업·수주: 그룹웨어 상태로 자동 표시(바꾸지 않음) · 협력사는 보기만
+                    <span className="s-state s-state-gw" title={partner ? undefined : '그룹웨어 프로젝트 상태를 따릅니다'}>
                       {STATUS_LABEL[st]}
-                      <small>그룹웨어</small>
+                      {progress[i]?.fromGroupware && <small>그룹웨어</small>}
                     </span>
                   ) : (
                   <button
@@ -237,7 +239,7 @@ export function ProjectDetailPage() {
       </section>
 
       {/* 선택한 단계의 업무 기능(문서 업로드는 위 '프로젝트 파일' 탭에서) */}
-      {viewed && (
+      {viewed && !partner && (
         <section className="panel stage-feature-panel" style={{ marginBottom: 16 }}>
           <div className="panel-head">
             <div>

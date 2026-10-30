@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../../api/client'
+import { useIsPartner } from '../../auth/AuthContext'
 import type { AiSource, Code, LabTest, PagedResult, Project, ProjectDetail, Section } from '../../api/types'
 import { NotConnected } from '../../components/NotConnected'
 import { Badge, DataTable, ErrorBox, GwEndBadge, Loading, PageHead, StageBadge } from '../../components/ui'
@@ -22,7 +23,8 @@ export function ProjectsPage() {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const scope = params.get('project') ? Number(params.get('project')) : null
-  const section: Section = isSection(params.get('tab')) ? (params.get('tab') as Section) : 'progress'
+  const partner = useIsPartner() // 협력사: 배정된 프로젝트 목록만(다른 탭·AI·설치형 앱 안내 숨김)
+  const section: Section = !partner && isSection(params.get('tab')) ? (params.get('tab') as Section) : 'progress'
   const statusId = params.get('status') ?? ''
   const customer = params.get('customer') ?? ''
   const [search, setSearch] = useState(params.get('search') ?? '')
@@ -55,6 +57,7 @@ export function ProjectsPage() {
       if (scope) q.set('projectId', String(scope))
       return api<PagedResult<LabTest>>(`/api/lab-tests?${q}`)
     },
+    enabled: !partner, // 시험 데이터는 직원 전용
     placeholderData: keepPreviousData,
   })
   const project = detail.data?.project ?? null
@@ -234,7 +237,7 @@ export function ProjectsPage() {
               ) : project.status ? <Badge status={project.status} /> : <span className="badge">상태 미지정</span>}
             </div>
           )}
-          <div className="source-note">
+          {!partner && <div className="source-note">
             <span>원본: 그룹웨어 WORKS · dyone DB 미러(읽기 전용)</span>
             <a
               href={`https://gw.doolim-yaskawa.com/app/works/applet/${spec.applet}/home`}
@@ -249,7 +252,7 @@ export function ProjectsPage() {
             >
               원본 WORKS ↗
             </a>
-          </div>
+          </div>}
           <section className="panel">
             <div className="panel-head">
               <div>
@@ -266,9 +269,9 @@ export function ProjectsPage() {
             </div>
             {body}
           </section>
-          {section === 'progress' && <DesktopTools project={project} />}
+          {section === 'progress' && !partner && <DesktopTools project={project} />}
         </div>
-        <ProjectAI project={project} onOpenSource={openSource} />
+        {!partner && <ProjectAI project={project} onOpenSource={openSource} />}
       </div>
 
       {dialog?.kind === 'project' && <ProjectDetailDialog projectId={dialog.id} onClose={() => setDialog(null)} />}
