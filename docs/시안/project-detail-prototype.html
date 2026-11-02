@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DY ONE 프로젝트 상세 시안</title>
+<style>
+:root{--navy:#122442;--blue:#3267d9;--ink:#182941;--muted:#738198;--line:#e3e9f2;--bg:#f3f6fb;--green:#258268;--amber:#a1712f}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+input,select,textarea{border:1px solid #d9e1ed;background:#fff;border-radius:8px;padding:8px 10px;font-size:14px;color:var(--ink)}
+select:disabled{background:#f3f5f9;color:#9aa7bd}
+#sidebar{width:220px;position:fixed;inset:0 auto 0 0;background:var(--navy);color:#fff;padding:26px 14px;display:flex;flex-direction:column}
+.brand{display:flex;gap:10px;align-items:center;font-size:22px;font-weight:600;padding:0 10px}
+.brand b{color:#8cb3ff}
+.brand small{display:block;font-size:9px;letter-spacing:1.3px;color:#a9bbd6;margin-top:5px;font-weight:400}
+.brand-mark{background:var(--blue);border-radius:11px;display:grid;place-items:center;width:38px;height:38px;font-size:18px}
+.nav-label{color:#8094b3;font-size:11px;letter-spacing:1.5px;margin:36px 12px 12px}
+.nav-item{border:0;background:none;color:#b8c6db;padding:12px 14px;border-radius:9px;display:flex;align-items:center;gap:12px;font-size:14px;width:100%;text-align:left}
+.nav-item:hover{background:#233b60}
+.nav-item.active{color:#fff;background:#294d85;box-shadow:inset 3px 0 #8db6ff}
+.sidebar-foot{margin-top:auto;border-top:1px solid #34435d;padding:18px 6px 0;font-size:13px}
+.sidebar-foot small{display:block;color:#90a3bf;font-size:12px;margin-top:4px}
+.workspace{margin-left:220px}
+.topbar{height:64px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:0 28px;background:#fff;gap:16px}
+.crumb{font-size:14px;color:var(--muted)}
+.who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);background:#fff8ee;border:1px solid #f0dcbc;border-radius:10px;padding:6px 10px}
+.who select{padding:5px 8px;font-size:13px}
+main{padding:24px 28px 60px;max-width:1400px}
+.guide{background:#fff8ee;border:1px solid #f0dcbc;border-radius:10px;padding:10px 16px;font-size:13px;color:#7a5a2a;line-height:1.7;margin-bottom:14px}
+.back{color:var(--blue);font-size:14px;text-decoration:none;display:inline-block;margin-bottom:10px}
+.scope-card{display:flex;align-items:center;gap:16px;background:var(--navy);border-radius:12px;color:#fff;padding:18px 22px;margin-bottom:16px}
+.scope-card small{display:block;font-size:12px;color:#a3badc;margin-bottom:5px}
+.scope-card h2{font-size:19px;margin:0 0 6px}
+.scope-pm{display:inline-flex;align-items:center;gap:6px;border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:6px;padding:4px 10px;font-size:13px}
+.scope-right{margin-left:auto;text-align:right;font-size:13px;color:#b3c6e5}
+.scope-right b{display:block;color:#fff;font-size:15px;margin-top:3px}
+.page-head h1{font-size:24px;margin:0 0 4px}
+.page-head p{font-size:13px;color:var(--muted);margin:0 0 16px}
+.panel{border:1px solid var(--line);background:#fff;border-radius:13px;margin-bottom:16px}
+.panel-body{padding:4px 22px 18px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto;align-items:center}
+.tabs button.t{border:0;border-bottom:3px solid transparent;background:none;padding:12px 16px;white-space:nowrap;font-size:14px;color:var(--muted)}
+.tabs button.t.active{border-bottom-color:var(--blue);color:var(--blue);font-weight:700}
+.tabs .toggle{margin-left:auto;margin-right:10px;border:1px solid #d8e1ee;background:#fff;color:#52657f;border-radius:8px;padding:5px 12px;font-size:13px}
+.primary,.secondary,.text-button{border:0;border-radius:8px;padding:8px 14px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.primary{background:var(--blue);color:#fff}
+.secondary{background:#fff;border:1px solid #d8e1ee;color:#52657f}
+.text-button{background:none;color:var(--blue);padding:4px}
+.badge{display:inline-block;font-size:12px;padding:3px 8px;border-radius:6px;white-space:nowrap;background:#edf2fa;color:#61728a}
+.badge.blue{background:#eaf1ff;color:#3c65be}.badge.green{background:#e9f6ef;color:#268068}.badge.amber{background:#fff3e4;color:#a1712f}.badge.gray{background:#f1f3f6;color:#7d8798}
+.muted{color:var(--muted)}.small{font-size:12px}
+.empty{padding:26px;text-align:center;color:var(--muted);font-size:14px}
+.note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
+/* 단계 띠 */
+.stage-flow{display:flex;padding:4px 0 2px}
+.stage-step{flex:1;text-align:center;padding:6px 2px 8px;position:relative}
+.s-num{font-size:12px;font-weight:700;color:#9aa7bd}
+.s-name{font-size:14px;margin:2px 0 6px;color:#51607a}
+.s-marker{display:flex;align-items:center}
+.s-marker::before,.s-marker::after{content:'';flex:1;height:2px;background:#e3e9f2}
+.stage-step:first-child .s-marker::before,.stage-step:last-child .s-marker::after{visibility:hidden}
+.dot{width:18px;height:18px;border-radius:50%;border:2px solid #cdd7e5;background:#fff;flex:none}
+.stage-step.done .dot{border-color:var(--blue);background:var(--blue)}
+.stage-step.done .s-marker::before,.stage-step.done .s-marker::after{background:var(--blue)}
+.stage-step.run .dot{border-color:var(--blue);background:#eaf1ff;box-shadow:0 0 0 4px #e3edfb}
+.stage-step.run .s-name{color:var(--blue);font-weight:700}
+.s-btn{margin-top:6px;border:1px solid #d8e1ee;background:#fff;border-radius:7px;padding:2px 10px;font-size:12px;color:#52657f}
+.s-btn:disabled{cursor:default;border-color:transparent;background:none}
+.stage-step.run .s-btn{color:var(--blue);border-color:#c9d9f5}
+.s-state{font-size:12px;margin-top:6px;color:#5578b5}
+.s-gw{display:block;font-size:11px;color:#9aa7bd;margin-top:2px}
+.menu{position:absolute;left:50%;transform:translateX(-50%);top:100%;z-index:5;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px #12244222;padding:6px;display:flex;flex-direction:column;min-width:110px}
+.menu button{border:0;background:none;padding:7px 10px;text-align:left;border-radius:6px;font-size:13px}
+.menu button:hover{background:#f3f6fb}
+.pm-note{display:flex;gap:10px;align-items:center;background:#eaf1ff;color:#3c65be;border-radius:10px;padding:9px 14px;font-size:13px;margin-top:10px}
+/* 목록 표 */
+.list-head{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;flex-wrap:wrap}
+.list-head b{font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f7f9fc;color:#7d8ba1;font-weight:500;text-align:left;padding:9px 12px;white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid #edf1f7;vertical-align:middle}
+.plist{margin-top:8px}
+.plist td{font-size:14px}
+.plist td small{display:block;font-size:11px;color:var(--muted)}
+.plist tr.sys td{background:#fafbfd;color:#5d6b80;font-size:13px}
+.plist tr.grp td{background:#f3f6fb;font-weight:700;font-size:13px;color:#4d5f7a;padding:7px 12px}
+.plist select{padding:3px 6px;font-size:12px}
+.plist .lock{font-size:11px;color:#9aa7bd}
+/* 일지 쓰기 */
+.write{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#f7f9fc;border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin:12px 0 6px}
+.write .ro{width:100%;font-size:13px;color:var(--muted)}
+.write .err{color:#b7584a;font-size:13px;width:100%}
+.write #wtext{flex:1;min-width:260px}
+.seg{display:inline-flex;border:1px solid #d8e1ee;border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:7px 11px;font-size:13px;color:#52657f}
+.seg button.on{background:var(--navy);color:#fff}
+.saved{display:flex;gap:10px;align-items:center;background:#fff8ee;border:1px solid #f0dcbc;color:#7a5a2a;border-radius:10px;padding:8px 12px;font-size:13px;margin-top:6px}
+.share-help{font-size:12px;color:var(--muted);margin:2px 0 0}
+/* 업무 */
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px}
+.subtabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 13px;font-size:13px;color:#52657f}
+.subtabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.stat{background:#f7f9fc;border-radius:10px;padding:12px 14px}
+.stat span{font-size:12px;color:var(--muted)}
+.stat strong{display:block;font-size:20px;margin-top:6px}
+/* 자료함 */
+.dropzone{border:2px dashed #c6d3e8;border-radius:12px;background:#fafcff;padding:16px;text-align:center;cursor:pointer}
+.dropzone:hover,.dropzone.over{border-color:var(--blue);background:#eef4ff}
+.dropzone strong{display:block;font-size:14px}
+.dropzone span{font-size:12px;color:var(--muted)}
+.docs-tool{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 10px}
+.docs-tool input{flex:1;min-width:220px;max-width:460px}
+.axis button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13px;color:#52657f;margin-left:4px}
+.axis button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.docs-body{display:grid;grid-template-columns:210px minmax(0,1fr);gap:16px}
+.groups{display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line);padding-right:10px}
+.groups button{border:0;background:none;text-align:left;padding:7px 9px;border-radius:7px;font-size:13px;color:#52657f;display:flex;justify-content:space-between}
+.groups button.on{background:#eaf1ff;color:var(--blue);font-weight:700}
+.file{display:flex;gap:12px;align-items:center;padding:10px 2px;border-top:1px solid #edf1f7}
+.ext{flex:none;width:40px;height:40px;border-radius:9px;background:#e9effa;color:#45668f;font-size:10px;font-weight:700;display:grid;place-items:center}
+.file .fm{flex:1;min-width:0}
+.file .fm b{font-size:14px;font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file .fm small{font-size:12px;color:var(--muted)}
+/* 자료함(공유 범위·필터·핵심 자료·미리 보기·올리기) */
+.fh{font-size:12px;font-weight:700;color:#7d8ba1;margin:0 0 6px}
+.filters{display:flex;flex-direction:column;gap:14px;border-right:1px solid var(--line);padding-right:12px}
+.fgroup{display:flex;flex-direction:column;gap:2px}
+.fgroup button{border:0;background:none;text-align:left;padding:6px 9px;border-radius:7px;font-size:13px;color:#52657f;display:flex;justify-content:space-between;gap:6px}
+.fgroup button span{color:#9aa7bd}
+.fgroup button.on{background:#eaf1ff;color:var(--blue);font-weight:700}
+.keydocs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 14px;padding:10px 12px;background:#f7f9fc;border-radius:10px}
+.keydocs .fh{width:100%;margin:0}
+.kd{display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 10px;text-align:left;max-width:300px}
+.kd b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:230px}
+.kd small{font-size:11px;color:var(--muted)}
+.ext.sm{width:30px;height:30px;font-size:9px;border-radius:7px}
+
+.file select{padding:4px 6px;font-size:12px}
+.pv-page{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px 18px;max-width:560px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.pv-page h4{margin:0 0 8px;font-size:14px}.pv-page p{margin:4px 0;font-size:13px;color:#3b475c}
+.pv-slides{display:flex;gap:8px}.pv-slide{width:120px;height:72px;border:1px solid var(--line);border-radius:6px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:#3b475c}.pv-slide b{font-size:11px;color:var(--muted)}.pv-slide.on{border:2px solid var(--blue)}
+.pv-img{width:100%;max-width:560px;display:block;border-radius:6px}
+.pv-video{max-width:560px;height:150px;background:#1b2537;color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px}.pv-video span{font-size:12px;color:#9fb0cc}
+.pv-text{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:12px;margin:0;max-width:560px;white-space:pre}
+.plist small.auto-ok{color:#3c65be;margin-top:3px}.plist small.auto-no{color:#b5651d;margin-top:3px}
+.srs-pv{display:grid;grid-template-columns:1fr 240px;gap:14px;align-items:start}.srs-pv th{text-align:left;width:90px;color:var(--muted);font-weight:600}.srs-bars{width:220px;height:90px}.srs-bars rect{fill:#5b82d6}.srs-bars text{font-size:9px;fill:#3b475c}
+.preview{margin:0 0 10px 52px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fbfcfe}
+.upload{border:1px solid #c9d9f5;background:#f8fbff;border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.up-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.up-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:12px 0}
+.ck{display:inline-flex;gap:5px;align-items:center;font-size:13px;margin:0 10px 4px 0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#173354;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;box-shadow:0 10px 40px #14284b30;z-index:20;max-width:90%}
+@media(max-width:900px){.filters{border-right:0}#sidebar{display:none}.workspace{margin-left:0}.write{grid-template-columns:1fr}.docs-body{grid-template-columns:1fr}.groups{flex-direction:row;flex-wrap:wrap;border-right:0}}
+</style>
+</head>
+<body>
+<aside id="sidebar">
+  <div class="brand"><span class="brand-mark">D</span><div>DY <b>ONE</b><small>INTERNAL WORKSPACE</small></div></div>
+  <div class="nav-label">MENU</div>
+  <button class="nav-item">⌂ 홈</button>
+  <button class="nav-item" id="navProject">▤ 프로젝트</button>
+  <button class="nav-item" id="navJournal">✎ 프로젝트 진행 일지</button>
+  <button class="nav-item">◎ 조직도</button>
+  <button class="nav-item">▣ 연계 프로그램</button>
+  <div class="sidebar-foot"><b id="footName"></b><small id="footDept"></small></div>
+</aside>
+
+<div class="workspace">
+  <header class="topbar">
+    <div class="crumb" id="crumb"></div>
+    <label class="who">시안용: 이 사람으로 보기 <select id="who"></select> <button class="secondary" id="reset">처음으로</button></label>
+  </header>
+
+  <main>
+    <div class="guide" id="guide"></div>
+
+    <!-- ───── 프로젝트 상세 ───── -->
+    <div id="projectView">
+      <a class="back" href="#" onclick="return false">← 프로젝트 목록</a>
+      <div class="scope-card">
+        <div>
+          <small>DLP-26-018 · 기아자동차 · 로보트교체 · 그룹웨어 상태: 수주</small>
+          <h2>기아 광명1 신도장 상도 베이스 내판 로봇 노후교체</h2>
+          <button class="scope-pm" id="pmBtn">PM <b>김PM</b> · 인원 보기 →</button>
+        </div>
+        <div class="scope-right"><b id="scopeStage"></b></div>
+      </div>
+      <div class="panel">
+        <div class="tabs" id="topTabs"></div>
+        <div class="panel-body" id="topBody" style="padding-top:14px"></div>
+      </div>
+    </div>
+
+    <!-- ───── 사이드바: 프로젝트 진행 일지(여러 프로젝트) ───── -->
+    <div id="journalView">
+      <div class="page-head"><h1>프로젝트 진행 일지</h1><p>배정된 여러 프로젝트의 일지를 한곳에서 쓰고 봅니다. 프로젝트를 골라 쓰면 그 프로젝트의 '프로젝트 진행 일지' 탭에도 같은 내용이 보입니다.</p></div>
+      <div class="panel"><div class="panel-body" id="journalBody" style="padding-top:14px"></div></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ───────── 시안용 예시 데이터(실제 데이터 아님) ─────────
+const PEOPLE = [
+  { id:'pm', name:'김PM', dept:'PM팀', pm:true, member:true },
+  { id:'sales', name:'김영업', dept:'도장영업팀', member:true },
+  { id:'pre', name:'이선행', dept:'선행검토팀', member:true },
+  { id:'design', name:'박설계', dept:'설계팀', member:true },
+  { id:'design2', name:'서설계', dept:'설계팀', member:true },
+  { id:'control', name:'최제어', dept:'소프트웨어팀', member:true },
+  { id:'modular', name:'정모듈', dept:'모듈라팀', member:true },
+  { id:'teach', name:'한티칭', dept:'어플리케이션팀', member:true },
+  { id:'lab', name:'윤랩', dept:'도장공정실', member:false },
+  { id:'cs', name:'강CS', dept:'CS팀', member:false },
+];
+const PROJECTS = [
+  { code:'DLP-26-018', name:'기아 광명1 신도장 상도 베이스 내판 로봇 노후교체' },
+  { code:'DLP-26-043', name:'기아 광명1 내판실러 노후화 교체' },
+  { code:'DLP-25-245', name:'기아 광주 1공장 에어블로잉 & 스워드브러시' },
+];
+const CUR = 'DLP-26-018';
+const FEATURES = {
+  spec:{ n:'사양서 분석' }, sjournal:{ n:'영업 일지' }, deptchk:{ n:'사양서 부서별 확인' },
+  modular:{ n:'모듈라빌드 정보' }, lab:{ n:'SmartLab · SRS' }, es:{ n:'ES 이슈' },
+};
+const DEPT_FEATURES = {
+  'PM팀':['spec','deptchk','modular','lab','es'], '도장영업팀':['spec','sjournal'], '선행검토팀':['spec','deptchk'], '설계팀':['deptchk'],
+  '소프트웨어팀':['deptchk','lab'], '모듈라팀':['deptchk','modular'], '어플리케이션팀':['deptchk','lab','es'], '도장공정실':['deptchk','lab'], 'CS팀':['es'],
+};
+const STAGES = [{ n:'영업', gw:true }, { n:'수주', gw:true }, { n:'설계·검토' }, { n:'모듈라' }, { n:'현장' }, { n:'라인 대응·종료' }];
+const NUM = ['①','②','③','④','⑤','⑥'];
+const SLABEL = { wait:'대기', run:'진행', done:'완료' };
+// 일지 쓸 때 단계 기본값 = 그 부서가 주로 일하는 단계(바꿀 수 있음). PM은 지금 진행 중인 단계.
+const DEPT_STAGE = { '도장영업팀':0, '선행검토팀':0, '설계팀':2, '소프트웨어팀':2, '모듈라팀':3, '도장공정실':3, '어플리케이션팀':4, 'CS팀':5 };
+const defaultStage = () => DEPT_STAGE[me().dept] ?? curStage();
+const SHARE = { me:'개인', dept:'부서 공유', proj:'프로젝트 공유' };
+const SHARE_HELP = { me:'나만 봅니다', dept:'같은 부서 사람이 봅니다', proj:"모든 부서가 '프로젝트 진행 단계'에서 봅니다" };
+
+const INITIAL_LOG = [
+  { p:CUR, t:'10/29 16:40', who:'design', st:'run', s:2, share:'proj', text:'도면 제작 — 부스 레이아웃 rev3, 로봇 배치도 V2' },
+  { p:CUR, t:'10/29 13:20', who:'design2', st:'run', s:2, share:'dept', text:'배관·덕트 도면 검토' },
+  { p:CUR, t:'10/29 11:05', who:'sales', st:'done', s:2, share:'proj', text:'내부 사양서 검토', done:'10/29' },
+  { p:CUR, t:'10/28 17:30', who:'design', st:'run', s:2, share:'me', text:'(메모) 레이아웃 치수 고객 확인 필요' },
+  { p:CUR, t:'10/28 14:10', who:'pm', st:'run', s:2, share:'proj', text:'내부 사양 회의 3차 — 로봇 4대·OLT 40시간으로 변경\n- 참석: 영업 김영업, 설계 박설계·서설계, 모듈라 정모듈, 제어 최제어\n- 로봇 3대 → 4대(베이스 내판 2대 추가 배치 검토 결과)\n- OLT 국내 20시간 → 40시간(고객 요청), 모듈라 일정 1주 늘어남\n- 다음 회의 11/04: 도장기 사양 확정' },
+  { p:CUR, t:'10/27 10:20', who:'sales', st:'run', s:2, share:'proj', text:'사양서 분석 — 고객사 미팅(광명1 보전팀)' },
+  { p:CUR, t:'10/24 15:00', who:'modular', st:'run', s:3, share:'proj', text:'모듈라 케이블 리스트 작성, OLT장 로봇 입고 일정 확인' },
+  { p:CUR, t:'10/24 11:00', who:'modular', st:'run', s:3, share:'me', text:'(메모) 케이블 단가 업체 2곳 비교' },
+  { p:CUR, t:'10/22 09:10', who:'design2', st:'done', s:2, share:'dept', text:'기존 라인 도면 수집', done:'10/24' },
+  { p:CUR, t:'10/16 09:30', who:'pm', st:'done', s:2, share:'proj', text:'킥오프 회의, 수행 계획서 공유', done:'10/16' },
+  { p:CUR, t:'10/15 08:00', sys:true, s:1, text:'그룹웨어 상태 영업중 → 수주' },
+  { p:CUR, t:'09/02 10:00', who:'pre', st:'done', s:0, share:'proj', text:'선행 공정 검토 — UPH·부스 제원 검토서 전달', done:'09/20' },
+  { p:'DLP-26-043', t:'10/29 09:00', who:'design', st:'run', s:2, share:'proj', text:'실러 건 배치 검토' },
+  { p:'DLP-26-043', t:'10/28 15:00', who:'pm', st:'run', s:2, share:'proj', text:'고객 일정 협의(11월 셧다운 기간)' },
+  { p:'DLP-26-043', t:'10/27 10:00', who:'sales', st:'run', s:1, share:'me', text:'(메모) 견적 수정본 준비' },
+  { p:'DLP-25-245', t:'10/25 14:00', who:'design', st:'done', s:4, share:'dept', text:'스워드브러시 브라켓 도면 수정', done:'10/25' },
+  { p:'DLP-25-245', t:'10/20 10:00', who:'teach', st:'run', s:4, share:'proj', text:'현장 티칭 — 에어블로잉 경로 보정' },
+];
+// 자료함: g = 같은 문서 묶음(판), v = 판 표시, share = 개인·부서·프로젝트, s = 단계 번호
+// 기본 종류(NAS 13칸에 맞춤) + 직접 넣은 종류(S.cats[프로젝트], 그 프로젝트 안에서만 보임)
+const CATS = ['제안서·견적', '사양서', '계약·발주', '회의록', '일정표', '레이아웃 도면', '로봇 배치·시뮬레이션', '전장 도면', 'PLC·HMI·네트워크', '모듈라빌드', '티칭 DATA', '시운전·검수', '현장 백업', '사진·영상', '매뉴얼·교육', '기타'];
+const allCats = (p = CUR) => [...CATS, ...((S.cats || {})[p] || [])];
+const INITIAL_DOCS = [
+  { g:'spec', v:'V5', n:'기아광명1_사양서_V5_251117.pdf', cat:'사양서', s:0, share:'proj', who:'sales', u:'10/28 09:10' },
+  { g:'spec', v:'V2', n:'기아광명1_사양서_V2_251105.pdf', cat:'사양서', s:0, share:'proj', who:'sales', u:'10/05 15:20', old:true },
+  { g:'sum', v:'V5', n:'사양정리_V5_내부회의반영.pptx', cat:'사양서', s:2, share:'proj', who:'pm', u:'10/28 16:00' },
+  { g:'srs1', n:'SRS_BACKUP_20261028_1432.zip', cat:'현장 백업', s:3, share:'proj', who:'teach', u:'10/28 15:05', srs:{ at:'2026-10-28 14:32', where:'OLT장', zone:'상도 베이스 내판 1ZONE', robots:4, jobs:38 } },
+  { g:'photo', n:'OLT장 로봇 입고 사진_1024.jpg', cat:'사진·영상', s:3, share:'proj', who:'modular', u:'10/24 17:40' },
+  { g:'job', n:'R1_상도베이스_도장.jbi', cat:'티칭 DATA', s:3, share:'proj', who:'teach', u:'10/23 11:20' },
+  { g:'ip-base', v:'V2', n:'IP 리스트_상도베이스내판_V2.xlsx', cat:'PLC·HMI·네트워크', s:2, share:'proj', who:'control', u:'10/29 10:30', preview:'ip' },
+  { g:'ip-base', v:'V1', n:'IP 리스트_상도베이스내판_V1.xlsx', cat:'PLC·HMI·네트워크', s:2, share:'proj', who:'control', u:'10/21 14:00', old:true, preview:'ip' },
+  { g:'layout', v:'rev3', n:'BOOTH_LAYOUT_rev3.dwg', cat:'레이아웃 도면', s:2, share:'proj', who:'design', u:'10/28 18:20' },
+  { g:'layout', v:'rev2', n:'BOOTH_LAYOUT_rev2.dwg', cat:'레이아웃 도면', s:2, share:'proj', who:'design', u:'10/20 11:00', old:true },
+  { g:'robot', v:'V2', n:'로봇 배치도_V2.pdf', cat:'로봇 배치·시뮬레이션', s:2, share:'dept', who:'design', u:'10/25 13:00' },
+  { g:'duct', v:'', n:'배관·덕트 검토 메모.xlsx', cat:'레이아웃 도면', s:2, share:'me', who:'design2', u:'10/29 13:30' },
+  { g:'kick', v:'', n:'킥오프 회의록_1016.docx', cat:'회의록', s:2, share:'proj', who:'pm', u:'10/16 18:00' },
+  { g:'cable', v:'', n:'모듈라 케이블 리스트.xlsx', cat:'모듈라빌드', s:3, share:'dept', who:'modular', u:'10/24 15:10' },
+  { g:'memo', v:'', n:'도면 체크리스트_개인.xlsx', cat:'기타', s:2, share:'me', who:'design', u:'10/27 09:00' },
+];
+// 종류 → 프로젝트 공유할 때 알림 받을 부서 기본값(제안)
+
+// ───────── 상태 ─────────
+let S;
+const fresh = () => ({ who:'pm', view:'project', stage:{0:'done',1:'done',2:'run',3:'run',4:'wait',5:'wait'},
+  log:INITIAL_LOG.map((x, i) => ({ id:i + 1, ...x, u: x.done ? `${x.done} 17:00` : x.t })), docs:JSON.parse(JSON.stringify(INITIAL_DOCS)),
+  top:'프로젝트 자료함', menu:null, df:{ scope:'all', recent:'all', cat:'all', s:'all' }, cats:{}, showOld:false, pv:null, up:null, toast:null, w:{ s:2, share:'me', p:CUR, draft:'', expand:false }, open:{}, lastSaved:null, groupDept:true, jFilter:'all',
+  feat:null, specSub:'사양정리 초안', axis:'cat', group:'all', q:'' });
+try { S = JSON.parse(localStorage.getItem('dyone-proto-v17')) || fresh() } catch { S = fresh() }
+const save = () => { try { localStorage.setItem('dyone-proto-v17', JSON.stringify(S)) } catch {} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const me = () => PEOPLE.find(p => p.id === S.who);
+const P = id => PEOPLE.find(p => p.id === id);
+const today = () => { const d = new Date(); return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}` };
+// 목록 왼쪽 날짜 = 마지막으로 바뀐 때(남김·상태·공유 범위 변경), 최근 바뀐 것이 위로
+const upd = x => x.u || x.t;
+const byUpd = (a, b) => upd(b).localeCompare(upd(a));
+const stamp = () => { const d = new Date(); return `${today()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` };
+const curStage = () => { let c = 0; for (let i = 0; i < STAGES.length; i++) if (S.stage[i] !== 'wait') c = i; return c };
+const sameDept = x => P(x.who).dept === me().dept;
+
+// ───────── 보기·바꾸기 규칙 ─────────
+// 진행 일지(내 일지·프로젝트 진행 일지 탭): 내가 쓴 것 전부 + 같은 부서의 '부서 공유'·'프로젝트 공유'
+const inJournal = x => !x.sys && (x.who === S.who || (x.share !== 'me' && sameDept(x)));
+// 프로젝트 진행 단계 목록: '프로젝트 공유'만, 모든 부서(사내 전원)가 봄 + 단계 변경 줄
+const inProgress = x => x.sys || x.share === 'proj';
+// 상태(진행→완료): 작성자와 같은 부서 사람. PM도 남의 것은 못 바꿈(자기 것만)
+const canStatus = x => !x.sys && me().member && (x.who === S.who || sameDept(x));
+// 공유 범위: 작성자만
+const canShare = x => !x.sys && x.who === S.who;
+
+function render() {
+  const m = me();
+  $('who').innerHTML = PEOPLE.map(p => `<option value="${p.id}" ${p.id === S.who ? 'selected' : ''}>${p.name} · ${p.dept}${p.member ? '' : ' (프로젝트 미배정)'}</option>`).join('');
+  $('footName').textContent = m.name; $('footDept').textContent = m.dept;
+  $('navProject').classList.toggle('active', S.view === 'project');
+  $('navJournal').classList.toggle('active', S.view === 'journal');
+  $('projectView').style.display = S.view === 'project' ? '' : 'none';
+  $('journalView').style.display = S.view === 'journal' ? '' : 'none';
+  $('crumb').textContent = S.view === 'project' ? '프로젝트 › DLP-26-018' : '프로젝트 진행 일지';
+  $('guide').innerHTML = `<b>시안</b> · 지금 <b>${m.name}(${m.dept})</b>로 보고 있습니다. `
+    + (m.pm ? "PM은 '프로젝트 진행 단계'에서 모든 부서의 프로젝트 공유 일지를 보고 ③~⑥ 단계 상태를 바꿉니다. 남의 일지 상태는 바꾸지 않습니다."
+      : m.member ? "일지는 '프로젝트 진행 일지' 탭이나 사이드바 '프로젝트 진행 일지'에서 씁니다. 개인·부서 공유·프로젝트 공유 중에 고르고, 프로젝트 공유만 '프로젝트 진행 단계'에 모든 부서에게 보입니다. 상태는 본인과 같은 부서 사람이 바꿉니다."
+        : '프로젝트 인원이 아니라 일지를 쓸 수 없습니다. 프로젝트 공유 일지와 같은 부서의 공유 일지는 볼 수 있습니다.')
+    + " 바꾼 내용은 이 브라우저에만 남고 '처음으로'로 되돌립니다.";
+  $('scopeStage').textContent = S.stage[5] === 'done' ? '종료' : `${STAGES[curStage()].n} ${SLABEL[S.stage[curStage()]]}`;
+  if (S.view === 'project') renderTop(); else renderJournalPage();
+  let tEl = document.querySelector('.toast'); if (tEl) tEl.remove();
+  if (S.toast) { tEl = document.createElement('div'); tEl.className = 'toast'; tEl.textContent = S.toast; document.body.appendChild(tEl); const msg = S.toast; S.toast = null; setTimeout(() => tEl.remove(), 5000) }
+  save();
+}
+
+// ───────── 프로젝트 탭 ─────────
+const TABS = ['프로젝트 자료함', '프로젝트 인원', '프로젝트 진행 단계', '프로젝트 진행 일지', '관련 업무'];
+function renderTop() {
+  const cnt = {
+    '프로젝트 자료함':S.docs.filter(docVisible).length, '프로젝트 진행 단계':'',
+    '프로젝트 진행 일지':S.log.filter(x => x.p === CUR && inJournal(x)).length,
+    '프로젝트 인원':PEOPLE.filter(p => p.member).length, '관련 업무':me().pm ? 'PM' : me().dept };
+  $('topTabs').innerHTML = TABS.map(t => `<button class="t ${S.top === t ? 'active' : ''}" data-t="${t}">${t} <span class="small muted">${cnt[t]}</span></button>`).join('');
+  $('topTabs').querySelectorAll('[data-t]').forEach(b => b.onclick = () => { S.top = b.dataset.t; S.menu = null; render() });
+  const body = $('topBody');
+  if (S.top === '프로젝트 진행 단계') { body.innerHTML = progressHtml(); bindProgress(body) }
+  else if (S.top === '프로젝트 진행 일지') { body.innerHTML = journalHtml(CUR); bindJournal(body) }
+  else if (S.top === '프로젝트 인원') {
+    body.innerHTML = `<table><tr><th>이름</th><th>부서</th><th>역할</th></tr>${PEOPLE.filter(p => p.member).map(p =>
+      `<tr><td>${p.name}${p.id === S.who ? ' <span class="badge blue">나</span>' : ''}</td><td>${p.dept}</td><td class="muted">${p.pm ? 'PM' : '투입'}</td></tr>`).join('')}</table>
+      <div class="note">프로젝트 인원으로 배정된 사람만 이 프로젝트의 진행 일지를 쓸 수 있습니다. ${me().pm ? '<button class="text-button">+ 인원 추가</button>' : ''}</div>`;
+  }
+  else if (S.top === '관련 업무') { body.innerHTML = workHtml(); bindWork(body) }
+  else { body.innerHTML = docsHtml(); bindDocs(body) }
+}
+
+// ───────── 프로젝트 진행 단계: 단계 띠(PM) + 프로젝트 공유 일지 목록(모두 보기만) ─────────
+function progressHtml() {
+  const pm = me().pm;
+  const steps = STAGES.map((s, i) => {
+    const st = S.stage[i];
+    return `<div class="stage-step ${st}"><div class="s-num">${NUM[i]}</div><div class="s-name">${s.n}</div><div class="s-marker"><span class="dot"></span></div>
+      ${s.gw ? `<div class="s-state">${i === 1 ? '수주됨' : SLABEL[st]}</div><span class="s-gw">그룹웨어 상태</span>`
+        : `<button class="s-btn" data-i="${i}" ${pm ? '' : 'disabled'}>${SLABEL[st]}${pm ? ' ▾' : ''}</button>`}
+      ${S.menu === i ? `<div class="menu">${Object.entries(SLABEL).map(([k, v]) => `<button data-set="${k}">${k === st ? '✓ ' : ''}${v}</button>`).join('')}</div>` : ''}</div>`;
+  }).join('');
+  const lastSys = S.log.findIndex(x => x.p === CUR && x.sys);
+  const newDone = S.log.filter((x, i) => x.p === CUR && x.share === 'proj' && x.st === 'done' && (lastSys < 0 || i < lastSys));
+  const note = pm && newDone.length ? `<div class="pm-note"><span style="flex:1">마지막 단계 변경 뒤로 완료된 일 ${newDone.length}건: ${newDone.map(x => `${P(x.who).dept} ${P(x.who).name} — ${esc(x.text)}`).join(' / ')}</span><span class="small">단계를 바꿀지 확인하세요</span></div>` : '';
+
+  const list = S.log.filter(x => x.p === CUR && inProgress(x)).sort(byUpd);
+  const row = x => x.sys
+    ? `<tr class="sys"><td>${x.t}</td><td>단계 변경</td><td colspan="2">${esc(x.text)}</td><td>${NUM[x.s]}</td></tr>`
+    : `<tr><td>${upd(x)}</td><td>${P(x.who).dept}<small>${P(x.who).name}${x.who === S.who ? ' (나)' : ''}</small></td><td>${textCell(x)}</td><td>${NUM[x.s]} ${STAGES[x.s].n}</td><td><span class="badge ${x.st === 'done' ? 'green' : 'blue'}">${SLABEL[x.st]}</span></td></tr>`;
+  let rows = '';
+  if (S.groupDept) {
+    const work = list.filter(x => !x.sys);
+    [...new Set(work.map(x => P(x.who).dept))].forEach(d => {
+      const its = work.filter(x => P(x.who).dept === d);
+      rows += `<tr class="grp"><td colspan="5">${d} — 진행 ${its.filter(x => x.st === 'run').length} · 완료 ${its.filter(x => x.st === 'done').length}</td></tr>` + its.map(row).join('');
+    });
+    const sys = list.filter(x => x.sys);
+    if (sys.length) rows += `<tr class="grp"><td colspan="5">단계 변경</td></tr>` + sys.map(row).join('');
+  } else rows = list.map(row).join('');
+  return `<p class="small muted" style="margin:0 0 6px">① 영업·② 수주는 그룹웨어 상태를 따르고, ③~⑥은 PM이 아래 목록을 보고 바꿉니다.</p>
+    <div class="stage-flow" id="stages">${steps}</div>${note}
+    <div class="list-head"><b>진행 목록 — 프로젝트 공유된 일지(모든 부서)</b>
+      <span class="small muted"><label><input type="checkbox" id="gd" ${S.groupDept ? 'checked' : ''}> 부서별로 묶기</label> · 이 목록에서는 상태를 바꾸지 않습니다. 작성자가 '프로젝트 진행 일지'에서 바꿉니다.</span></div>
+    <table class="plist"><thead><tr><th style="width:100px">업데이트</th><th style="width:150px">부서 · 작성자</th><th>한 일</th><th style="width:120px">단계</th><th style="width:120px">상태</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="5" class="muted">프로젝트 공유된 일지가 없습니다.</td></tr>'}</tbody></table>
+    ${me().member ? `<div class="note"><button class="text-button" data-go="프로젝트 진행 일지">✎ 프로젝트 진행 일지 쓰러 가기 →</button></div>` : ''}`;
+}
+function bindProgress(el) {
+  el.querySelectorAll('[data-i]').forEach(b => b.onclick = e => { e.stopPropagation(); if (!me().pm) return; S.menu = S.menu === +b.dataset.i ? null : +b.dataset.i; render() });
+  el.querySelectorAll('[data-set]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const i = S.menu, to = b.dataset.set, from = S.stage[i]; S.menu = null;
+    if (from !== to) { S.stage[i] = to; S.log.unshift({ id:Date.now(), p:CUR, t:stamp(), sys:true, s:i, text:`${me().name}(PM): ${NUM[i]} ${STAGES[i].n} ${SLABEL[from]} → ${SLABEL[to]}` }) }
+    render();
+  });
+  el.querySelector('#gd').onchange = e => { S.groupDept = e.target.checked; render() };
+  el.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { const id = b.dataset.open; S.open[id] = !S.open[id]; render() });
+  el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { S.top = b.dataset.go; render() });
+}
+
+// ───────── 진행 일지(프로젝트 탭 = 이 프로젝트만 / 사이드바 = 여러 프로젝트) ─────────
+const myProjects = () => me().member ? PROJECTS : [];
+function writeHtml(fixedProject) {
+  const m = me();
+  if (!m.member) return `<div class="write"><div class="ro">${m.name}님은 배정된 프로젝트가 없어 일지를 쓸 수 없습니다. PM에게 프로젝트 인원 추가를 요청하세요.</div></div>`;
+  const w = S.w;
+  return `<div class="write">
+    ${fixedProject ? '' : `<select id="wp" aria-label="프로젝트">${myProjects().map(p => `<option value="${p.code}" ${p.code === w.p ? 'selected' : ''}>${p.code} ${p.name.slice(0, 14)}…</option>`).join('')}</select>`}
+    <span class="seg" title="공유 범위">${Object.entries(SHARE).map(([k, v]) => `<button class="${w.share === k ? 'on' : ''}" data-sh="${k}">${v}</button>`).join('')}</span>
+    <select id="wstage" aria-label="단계" title="기본값: ${esc(me().dept)} 담당 단계">${STAGES.map((s, i) => `<option value="${i}" ${i === w.s ? 'selected' : ''}>${NUM[i]} ${s.n}</option>`).join('')}</select>
+    ${w.expand
+      ? `<textarea id="wtext" rows="5" placeholder="자세히 쓰기 — 첫 줄이 목록에 제목처럼 보이고, 나머지는 펼쳐서 봅니다. (Ctrl+Enter로 남기기)">${esc(w.draft || '')}</textarea>`
+      : `<input id="wtext" value="${esc(w.draft || '')}" placeholder="지금 하는 일을 한 줄로 (예: 도면 제작 — 부스 레이아웃)">`}
+    <button class="secondary" id="wexp" title="${w.expand ? '한 줄로 쓰기' : '길게 쓰기'}">${w.expand ? '⤡ 한 줄로' : '⤢ 펼쳐서 쓰기'}</button>
+    <button class="primary" id="wsave">남기기</button>
+    <div class="share-help" style="width:100%">공유 범위 '${SHARE[w.share]}': ${SHARE_HELP[w.share]} · 남기면 '진행'으로 시작하고, 끝나면 아래 목록에서 '완료'로 바꿉니다.</div>
+    <div class="err" id="werr"></div></div>
+    ${S.lastSaved && S.lastSaved.share === 'me' ? `<div class="saved"><span style="flex:1">'${esc(S.lastSaved.text)}'을(를) <b>개인</b>으로 남겼습니다. 다른 사람에게는 보이지 않습니다.</span><button class="secondary" data-up="${S.lastSaved.id}">프로젝트 공유로 올리기</button></div>` : ''}`;
+}
+function journalRows(list, showProject) {
+  if (!list.length) return `<tr><td colspan="${showProject ? 7 : 6}" class="muted">보이는 일지가 없습니다.</td></tr>`;
+  return list.map(x => {
+    const shareCell = canShare(x)
+      ? `<select data-share="${x.id}">${Object.entries(SHARE).map(([k, v]) => `<option value="${k}" ${k === x.share ? 'selected' : ''}>${v}</option>`).join('')}</select>`
+      : `<span class="badge ${x.share === 'proj' ? 'blue' : 'gray'}">${SHARE[x.share]}</span>`;
+    const stCell = canStatus(x)
+      ? `<select data-st="${x.id}">${Object.entries(SLABEL).filter(([k]) => k !== 'wait').map(([k, v]) => `<option value="${k}" ${k === x.st ? 'selected' : ''}>${v}</option>`).join('')}</select>`
+      : `<span class="badge ${x.st === 'done' ? 'green' : 'blue'}">${SLABEL[x.st]}</span>`;
+    return `<tr><td>${upd(x)}</td>${showProject ? `<td>${x.p}</td>` : ''}<td>${P(x.who).dept}<small>${P(x.who).name}${x.who === S.who ? ' (나)' : ''}</small></td><td>${textCell(x)}</td><td>${NUM[x.s]} ${STAGES[x.s].n}</td><td>${shareCell}</td><td>${stCell}</td></tr>`;
+  }).join('');
+}
+// 목록의 '한 일': 기본은 첫 줄만, 길면 펼치기
+function textCell(x) {
+  const lines = x.text.split('\n'), first = lines[0];
+  const long = lines.length > 1 || first.length > 70;
+  if (!long) return esc(x.text);
+  return S.open[x.id]
+    ? `<div style="white-space:pre-wrap">${esc(x.text)}</div><button class="text-button small" data-open="${x.id}">접기 ▴</button>`
+    : `${esc(first.length > 70 ? first.slice(0, 70) + '…' : first)} <button class="text-button small" data-open="${x.id}">펼치기 ▾</button>`;
+}
+function journalHtml(project) {
+  const list = S.log.filter(x => x.p === project && inJournal(x)).sort(byUpd);
+  return `${writeHtml(true)}
+    <div class="list-head"><b>진행 일지 — 이 프로젝트, 나와 ${me().dept}</b><span class="small muted">내가 쓴 것 전부 + 같은 부서의 부서 공유·프로젝트 공유. 공유 범위는 작성자만, 상태는 작성자와 같은 부서 사람이 바꿉니다.</span></div>
+    <table class="plist"><thead><tr><th style="width:100px">업데이트</th><th style="width:140px">부서 · 작성자</th><th>한 일</th><th style="width:120px">단계</th><th style="width:130px">공유</th><th style="width:130px">상태</th></tr></thead><tbody>${journalRows(list, false)}</tbody></table>`;
+}
+function bindJournal(el) {
+  const w = S.w;
+  el.querySelectorAll('[data-sh]').forEach(b => b.onclick = () => { w.share = b.dataset.sh; render() });
+  const ws = el.querySelector('#wstage'); if (ws) ws.onchange = e => { w.s = +e.target.value; save() };
+  const wp = el.querySelector('#wp'); if (wp) wp.onchange = e => { w.p = e.target.value; save() };
+  const wt = el.querySelector('#wtext');
+  if (wt) {
+    wt.oninput = () => { w.draft = wt.value; el.querySelector('#werr').textContent = ''; save() };
+    // 한 줄: Enter로 남기기 / 펼쳐서 쓰기: Enter는 줄바꿈, Ctrl+Enter로 남기기
+    wt.onkeydown = e => { if (e.key === 'Enter' && (!w.expand || e.ctrlKey)) { e.preventDefault(); el.querySelector('#wsave').click() } };
+    el.querySelector('#wexp').onclick = () => { w.draft = wt.value; w.expand = !w.expand; render(); const n = document.querySelector('#wtext'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length) } };
+    el.querySelector('#wsave').onclick = () => {
+      const text = wt.value.trim();
+      if (!text) { el.querySelector('#werr').textContent = '내용을 입력하세요.'; return }
+      const x = { id:Date.now(), p: S.view === 'project' ? CUR : w.p, t:stamp(), who:S.who, st:'run', s:w.s, share:w.share, text };
+      S.log.unshift(x); S.lastSaved = { id:x.id, share:x.share, text:text.split('\n')[0] }; w.draft = ''; w.expand = false; render();
+    };
+  }
+  el.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { const id = b.dataset.open; S.open[id] = !S.open[id]; render() });
+  el.querySelectorAll('[data-up]').forEach(b => b.onclick = () => { const x = S.log.find(l => l.id === +b.dataset.up); if (x) { x.share = 'proj'; x.u = stamp() } S.lastSaved = null; render() });
+  el.querySelectorAll('[data-share]').forEach(s => s.onchange = () => { const x = S.log.find(l => l.id === +s.dataset.share); x.share = s.value; x.u = stamp(); S.lastSaved = null; render() });
+  el.querySelectorAll('[data-st]').forEach(s => s.onchange = () => { const x = S.log.find(l => l.id === +s.dataset.st); x.st = s.value; x.u = stamp(); render() });
+}
+
+// 사이드바 '프로젝트 진행 일지'
+function renderJournalPage() {
+  const body = $('journalBody');
+  const list = S.log.filter(x => inJournal(x) && (S.jFilter === 'all' || x.p === S.jFilter)).sort(byUpd);
+  body.innerHTML = writeHtml(false) + `
+    <div class="list-head"><b>여러 프로젝트 일지 — 나와 ${me().dept}</b>
+      <span><select id="jf"><option value="all">모든 프로젝트</option>${myProjects().map(p => `<option value="${p.code}" ${S.jFilter === p.code ? 'selected' : ''}>${p.code} ${p.name}</option>`).join('')}</select></span></div>
+    <table class="plist"><thead><tr><th style="width:100px">업데이트</th><th style="width:100px">프로젝트</th><th style="width:140px">부서 · 작성자</th><th>한 일</th><th style="width:120px">단계</th><th style="width:130px">공유</th><th style="width:130px">상태</th></tr></thead><tbody>${journalRows(list, true)}</tbody></table>`;
+  bindJournal(body);
+  const jf = body.querySelector('#jf'); if (jf) jf.onchange = e => { S.jFilter = e.target.value; render() };
+}
+
+// ───────── 관련 업무: 내 부서 기능만 ─────────
+function workHtml() {
+  const m = me(), keys = DEPT_FEATURES[m.dept] || [];
+  if (!keys.length) return '<div class="empty">이 부서에 연결된 기능이 아직 없습니다.</div>';
+  if (!keys.includes(S.feat)) S.feat = keys[0];
+  return `<b>관련 업무 — ${m.pm ? 'PM' : m.dept}</b> <span class="small muted">· ${m.pm ? '이 프로젝트에 관련된 모든 부서 기능' : '내 부서 기능만 보입니다'}</span>
+    <div class="subtabs">${keys.map(k => `<button class="${k === S.feat ? 'on' : ''}" data-f="${k}">${FEATURES[k].n}</button>`).join('')}</div>${FEAT_BODY[S.feat]()}`;
+}
+function bindWork(el) {
+  el.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.feat = b.dataset.f; render() });
+  el.querySelectorAll('[data-ss]').forEach(b => b.onclick = () => { S.specSub = b.dataset.ss; render() });
+}
+const FEAT_BODY = {
+  spec: () => {
+    const subs = ['사양정리 초안', '판 비교', '비슷한 과거 프로젝트'];
+    const inner = S.specSub === '사양정리 초안'
+      ? `<div class="stats"><div class="stat"><span>사양정리 최신 판</span><strong>V5</strong></div><div class="stat"><span>이전 판</span><strong>4개</strong></div><div class="stat"><span>마지막 변경</span><strong>10/28</strong></div></div>
+         <table><tr><th>공정</th><th>로봇</th><th>도장기</th><th>근거</th></tr><tr><td>상도 베이스 내판</td><td>MPX2600 ×4</td><td>(선정 필요)</td><td class="muted">기설치와 동일</td></tr></table>`
+      : S.specSub === '판 비교'
+        ? `<table><tr><th>항목</th><th>V4</th><th>V5</th></tr><tr><td>로봇 대수</td><td>3</td><td style="color:#b7584a">4</td></tr><tr><td>OLT</td><td>국내 20시간</td><td style="color:#b7584a">국내 40시간</td></tr></table>`
+        : `<table><tr><th>프로젝트</th><th>유사도</th></tr><tr><td>DLP-25-245 기아 광주1</td><td>82</td></tr></table>`;
+    return `<div class="dropzone"><strong>사양서를 끌어다 놓기</strong><span>올린 사양서는 프로젝트 자료함(종류: 사양서)에 함께 들어갑니다</span></div>
+      <div class="subtabs">${subs.map(s => `<button class="${s === S.specSub ? 'on' : ''}" data-ss="${s}">${s}</button>`).join('')}</div>${inner}`;
+  },
+  sjournal: () => `<div class="empty">영업 일지(방문·미팅·통화 기록)가 들어갈 자리입니다.</div>`,
+  deptchk: () => {
+    const m = me();
+    const rows = [['설계팀','부스 제원·배치 9','확인'],['소프트웨어팀','인터록·PLC 12','미회신'],['모듈라팀','OLT 조건 4','확인'],['어플리케이션팀','티칭·품질 6','검토 중'],['도장공정실','도장기·LAB 5','미회신'],['선행검토팀','UPH·제원 3','확인']];
+    const shown = m.pm ? rows : rows.filter(r => r[0] === m.dept);
+    return `<table><tr><th>부서</th><th>사양서에서 확인할 항목</th><th>회신</th></tr>${shown.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td><span class="badge ${r[2] === '확인' ? 'green' : r[2] === '미회신' ? 'amber' : 'blue'}">${r[2]}</span></td></tr>`).join('')}</table>
+      ${m.pm ? '' : '<div style="margin-top:10px"><button class="primary">확인 회신하기</button></div>'}`;
+  },
+  modular: () => `<div class="stats"><div class="stat"><span>모듈라 빌드</span><strong>진행 · 10/10~</strong></div><div class="stat"><span>OLT</span><strong>예정 11/03</strong></div><div class="stat"><span>펀치 리스트</span><strong>7건 열림</strong></div></div>
+    <table><tr><th>날짜</th><th>내용</th></tr><tr><td>10/24</td><td>로봇 MPX2600 ×4 입고 · 케이블 실제 길이 재단</td></tr></table>`,
+  lab: () => `<div class="stats"><div class="stat"><span>랩 테스트</span><strong>3건</strong></div><div class="stat"><span>DFT 평균</span><strong>42.1 µm</strong></div><div class="stat"><span>SRS 측정</span><strong>1건</strong></div></div>`,
+  es: () => `<table><tr><th>#</th><th>내용</th><th>상태</th></tr><tr><td>3</td><td>베이스 내판 도막 편차</td><td><span class="badge amber">열림</span></td></tr><tr><td>2</td><td>로봇 3번 축 알람</td><td><span class="badge green">완료</span></td></tr></table>`,
+};
+
+// ───────── 프로젝트 자료함 ─────────
+// 보기: 개인 = 올린 사람만, 부서 공유 = 같은 부서, 프로젝트 공유 = 모든 부서. 공유 범위·판 올리기·삭제는 올린 사람만.
+const docVisible = d => d.who === S.who || (d.share === 'dept' && P(d.who).dept === me().dept) || d.share === 'proj';
+const extOf = n => (n.split('.').pop() || '').slice(0, 4).toUpperCase();
+// 자동 분류: [규칙, 종류, 근거]. 위에서부터 처음 맞는 것. 실제 구현에선 PDF·오피스 첫 장 글자도 함께 본다
+const CLASSIFY = [
+  [/SRS[_\s-]*BACKUP/i, '현장 백업', '이름이 SRS_BACKUP_* (SRS 백업)'],
+  [/CMOS|ALL\.PRM|\.zap\d*$|\.gx3$|\.ap\d+$|\.gtx$|백업|backup/i, '현장 백업', '컨트롤러·PLC·HMI 백업 파일(CMOS·zap·gx3 등)'],
+  [/IP|네트워크|PLC|HMI/i, 'PLC·HMI·네트워크', '이름에 IP·PLC·HMI·네트워크'],
+  [/제안|견적|quot/i, '제안서·견적', '이름에 제안·견적'],
+  [/사양|spec/i, '사양서', '이름에 사양·spec'],
+  [/계약|발주|PO_/i, '계약·발주', '이름에 계약·발주'],
+  [/회의록|minutes/i, '회의록', '이름에 회의록'],
+  [/일정|schedule|간트/i, '일정표', '이름에 일정'],
+  [/로봇\s*배치|motosim|시뮬|\.vcm$/i, '로봇 배치·시뮬레이션', '이름에 로봇 배치·시뮬'],
+  [/전장|결선|단선도|회로/i, '전장 도면', '이름에 전장·결선·회로'],
+  [/\.(dwg|dxf|step|stp)$/i, '레이아웃 도면', '도면 파일 형식(.dwg 등)'],
+  [/도면|layout|배치/i, '레이아웃 도면', '이름에 도면·layout'],
+  [/모듈라|OLT|케이블/i, '모듈라빌드', '이름에 모듈라·OLT·케이블'],
+  [/\.jbi$/i, '티칭 DATA', '티칭 잡 파일 형식(.jbi)'],
+  [/티칭|teach/i, '티칭 DATA', '이름에 티칭'],
+  [/시운전|검수|SAT|FAT/i, '시운전·검수', '이름에 시운전·검수'],
+  [/\.(jpe?g|png|heic|mp4|mov)$/i, '사진·영상', '사진·영상 파일 형식'],
+  [/매뉴얼|manual|교육/i, '매뉴얼·교육', '이름에 매뉴얼·교육'],
+];
+// 종류에 맞는 단계. 없으면 내 부서 기본 단계
+const CAT_STAGE = { '제안서·견적':0, '계약·발주':1, '사양서':2, '레이아웃 도면':2, '로봇 배치·시뮬레이션':2, '전장 도면':2, 'PLC·HMI·네트워크':2, '모듈라빌드':3, '티칭 DATA':3, '시운전·검수':4, '현장 백업':4, '매뉴얼·교육':5 };
+// 현장 백업 중 SRS 백업이면 SRS Analyzer로 보낼 수 있다
+const isSrs = n => /SRS[_\s-]*BACKUP/i.test(n);
+const classify = n => {
+  const hit = CLASSIFY.find(([re]) => re.test(n));
+  const cat = hit ? hit[1] : '기타';
+  const s = CAT_STAGE[cat];
+  return { cat, why: hit ? hit[2] : '맞는 규칙 없음 — 직접 골라 주세요', s: s ?? defaultStage(), swhy: s != null ? '종류 기준' : `${me().dept} 기본`, auto: !!hit };
+};
+// '10/29 10:30' → 오늘(10/30)부터 며칠 전인지
+const daysAgo = u => { const [m, d] = u.split(' ')[0].split('/').map(Number); const [tm, td] = today().split('/').map(Number); return Math.round((new Date(2026, tm - 1, td) - new Date(2026, m - 1, d)) / 864e5) };
+
+function docsHtml() {
+  const vis = S.docs.filter(docVisible);
+  const q = S.q.trim().toLowerCase();
+  const f = S.df;
+  const inRecent = (d, r) => r === 'all' || daysAgo(d.u) <= +r;
+  // 왼쪽 필터는 한 번에 하나만 고른다(누르면 나머지는 풀림). 검색어는 함께 걸린다
+  const test = {
+    recent: (d, v = f.recent) => inRecent(d, v),
+    scope: (d, v = f.scope) => v === 'all' || (v === 'me' ? d.who === S.who : d.share === v),
+    cat: (d, v = f.cat) => v === 'all' || d.cat === v,
+    s: (d, v = f.s) => v === 'all' || d.s === +v,
+    q: d => !q || [d.n, d.cat, P(d.who).name, P(d.who).dept, STAGES[d.s].n].some(v => v.toLowerCase().includes(q)),
+  };
+  const pass = (d, skip) => Object.entries(test).every(([k, t]) => k === skip || t(d));
+  const n = (key, v) => vis.filter(d => pass(d, key) && test[key](d, v)).length;
+  let list = vis.filter(d => pass(d));
+  list.sort((a, b) => b.u.localeCompare(a.u));
+  const chips = (name, key, opts) => `<div class="fgroup"><div class="fh">${name}</div>${opts.map(([v, label, c]) => `<button class="${String(f[key]) === String(v) ? 'on' : ''}" data-f-${key}="${v}">${label}${c != null ? ` <span>${c}</span>` : ''}</button>`).join('')}</div>`;
+  const has = (k, v) => vis.some(d => d[k] === v);
+  const active = [f.recent !== 'all' && '최근 7일', f.scope !== 'all' && { me:'내가 올린 자료', dept:'우리 부서 공유', proj:'프로젝트 공유' }[f.scope], f.cat !== 'all' && f.cat, f.s !== 'all' && `${NUM[f.s]} ${STAGES[f.s].n}`, q && `검색 '${esc(S.q.trim())}'`].filter(Boolean);
+  return `${S.up ? uploadHtml() : ''}
+    <div class="docs-tool"><input id="dq" placeholder="파일 이름·종류·올린 사람 검색 (예: IP)" value="${esc(S.q)}">
+      ${me().member ? `<button class="primary" id="upOpen">⇪ 자료 올리기</button>` : ''}</div>
+    <div class="docs-body">
+      <nav class="filters">
+        <div class="fgroup"><button class="${Object.values(f).every(v => v === 'all') ? 'on' : ''}" id="fall">전체 자료 <span>${vis.filter(test.q).length}</span></button></div>
+        <div class="fgroup"><div class="fh">최신 자료</div><button class="${f.recent === '7' ? 'on' : ''}" id="recent7">최근 7일 <span>${n('recent', '7')}</span></button></div>
+        ${chips('보기 범위', 'scope', [['me','내가 올린 자료',n('scope','me')],['dept','우리 부서 공유',n('scope','dept')],['proj','프로젝트 공유',n('scope','proj')]])}
+        ${chips('종류', 'cat', allCats().filter(c => has('cat', c)).map(c => [c, c, n('cat', c)]))}
+        ${chips('단계', 's', [...STAGES.map((st, i) => [i, `${NUM[i]} ${st.n}`]).filter(x => has('s', x[0])).map(x => [...x, n('s', x[0])])])}
+      </nav>
+      <div><div class="small muted" style="margin:0 0 8px">${list.length}건${active.length ? ` · ${active.join(', ')} <button class="text-button" id="fclear">해제</button>` : ''}</div>
+        ${list.length ? list.map(docRow).join('') : '<div class="empty">조건에 맞는 자료가 없습니다.</div>'}</div>
+    </div>`;
+}
+function docRow(d) {
+  const i = S.docs.indexOf(d), mine = d.who === S.who;
+  const shareCell = mine
+    ? `<select data-dshare="${i}" title="공유 범위(올린 사람만 바꿈)">${Object.entries(SHARE).map(([k, v]) => `<option value="${k}" ${k === d.share ? 'selected' : ''}>${v}</option>`).join('')}</select>`
+    : ''; // 남이 올린 자료는 이미 나에게 공유된 것이라 공유 상태를 표시하지 않는다
+  return `<div class="file ${d.old ? 'old' : ''}"><span class="ext">${extOf(d.n)}</span>
+    <div class="fm"><b>${esc(d.n)} </b>
+      <small><span class="badge">${esc(d.cat)}</span> ${NUM[d.s]} ${STAGES[d.s].n} · ${P(d.who).dept} ${P(d.who).name}${mine ? ' (나)' : ''} · ${d.u}</small></div>
+    ${shareCell}
+    <button class="secondary" data-pv="${i}">${S.pv === i ? '미리 보기 닫기' : '미리 보기'}</button>
+    <button class="secondary">다운로드</button>
+</div>
+    ${S.pv === i ? previewHtml(d) : ''}`;
+}
+// 미리 보기: 모든 자료에 버튼. 형식마다 보여 주는 방식이 다르다(시안 내용은 예시)
+//  PDF·사진·영상 = 브라우저가 바로 / 엑셀·CSV = 첫 시트 표 / 워드 = 본문 / 파워포인트 = 슬라이드 넘겨 보기
+//  DWG·DXF = 서버에서 PDF로 바꿔 보기 / JBI(티칭)·TXT = 글자 그대로 / ZIP = 안에 든 파일 목록
+const PV_KIND = { pdf:'PDF 문서', xlsx:'엑셀 첫 시트', xls:'엑셀 첫 시트', csv:'CSV', docx:'워드 본문', doc:'워드 본문', pptx:'슬라이드', ppt:'슬라이드',
+  dwg:'도면(PDF로 변환)', dxf:'도면(PDF로 변환)', jpg:'사진', jpeg:'사진', png:'사진', heic:'사진', mp4:'영상', mov:'영상', jbi:'티칭 잡(글자)', txt:'글자', zip:'압축 안 파일 목록' };
+function previewHtml(d) {
+  const ext = (d.n.split('.').pop() || '').toLowerCase();
+  const head = `<div class="fh">미리 보기 — ${esc(d.n)} <span class="muted">· ${d.srs ? 'SRS 백업 요약' : PV_KIND[ext] || '글자'} (시안 예시)</span></div>`;
+  const table = (cols, rows) => `<table><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;
+  const page = lines => `<div class="pv-page">${lines.map((l, k) => k ? `<p>${l}</p>` : `<h4>${l}</h4>`).join('')}</div>`;
+  let body;
+  if (d.srs) {
+    const m = d.srs || { at:'(백업 안 .ini에서 읽음)', where:'-', zone:'-', robots:4, jobs:0 };
+    const cc = [312, 298, 341, 276];
+    body = `<div class="srs-pv"><div><table><tr><th>백업 시각</th><td>${m.at}</td></tr><tr><th>장소</th><td>${m.where}</td></tr><tr><th>공정·존</th><td>${m.zone}</td></tr><tr><th>로봇 / JOB</th><td>${m.robots}대 / ${m.jobs}개</td></tr></table>
+        <div class="small muted" style="margin-top:6px">백업 안 .ini·JOB을 읽어 자동으로 채움</div></div>
+      <div><div class="small muted">로봇별 예상 도장량(cc)</div><svg viewBox="0 0 220 90" class="srs-bars">${cc.map((v, k) => `<rect x="${12 + k * 52}" y="${80 - v / 5}" width="34" height="${v / 5}" rx="3"/><text x="${29 + k * 52}" y="${76 - v / 5}" text-anchor="middle">${v}</text>`).join('')}</svg><div class="small muted" style="display:flex;justify-content:space-around">${['R1','R2','R3','R4'].map(r => `<span>${r}</span>`).join('')}</div></div></div>
+      <div style="margin-top:8px"><button class="primary">SRS Analyzer에서 3D·차트로 열기 ↗</button> <span class="small muted">차체 위 도장 경로·속도·FLOW는 SRS Analyzer 화면에서 봅니다</span></div>`;
+  } else if (/^(xlsx?|csv)$/.test(ext)) {
+    body = /IP/i.test(d.n)
+      ? table(['장비','IP','비고','담당'], [['PLC (메인)','192.168.10.1','GX Works3','제어'],['HMI #1','192.168.10.11','GOT2000','제어'],['로봇 R1 (DX200)','192.168.10.101','상도 베이스 내판','티칭'],['로봇 R2 (DX200)','192.168.10.102','상도 베이스 내판','티칭'],['로봇 R3 (DX200)','192.168.10.103','상도 베이스 내판','티칭'],['로봇 R4 (DX200)','192.168.10.104','상도 베이스 내판','티칭'],['도장기 컨트롤러','192.168.10.150','상도 베이스 내판','도장']])
+      : table(['No','항목','수량','비고'], [['1','케이블 CC-Link 10m','12','OLT장'],['2','케이블 EtherNet 5m','20',''],['3','커넥터 M12','40','예비 포함']]);
+  } else if (/^docx?$/.test(ext)) {
+    body = page([esc(d.n.replace(/\.[^.]+$/, '')), '일시: 2026-10-16 14:00 · 장소: 본사 3층 회의실', '1. 프로젝트 범위 확인 — 로봇 4대, OLT 40시간', '2. 일정 — 모듈라 11월 2주, 현장 반입 12월', '3. 담당 — 설계 박설계, 제어 최제어, 모듈라 정모듈']);
+  } else if (/^pptx?$/.test(ext)) {
+    body = `<div class="pv-slides">${['표지','사양 요약','로봇 배치','일정'].map((t, k) => `<div class="pv-slide${k ? '' : ' on'}"><b>${k + 1}</b>${t}</div>`).join('')}</div><div class="small muted">← → 로 슬라이드 넘기기 · 4장</div>`;
+  } else if (ext === 'pdf') {
+    body = page([esc(d.n.replace(/\.[^.]+$/, '')), '1. 일반 사항 — 대상 차종 및 생산 능력', '2. 도장 부스 제원 — 길이 · 폭 · 높이', '3. 로봇 사양 — 도장 로봇 및 컨트롤러']) + '<div class="small muted">1 / 12쪽 · 위아래로 넘겨 보기</div>';
+  } else if (/^(dwg|dxf)$/.test(ext)) {
+    body = `<svg class="pv-img" viewBox="0 0 400 160"><rect x="10" y="10" width="380" height="140" fill="#fff" stroke="#8aa0c4"/><rect x="40" y="40" width="320" height="70" fill="none" stroke="#3c65be" stroke-width="2"/><g fill="#e8eefa" stroke="#3c65be">${[80,150,220,290].map(x => `<circle cx="${x}" cy="75" r="12"/>`).join('')}</g><text x="200" y="135" text-anchor="middle" font-size="11" fill="#5d6b80">BOOTH LAYOUT (서버에서 PDF로 바꿔 보여 줌 · 확대/이동)</text></svg>`;
+  } else if (/^(jpe?g|png|heic)$/.test(ext)) {
+    body = `<svg class="pv-img" viewBox="0 0 400 160"><defs><linearGradient id="pg" x1="0" x2="1"><stop offset="0" stop-color="#cfd9ea"/><stop offset="1" stop-color="#9fb3d4"/></linearGradient></defs><rect width="400" height="160" fill="url(#pg)"/><text x="200" y="85" text-anchor="middle" font-size="13" fill="#2b3a55">사진 원본 크기로 보기 · 확대</text></svg>`;
+  } else if (/^(mp4|mov)$/.test(ext)) {
+    body = `<div class="pv-video">▶ 재생 <span>00:00 / 02:14</span></div>`;
+  } else if (ext === 'zip') {
+    body = table(['안에 든 파일','크기'], [['robot_R1.jbi','4 KB'],['robot_R2.jbi','4 KB'],['readme.txt','1 KB']]) + '<div class="small muted">압축을 풀지 않고 목록만 보여 줍니다</div>';
+  } else {
+    body = `<pre class="pv-text">/JOB\n//NAME ${esc(d.n.replace(/\.[^.]+$/, '').toUpperCase())}\n//POS\n///NPOS 12,0,0,0,0,0\nNOP\nMOVJ C00000 VJ=25.00\nMOVL C00001 V=500.0\nEND</pre>`;
+  }
+  return `<div class="preview">${head}${body}</div>`;
+}
+
+// 올리기: 파일을 넣으면 종류·단계를 제안하고, 공유 범위를 고른 뒤 올린다. 판 구분은 하지 않는다(날짜로 구분)
+function uploadHtml() {
+  const u = S.up;
+  const rows = u.files.map((x, i) => {
+    if (x.scan) return `<tr><td><b>${esc(x.n)}</b></td><td colspan="3" class="muted small">⟳ 종류·단계 파악 중…</td></tr>`;
+    return `<tr><td><b>${esc(x.n)}</b></td>
+      <td>${x.newCat ? `<input data-ucnew="${i}" placeholder="새 종류 (이 프로젝트만)" style="width:140px"> <button class="text-button" data-ucok="${i}">추가</button>` : `<select data-ucat="${i}">${allCats().map(c => `<option ${c === x.cat ? 'selected' : ''}>${esc(c)}</option>`).join('')}<option value="__new">＋ 직접 입력 (이 프로젝트만)…</option></select>`}
+        <small class="${x.auto ? 'auto-ok' : 'auto-no'}">${x.mine ? '직접 고름' : (x.auto ? '자동 · ' : '') + x.why}</small></td>
+      <td><select data-us="${i}">${STAGES.map((s, k) => `<option value="${k}" ${k === x.s ? 'selected' : ''}>${NUM[k]} ${s.n}</option>`).join('')}</select>
+        <small class="auto-ok">${x.smine ? '직접 고름' : '자동 · ' + x.swhy}</small></td>
+      <td><button class="text-button" data-urm="${i}">빼기</button></td></tr>`;
+  }).join('');
+  return `<div class="upload">
+    <div class="up-head"><b>자료 올리기</b><button class="text-button" id="upClose">닫기</button></div>
+    <div class="dropzone" id="dz"><strong>파일·폴더를 끌어다 놓기</strong><span>올리면 종류·단계를 자동으로 파악합니다(틀리면 바꾸면 됩니다) · <button class="text-button" id="sample">예시: IP 리스트 넣기</button> · <button class="text-button" id="sample2">예시: 현장 백업(SRS) 넣기</button></span></div>
+    ${u.files.length ? `<table class="plist"><thead><tr><th>파일</th><th style="width:220px">종류</th><th style="width:140px">단계</th><th style="width:50px"></th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="up-opts">
+      <div><div class="fh">공유 범위</div><span class="seg">${Object.entries(SHARE).map(([k, v]) => `<button class="${u.share === k ? 'on' : ''}" data-ush="${k}">${v}</button>`).join('')}</span>
+        <div class="share-help">${{ me:'나만 봅니다(본인 확인용)', dept:`${me().dept}만 봅니다`, proj:'이 프로젝트의 모든 부서가 봅니다' }[u.share]}</div></div>
+    </div>
+    <div style="text-align:right"><button class="primary" id="upGo" ${u.files.some(x => x.scan) ? 'disabled' : ''}>${u.files.length}개 올리기</button></div>` : ''}
+  </div>`;
+}
+function addFiles(names) {
+  const fresh = names.map(n => ({ n, scan:true }));
+  S.up.files.push(...fresh);
+  setTimeout(() => { fresh.forEach(x => { Object.assign(x, classify(x.n)); delete x.scan }); render() }, 700);
+  render();
+}
+function bindDocs(el) {
+  const f = S.df;
+  const pick = (k, v) => { const on = S.df[k] === v; S.df = { scope:'all', recent:'all', cat:'all', s:'all' }; if (!on) S.df[k] = v; render() };
+  ['scope','cat','s'].forEach(k => el.querySelectorAll(`[data-f-${k}]`).forEach(b => b.onclick = () => pick(k, b.getAttribute(`data-f-${k}`))));
+  el.querySelector('#fall').onclick = () => { S.df = { scope:'all', recent:'all', cat:'all', s:'all' }; render() };
+  const fc = el.querySelector('#fclear'); if (fc) fc.onclick = () => { S.df = { scope:'all', recent:'all', cat:'all', s:'all' }; S.q = ''; render() };
+  el.querySelector('#recent7').onclick = () => pick('recent', '7');
+  const dq = el.querySelector('#dq');
+  if (dq) dq.oninput = () => { S.q = dq.value; const pos = dq.selectionStart; render(); const n = document.querySelector('#dq'); if (n) { n.focus(); n.setSelectionRange(pos, pos) } };
+  el.querySelectorAll('[data-pv]').forEach(b => b.onclick = () => { const i = +b.dataset.pv; S.pv = S.pv === i ? null : i; render() });
+  el.querySelectorAll('[data-dshare]').forEach(s => s.onchange = () => { const d = S.docs[+s.dataset.dshare]; d.share = s.value; d.u = stamp(); render() });
+  const op = el.querySelector('#upOpen'); if (op) op.onclick = () => { S.up = S.up || { files:[], share:'me' }; render() };
+  if (!S.up) return;
+  const u = S.up;
+  el.querySelector('#upClose').onclick = () => { S.up = null; render() };
+  el.querySelector('#sample').onclick = e => { e.stopPropagation(); addFiles(['IP 리스트_상도베이스내판_V3.xlsx']) };
+  el.querySelector('#sample2').onclick = e => { e.stopPropagation(); addFiles(['SRS_BACKUP_20261030_0910.zip']) };
+  const dz = el.querySelector('#dz');
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('over') };
+  dz.ondragleave = () => dz.classList.remove('over');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); const names = Array.from(e.dataTransfer.files).map(x => x.name); if (names.length) addFiles(names) };
+  dz.onclick = () => { const fi = document.createElement('input'); fi.type = 'file'; fi.multiple = true; fi.onchange = () => { const names = Array.from(fi.files).map(x => x.name); if (names.length) addFiles(names) }; fi.click() };
+  // 종류 직접 입력: 새 이름은 이 프로젝트 종류 목록에만 추가된다(다른 프로젝트에는 안 보임)
+  el.querySelectorAll('[data-ucat]').forEach(s => s.onchange = () => {
+    const x = u.files[+s.dataset.ucat];
+    if (s.value === '__new') {
+      x.newCat = true;
+    } else { x.cat = s.value; x.mine = true }
+    render();
+  });
+  const addCat = i => {
+    const x = u.files[i], name = el.querySelector(`[data-ucnew="${i}"]`).value.trim();
+    if (name) { if (!allCats().includes(name)) S.cats = { ...S.cats, [CUR]: [...((S.cats || {})[CUR] || []), name] }; x.cat = name; x.mine = true }
+    x.newCat = false; render();
+  };
+  el.querySelectorAll('[data-ucok]').forEach(b => b.onclick = () => addCat(+b.dataset.ucok));
+  el.querySelectorAll('[data-ucnew]').forEach(inp => { inp.onkeydown = e => { if (e.key === 'Enter') addCat(+inp.dataset.ucnew); if (e.key === 'Escape') { u.files[+inp.dataset.ucnew].newCat = false; render() } } });
+  const nc = el.querySelector('[data-ucnew]'); if (nc) nc.focus();
+  el.querySelectorAll('[data-us]').forEach(s => s.onchange = () => { u.files[+s.dataset.us].s = +s.value; u.files[+s.dataset.us].smine = true; render() });
+  el.querySelectorAll('[data-urm]').forEach(b => b.onclick = () => { u.files.splice(+b.dataset.urm, 1); render() });
+  el.querySelectorAll('[data-ush]').forEach(b => b.onclick = () => { u.share = b.dataset.ush; render() });
+  const go = el.querySelector('#upGo');
+  if (go) go.onclick = () => {
+    const now = stamp();
+    u.files.forEach(x => {
+      S.docs.unshift({ g: 'g' + Date.now() + Math.random(), n:x.n, cat:x.cat, s:x.s, share:u.share, who:S.who, u:now, srs: x.cat === '현장 백업' && isSrs(x.n) ? { at:'2026-10-30 09:10', where:'OLT장', zone:'상도 베이스 내판 1ZONE', robots:4, jobs:40 } : undefined });
+    });
+    S.toast = `${u.files.length}개 올렸습니다 (${SHARE[u.share]}${u.share === 'proj' ? ' · 모든 부서가 봅니다' : ''})`;
+    S.up = null; render();
+  };
+}
+
+$('who').onchange = e => { S.who = e.target.value; S.feat = null; S.menu = null; S.lastSaved = null; S.w.s = defaultStage(); S.w.draft = ''; render() };
+$('reset').onclick = e => { e.preventDefault(); S = fresh(); S.w.s = defaultStage(); render() };
+$('pmBtn').onclick = () => { S.top = '프로젝트 인원'; render() };
+$('navProject').onclick = () => { S.view = 'project'; render() };
+$('navJournal').onclick = () => { S.view = 'journal'; S.lastSaved = null; render() };
+document.addEventListener('click', e => { if (S.menu != null && !e.target.closest('.stage-step')) { S.menu = null; render() } });
+if (S.w.s == null) S.w.s = defaultStage();
+render();
+</script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../api/client'
+import { platform } from '../platform/bridge'
+import '../styles/d-works.css'
 type Handoff = { handoffUrl: string; baseUrl: string }
 type Props = {
   title: string
@@ -14,6 +16,7 @@ export function EmbeddedAppPage({
   waitForReady = true,
 }: Props) {
   const [src, setSrc] = useState<string | null>(null)
+  const [base, setBase] = useState<string | null>(null) // 새 창으로 열 주소(일회용 로그인 주소가 아닌 앱 첫 화면)
   const [phase, setPhase] = useState<
     'auth' | 'screen' | 'data' | 'ready' | 'error'
   >('auth')
@@ -53,6 +56,7 @@ export function EmbeddedAppPage({
         )
           url.hostname = window.location.hostname
         setSrc(url.toString())
+        setBase(h.baseUrl ? new URL(h.baseUrl, window.location.origin).toString() : null)
         setPhase('screen')
       })
       .catch((e) => {
@@ -96,12 +100,25 @@ export function EmbeddedAppPage({
     }
   }, [])
   const loading = phase !== 'ready' && phase !== 'error'
+  const conn = phase === 'ready' ? { cls: 'ok', text: 'SMARTWORK에서 불러온 화면 · 연결됨' } : phase === 'error' ? { cls: 'err', text: '연결 안 됨' } : { cls: 'wait', text: '연결 중…' }
+  const openNew = () => {
+    if (!base) return
+    if (platform.kind !== 'web') void platform.openExternal(base)
+    else window.open(base, '_blank', 'noopener,noreferrer')
+  }
   return (
     <>
-      <div className="page-head smartlab-head">
+      {/* D안: 얇은 머리말 — 제목 · 연결 상태 점 · 새 창으로 열기(안쪽 화면은 SMARTWORK 그대로) */}
+      <div className="page-head smartlab-head dw-embed-head">
         <div>
           <p className="eyebrow">SMARTWORK</p>
           <h1>{title}</h1>
+        </div>
+        <div className="dw-embed-actions">
+          <span className={`dw-conn ${conn.cls}`} role="status"><i />{conn.text}</span>
+          {base && phase !== 'error' && (
+            <button className="secondary" onClick={openNew}>새 창으로 열기 ↗</button>
+          )}
         </div>
       </div>
       <div className="smartlab-embed embed-app" aria-busy={loading}>
@@ -154,15 +171,14 @@ export function EmbeddedAppPage({
         )}
         {phase === 'error' && (
           <div className="embed-loading">
-            <div className="embed-loading-card">
+            <div className="embed-loading-card dw-embed-error">
+              <span className="dw-embed-error-icon" aria-hidden="true">!</span>
               <h2>{title} 연결을 확인해 주세요</h2>
               <p role="alert">{error}</p>
-              <button
-                className="primary"
-                onClick={() => setRetry((n) => n + 1)}
-              >
-                다시 연결
-              </button>
+              <div className="dw-embed-error-actions">
+                <button className="primary" onClick={() => setRetry((n) => n + 1)}>다시 연결</button>
+              </div>
+              <small>계속 안 되면 관리자에게 SMARTWORK 연결 설정을 확인해 달라고 알려 주세요.</small>
             </div>
           </div>
         )}

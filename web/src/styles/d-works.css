@@ -1,0 +1,75 @@
+/*
+ * D안(2026-11-02) — 모듈라 · 그룹웨어 WORKS 앱(ES 이슈) · SMARTWORK 임베드 틀.
+ * 색 토큰(--blue · --sky · --point · --ink · --muted · --line)은 theme-d.css. 이 파일의 새 클래스는 dw- 접두사.
+ */
+
+/* ── 공통: 상태 칩 · 색 점 · 촘촘한 표 ── */
+.dw .segmented button.active { background: var(--blue); }
+.dw .modular-toolbar .search-input { height: 40px; border-radius: 10px; }
+.dw-chips button { height: 32px; padding: 0 12px; }
+.dw-chips button.active { border-color: var(--blue); background: #EAF2FC; color: var(--blue); font-weight: 600; }
+.dw-chips button.dw-dim { opacity: .55; }
+.dw-chips button.dw-dim.active { opacity: 1; }
+.dw-dot { display: inline-block; width: 7px; height: 7px; border-radius: 4px; background: #98A2B3; flex: none; }
+.dw-dot.blue { background: #2563EB; }
+.dw-dot.green { background: #15803D; }
+.dw-dot.amber { background: #E0A400; }
+.dw-dot.red { background: #D92D20; }
+.dw-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #344054; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dw-status.red { color: #B42318; }
+.dw-status.green { color: #15803D; }
+.dw-muted { color: var(--muted); }
+
+.dw-table { border: 1px solid var(--line); border-radius: 10px; overflow: auto; background: #fff; }
+.dw-row { display: grid; gap: 12px; align-items: center; width: 100%; padding: 0 14px; border: 0; border-bottom: 1px solid #F2F4F7;
+  background: #fff; text-align: left; font-size: 13px; color: var(--ink); cursor: pointer; box-sizing: border-box; }
+.dw-row:last-child { border-bottom: 0; }
+.dw-row:hover { background: #F7FAFE; }
+.dw-row:focus-visible { outline: 2px solid var(--sky); outline-offset: -2px; }
+.dw-head { background: #F9FAFB; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--muted); cursor: default; }
+.dw-head:hover { background: #F9FAFB; }
+.dw-head small { font-weight: 500; }
+.dw-ell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dw-num { font-variant-numeric: tabular-nums; font-size: 12px; white-space: nowrap; }
+.dw-code { font-size: 12px; font-weight: 600; color: var(--blue); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dw-empty { padding: 40px 16px; text-align: center; color: var(--muted); border: 1px dashed #D0D5DD; border-radius: 10px; font-size: 13px; }
+
+/* ── 모듈라 목록: 한 줄 38px, 11열 ── */
+.dw-mod { grid-template-columns: 48px 150px 120px 96px minmax(220px, 1fr) 72px 88px 88px 68px 88px 64px; min-width: 1160px; height: 38px; }
+.dw-mod.dw-head { height: 34px; }
+.dw-title { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.dw-title b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dw-title .badge, .dw-title2 .badge { flex: none; margin-left: 6px; }
+.dw-abroad { color: var(--blue); font-weight: 600; }
+
+/* ── 그룹웨어 WORKS 앱(ES 이슈): 접수 내용 굵게 + 처리 내용 흐리게 한 줄, 줄 48px 안팎 ── */
+.dw-works { min-width: 1080px; min-height: 50px; padding-top: 5px; padding-bottom: 5px; }
+.dw-works.dw-head { min-height: 36px; padding-top: 0; padding-bottom: 0; }
+.dw-title2 { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dw-title2 b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dw-title2 small { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dw-works.dw-hot { background: #FFFBE6; }
+.dw-works.dw-hot:hover { background: #FFF6CC; }
+.dw-works > .dw-ell { font-size: 12px; }
+
+/* ── SMARTWORK 임베드: 얇은 머리말 · 연결 상태 · 오류 카드 ── */
+.dw-embed-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 14px; }
+.dw-embed-head h1 { margin: 0; font-size: 24px; }
+.dw-embed-head .eyebrow { margin-bottom: 4px !important; }
+.dw-embed-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dw-conn { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #fff; font-size: 12px; white-space: nowrap; }
+.dw-conn i { width: 8px; height: 8px; border-radius: 4px; background: #98A2B3; }
+.dw-conn.ok i { background: #4ADE80; }
+.dw-conn.wait i { background: var(--point); }
+.dw-conn.err i { background: #F97066; }
+.dw-embed-error { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; max-width: 420px; }
+.dw-embed-error-icon { width: 44px; height: 44px; border-radius: 22px; background: #FEF3F2; color: #B42318; display: grid; place-items: center; font-weight: 800; font-size: 20px; }
+.dw-embed-error h2 { margin: 0; }
+.dw-embed-error p { margin: 0; }
+.dw-embed-error-actions { display: flex; gap: 8px; justify-content: center; }
+.dw-embed-error small { color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+@media (max-width: 760px) {
+  .dw-embed-head h1 { font-size: 20px; }
+  .dw-conn { height: 28px; }
+}

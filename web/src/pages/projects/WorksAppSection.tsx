@@ -2,8 +2,9 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useState, type ReactNode } from 'react'
 import { api } from '../../api/client'
 import type { ModularFile, ModularHistoryItem, WorksDocDetail, WorksDocList, WorksField, WorksLayoutNode, WorksMeta, WorksStatus } from '../../api/types'
-import { DataTable, ErrorBox, Loading, Modal } from '../../components/ui'
+import { ErrorBox, Loading, Modal } from '../../components/ui'
 import { useToast } from '../../components/Toast'
+import '../../styles/d-works.css'
 
 /**
  * 그룹웨어 WORKS 앱 화면 — 앱 번호만 주면 그룹웨어 정의(목록 열·폼 배치·상태·선택지)대로 그린다. (첫 대상 281 ES 이슈)
@@ -65,12 +66,16 @@ export function WorksAppSection({ appletId, projectCode, openDocId = null, onDoc
   const columns = (m.viewColumns ?? []).filter((c) => c === 'status' || byCid.has(c))
   // 제목 열: 목록 열 중 첫 글자 칸(그룹웨어 목록에서 문서를 여는 칸)
   const titleCid = columns.find((c) => ['text', 'textarea'].includes(byCid.get(c)?.fieldType ?? '')) ?? columns.find((c) => c !== 'status')
+  // D안: 제목 다음 글자 칸(예: ES 이슈의 처리 내용)은 제목 아래에 흐리게 한 줄로 붙인다
+  const subCid = columns.find((c) => c !== titleCid && ['text', 'textarea'].includes(byCid.get(c)?.fieldType ?? ''))
+  const restCols = columns.filter((c) => c !== 'status' && c !== titleCid && c !== subCid)
+  const gridCols = `96px minmax(260px, 2.6fr) ${restCols.map(() => 'minmax(88px, 1fr)').join(' ')}`
   const counts = new Map((docs.data?.statusCounts ?? []).map((c) => [c.statusId, c.count]))
   const allCount = [...counts.values()].reduce((a, b) => a + b, 0)
   const reset = (fn: () => void) => { fn(); setPage(1) }
 
   return (
-    <div className="modular">
+    <div className="modular dw">
       <div className="modular-toolbar">
         <input
           className="search-input"
@@ -82,11 +87,11 @@ export function WorksAppSection({ appletId, projectCode, openDocId = null, onDoc
         {m.editEnabled && <button className="primary" onClick={() => setCreating(true)}>+ 새 문서</button>}
       </div>
 
-      <div className="status-chips" role="group" aria-label="상태">
+      <div className="status-chips dw-chips" role="group" aria-label="상태">
         <button className={statusId === '' ? 'active' : ''} onClick={() => reset(() => setStatusId(''))}>전체 <b>{allCount || ''}</b></button>
         {m.statuses.map((s) => (
-          <button key={s.id} className={statusId === String(s.id) ? 'active' : ''} onClick={() => reset(() => setStatusId(String(s.id)))}>
-            <i className={`dot ${tone(s.name)}`} />{s.name} <b>{counts.get(s.id) ?? 0}</b>
+          <button key={s.id} className={[statusId === String(s.id) ? 'active' : '', (counts.get(s.id) ?? 0) ? '' : 'dw-dim'].filter(Boolean).join(' ')} onClick={() => reset(() => setStatusId(String(s.id)))}>
+            <i className={`dw-dot ${tone(s.name)}`} />{s.name} <b>{counts.get(s.id) ?? 0}</b>
           </button>
         ))}
         {(counts.get(0) ?? 0) > 0 && (
@@ -96,23 +101,35 @@ export function WorksAppSection({ appletId, projectCode, openDocId = null, onDoc
 
       {docs.isLoading ? <Loading /> : docs.error ? <ErrorBox error={docs.error} /> : (
         <>
-          <DataTable
-            headers={columns.map((c) => (c === 'status' ? '상태' : byCid.get(c)!.label))}
-            rows={(docs.data?.items ?? []).map((d) => ({
-              key: String(d.id),
-              cells: columns.map((c) =>
-                c === 'status' ? <StatusBadge status={d.status} />
-                  : c === titleCid ? (
-                    <button className="row-title" onClick={() => setOpenId(d.id)}>
-                      {d.display[c] || '(제목 없음)'}
-                      {!d.fromGroupware && <span className="badge blue mini">DY ONE</span>}
-                      {d.managedInDyone && <span className="badge blue mini">DY ONE 관리</span>}
-                      {d.gwDeleted && <span className="badge red mini">그룹웨어 삭제</span>}
-                    </button>
-                  ) : d.display[c] ?? '-'),
-            }))}
-            empty="조건에 맞는 문서가 없습니다."
-          />
+          {(docs.data?.items ?? []).length === 0 ? <div className="dw-empty">조건에 맞는 문서가 없습니다.</div> : (
+            <div className="dw-table">
+              <div className="dw-row dw-works dw-head" style={{ gridTemplateColumns: gridCols }}>
+                <span>상태</span>
+                <span>{titleCid ? byCid.get(titleCid)?.label : '제목'}{subCid && <small> · {byCid.get(subCid)?.label}</small>}</span>
+                {restCols.map((c) => <span key={c}>{byCid.get(c)!.label}</span>)}
+              </div>
+              {(docs.data?.items ?? []).map((d) => {
+                const t = tone(d.status?.name)
+                // 접수·진행 중(완료 아님)인 줄은 연한 노랑으로 눈에 띄게
+                const hot = !!d.status && (t === 'amber' || t === 'blue')
+                return (
+                  <button key={d.id} className={`dw-row dw-works${hot ? ' dw-hot' : ''}`} style={{ gridTemplateColumns: gridCols }} onClick={() => setOpenId(d.id)}>
+                    {d.status ? <span className={`dw-status ${t}`}><i className={`dw-dot ${t}`} />{d.status.name}</span> : <span className="dw-status dw-muted">상태 없음</span>}
+                    <span className="dw-title2">
+                      <b>
+                        {(titleCid && d.display[titleCid]) || '(제목 없음)'}
+                        {!d.fromGroupware && <span className="badge blue mini">DY ONE</span>}
+                        {d.managedInDyone && <span className="badge blue mini">DY ONE 관리</span>}
+                        {d.gwDeleted && <span className="badge red mini">그룹웨어 삭제</span>}
+                      </b>
+                      {subCid && <small>{d.display[subCid] || '—'}</small>}
+                    </span>
+                    {restCols.map((c) => <span key={c} className="dw-ell dw-muted" title={d.display[c] ?? ''}>{d.display[c] || '-'}</span>)}
+                  </button>
+                )
+              })}
+            </div>
+          )}
           <Pager total={docs.data?.total ?? 0} page={page} onPage={setPage} />
         </>
       )}
