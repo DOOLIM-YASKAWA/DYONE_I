@@ -25,10 +25,11 @@ export function Layout({ children }: { children: ReactNode }) {
   const partner = user?.kind === 'partner'
   const routes = visibleRoutes(partner)
   const location = useLocation()
-  // 메뉴를 연 화면 경로를 기억해 두고, 다른 화면으로 이동하면 자연스럽게 닫힌 상태가 된다.
+  // 메뉴를 연 화면 이동(location.key)을 기억해 두고, 이동하면 자연스럽게 닫힌 상태가 된다.
+  // (경로로 기억하면 같은 화면에 다시 들어왔을 때 메뉴가 저절로 열려 있었다)
   const [menuOpenAt, setMenuOpenAt] = useState<string | null>(null)
-  const menuOpen = menuOpenAt === location.pathname
-  const setMenuOpen = (open: boolean) => setMenuOpenAt(open ? location.pathname : null)
+  const menuOpen = menuOpenAt === location.key
+  const setMenuOpen = (open: boolean) => setMenuOpenAt(open ? location.key : null)
   const wideLayout = (location.pathname.startsWith('/smartlab') || location.pathname.startsWith('/srs-analyzer') || location.pathname.startsWith('/process'))  // 임베드 화면은 본문 최대폭 해제
 
   useEffect(() => {
@@ -124,7 +125,7 @@ export function Layout({ children }: { children: ReactNode }) {
       {!partner && <DemoMemos />}
 
       <nav id="bottomNav" aria-label="모바일 바로가기">
-        {routes.slice(0, 4).map((r) => (
+        {main.slice(0, 4).map((r) => (
           <NavLink key={r.path} to={r.path} className={({ isActive }) => (isActive ? 'active' : '')}>
             <Icon name={r.icon} size={20} />
             {r.short ?? r.name}
