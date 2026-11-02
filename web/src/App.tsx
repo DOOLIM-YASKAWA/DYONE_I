@@ -8,6 +8,7 @@ import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { OrgChartPage } from './pages/OrgChartPage'
 import { ProjectDetailPage } from './pages/projects/ProjectDetailPage'
+import { JournalPage } from './pages/projects/ProjectJournal'
 import { ProjectsPage } from './pages/projects/ProjectsPage'
 import { SrsAnalyzerPage } from './pages/SrsAnalyzerPage'
 import { SmartLabPage } from './pages/SmartLabPage'
@@ -24,6 +25,7 @@ import { visibleRoutes } from './routes'
 const pageElements: Record<string, ReactElement> = {
   '/home': <HomePage />,
   '/projects': <ProjectsPage />,
+  '/journal': <JournalPage />,
   '/modular': <ModularPage />,
   '/org': <OrgChartPage />,
   '/works/281': <WorksAppPage appletId={281} title="ES 이슈" />,

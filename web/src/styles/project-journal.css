@@ -1,0 +1,27 @@
+/* 프로젝트 진행 일지(프로젝트 탭 · 사이드바) · 진행 단계 목록 */
+.jr-write{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border:1px solid #c9d9f5;background:#f8fbff;border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.jr-write select{padding:7px 9px;font-size:13px}
+.jr-write .jr-text{flex:1;min-width:260px;padding:8px 10px;font-size:14px}
+.jr-write textarea.jr-text{min-height:110px;flex-basis:100%}
+.jr-write .secondary,.jr-write .primary{padding:7px 12px;font-size:13px}
+.jr-help{width:100%;font-size:12px;color:var(--muted)}
+.jr-ro{font-size:13px;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid #d8e1ee;border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:6px 11px;font-size:13px;color:#52657f}
+.seg button+button{border-left:1px solid #d8e1ee}
+.seg button.on{background:var(--blue);color:#fff}
+.jr-saved{display:flex;align-items:center;gap:12px;background:#fff7e8;border:1px solid #f1dcb3;border-radius:10px;padding:9px 12px;font-size:13px;margin:-4px 0 14px}
+.jr-saved span{flex:1}
+.jr-saved .secondary{padding:5px 10px;font-size:12px}
+.jr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 8px}
+.jr-head select{margin-left:auto;padding:6px 9px;font-size:13px}
+.jr-table{min-width:760px}
+.jr-table th{padding:9px 12px}
+.jr-table td{padding:9px 12px;font-size:13px;vertical-align:top}
+.jr-table td small{display:block}
+.jr-table select{padding:4px 7px;font-size:12px}
+.jr-table tr.grp td{background:#f3f6fb;font-weight:700;font-size:12px;color:#4d5f7a;padding:7px 12px}
+.jr-table tr.sys td{background:#fafbfd;color:#5d6b80}
+.jr-more{padding:0 2px;font-size:12px}
+.jr-note{margin-top:10px;font-size:13px}
+.stage-pm-note{display:flex;gap:10px;align-items:center;background:#fff7e8;border:1px solid #f1dcb3;border-radius:10px;padding:9px 12px;font-size:13px;margin:8px 0}

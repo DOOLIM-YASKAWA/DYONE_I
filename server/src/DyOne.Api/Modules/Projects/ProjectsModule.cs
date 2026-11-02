@@ -55,7 +55,7 @@ public static class ProjectsModule
             await db.Codes.Where(c => c.GroupKey == group && c.IsActive).OrderBy(c => c.SortOrder)
                 .Select(c => new { c.Id, c.Code, c.Name }).ToListAsync(ct)).PartnerAllowed();
 
-        g.MapGet("/projects", async (string? search, long? statusId, string? customer, int? page, int? pageSize, ClaimsPrincipal user, ProjectScope scope, DyOneDbContext db, CancellationToken ct) =>
+        g.MapGet("/projects", async (string? search, long? statusId, string? customer, string? stage, int? page, int? pageSize, ClaimsPrincipal user, ProjectScope scope, DyOneDbContext db, CancellationToken ct) =>
         {
             var size = Math.Clamp(pageSize ?? 50, 1, 200);
             var current = Math.Max(page ?? 1, 1);
@@ -78,6 +78,26 @@ public static class ProjectsModule
                 q = q.Where(p => (p.StatusId != null && salesStatusIds.Contains(p.StatusId.Value)) || db.ProjectStages.Any(ps => ps.ProjectId == p.Id));
             }
             if (!string.IsNullOrWhiteSpace(customer)) q = FilterByCustomer(q, customer.Trim());
+            // 진행 단계(project_stage 코드) — 목록에 보이는 대표 단계(Compute)가 그 단계인 것만. 대표 단계는 DB 열이 아니라 계산값이라
+            // 조건에 맞는 후보(수천 건 수준)의 그룹웨어 상태·저장된 단계 상태를 읽어 메모리에서 거른다.
+            if (!string.IsNullOrWhiteSpace(stage))
+            {
+                var code = stage.Trim();
+                var cand = await q.Select(p => new { p.Id, p.StatusId }).ToListAsync(ct);
+                var candIds = cand.Select(c => c.Id).ToList();
+                var stageDefs = await StagesAsync(db, ct);
+                var gwNames = await db.Codes.Where(c => c.GroupKey == "project_status").ToDictionaryAsync(c => c.Id, c => c.Name, ct);
+                var savedAll = (await db.ProjectStageStatuses.Where(x => candIds.Contains(x.ProjectId)).Select(x => new { x.ProjectId, x.StageId, x.Status }).ToListAsync(ct))
+                    .GroupBy(x => x.ProjectId).ToDictionary(g => g.Key, g => (IReadOnlyDictionary<long, string>)g.ToDictionary(x => x.StageId, x => x.Status));
+                var none = new Dictionary<long, string>();
+                var match = cand.Where(c =>
+                {
+                    var gw = c.StatusId is { } sid && gwNames.TryGetValue(sid, out var n) ? n : null;
+                    var (steps, cur) = Compute(stageDefs, gw, savedAll.GetValueOrDefault(c.Id) ?? none);
+                    return cur >= 0 && steps[cur].Stage.Code == code;
+                }).Select(c => c.Id).ToList();
+                q = q.Where(p => match.Contains(p.Id));
+            }
 
             // 정렬: 최근 변경(ProjectActivity — 단계·파일·인원·그룹웨어·모듈라·ES·SmartLab·SRS 중 가장 최근 작업) 최신순.
             // 조건에 맞는 id만 읽고, 프로젝트별 최근 활동(한 번의 조회)과 붙여 메모리에서 정렬·페이지를 자른다(수천 건 수준).
