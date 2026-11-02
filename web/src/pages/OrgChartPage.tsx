@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import type { OrgEmployee, OrgEmployeeProject } from '../api/orgTypes'
 import { ErrorBox, Loading, PageHead } from '../components/ui'
-import { byRank, deptAndBelow, DeptTree, jobTitle, Phone, phoneText, useOrg, useOrgIndex } from '../components/org/OrgTree'
+import { byRank, deptAndBelow, DeptTree, jobTitle, Phone, useOrg, useOrgIndex } from '../components/org/OrgTree'
+import { Icon } from '../components/icons'
+import '../styles/d-people.css'
 
 /**
  * 조직도: 그룹웨어 조직도(org.*) 미러를 부서 트리 + 부서 인원으로 보여 준다(읽기 전용).
@@ -16,6 +18,7 @@ export function OrgChartPage() {
   const [dept, setDept] = useState<number | null>(null)
   const [search, setSearch] = useState('')
   const [person, setPerson] = useState<OrgEmployee | null>(null)
+  const [contact, setContact] = useState<number | null>(null) // 연락처를 펼친 사람(줄을 촘촘하게 두려고 평소엔 접어 둔다)
 
   if (org.isLoading) return <Loading />
   if (org.error || !org.data || !idx) return <ErrorBox error={org.error} />
@@ -41,7 +44,7 @@ export function OrgChartPage() {
   return (
     <>
       <PageHead eyebrow="ORGANIZATION" title="조직도" sub={`그룹웨어 조직도 기준 · 재직 ${org.data.employees.length}명 (매일 동기화, DY ONE에서는 조회만)`} />
-      <div className="org-layout">
+      <div className="org-layout dp-org">
         <section className="panel org-side">
           <div className="panel-head"><h2>부서</h2></div>
           <div className="panel-body">
@@ -54,31 +57,46 @@ export function OrgChartPage() {
               <h2>{q ? `'${search.trim()}' 검색 결과` : selected != null ? idx.depts.get(selected)?.name : '전체'}</h2>
               <p>{people.length}명 · 사람을 누르면 맡은 프로젝트를 봅니다</p>
             </div>
-            <input className="search-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="이름·부서·직위·메일 검색" aria-label="직원 검색" />
+            <input className="search-input dp-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="이름·부서·직위·메일 검색" aria-label="직원 검색" />
           </div>
           <div className="panel-body">
-            {groups.length === 0 && <div className="empty" style={{ padding: 30 }}>해당하는 직원이 없습니다.</div>}
+            {groups.length === 0 && <div className="dp-empty">해당하는 직원이 없습니다.</div>}
             {groups.map((g) => (
-              <div key={g.id} className="org-group">
+              <div key={g.id} className="dp-group">
                 <h3>{idx.path(g.id) || idx.depts.get(g.id)?.name}</h3>
-                <div className="org-cards">
-                  {g.list.map((e) => (
-                    <button key={e.id} className={`org-card${person?.id === e.id ? ' on' : ''}`} onClick={() => setPerson(e)}>
-                      <span className="avatar">{e.name.slice(0, 1)}</span>
-                      <span>
-                        <b>{e.name}</b> <small>{jobTitle(e.position, e.duty)}</small>
-                        {e.mobile && <small className="org-phone">☎ {phoneText(e.mobile)}{e.directTel ? ` · 직통 ${e.directTel}` : ''}</small>}
-                        <small className="org-mail">{e.email ?? ''}</small>
-                        {(e.pmCount > 0 || e.memberCount > 0) && (
-                          <span className="badge-row" style={{ marginTop: 6 }}>
-                            {e.pmCount > 0 && <span className="badge blue">PM {e.pmCount}</span>}
-                            {e.memberCount > 0 && <span className="badge">투입 {e.memberCount}</span>}
+                <ul className="dp-people">
+                  {g.list.map((e) => {
+                    const open = contact === e.id
+                    const lead = (e.dutyOrder ?? 999) < 999 // 직책(대표·본부장·실장·팀장)이 있는 사람은 진한 원
+                    return (
+                      <li key={e.id} className={`${person?.id === e.id ? 'on' : ''}${open ? ' open' : ''}`}>
+                        <button className="dp-person" onClick={() => setPerson(e)}>
+                          <span className={`dp-initial${lead ? ' lead' : ''}`}>{e.name.slice(0, 1)}</span>
+                          <span className="dp-person-name"><b>{e.name}</b><small>{jobTitle(e.position, e.duty)}</small></span>
+                          <span className="dp-person-dept">{idx.depts.get(e.departmentId ?? -1)?.name ?? ''}</span>
+                          <span className="dp-badges">
+                            {e.pmCount > 0 && <span className="dp-badge pm">PM {e.pmCount}</span>}
+                            {e.memberCount > 0 && <span className="dp-badge in">투입 {e.memberCount}</span>}
                           </span>
+                        </button>
+                        {(e.mobile || e.directTel || e.email) && (
+                          <button className="dp-contact-btn" aria-expanded={open} aria-label={`${e.name} 연락처 ${open ? '접기' : '보기'}`}
+                            title={[e.mobile, e.directTel && `직통 ${e.directTel}`, e.email].filter(Boolean).join(' · ')}
+                            onClick={() => setContact(open ? null : e.id)}>
+                            <Icon name="badge" size={16} />
+                          </button>
                         )}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                        {open && (
+                          <div className="dp-contact">
+                            {e.mobile && <Phone value={e.mobile} label="휴대폰 " />}
+                            {e.directTel && <Phone value={e.directTel} label="직통 " />}
+                            {e.email && <a href={`mailto:${e.email}`}>{e.email}</a>}
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
               </div>
             ))}
           </div>

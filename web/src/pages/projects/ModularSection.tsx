@@ -4,8 +4,9 @@ import { api } from '../../api/client'
 import type {
   ModularBuild, ModularDetail, ModularFile, ModularGanttItem, ModularHistoryItem, ModularList, ModularListKey, ModularMeta, ModularRole, ModularStatus,
 } from '../../api/types'
-import { DataTable, ErrorBox, Loading, Modal } from '../../components/ui'
+import { ErrorBox, Loading, Modal } from '../../components/ui'
 import { useToast } from '../../components/Toast'
+import '../../styles/d-works.css'
 
 /**
  * 모듈라빌드 프로젝트 정보 — 그룹웨어 WORKS applet 376 화면을 그대로 옮긴 것.
@@ -32,6 +33,13 @@ function statusTone(name?: string) {
   if (/문서/.test(name)) return ''
   return 'blue'
 }
+
+/** 끝난 상태(완료·문서 정리) — 칩을 뒤에 흐리게 둔다 */
+const isClosed = (name?: string) => !!name && /완료|문서/.test(name)
+
+/** 표 안 상태: 색 점 + 글자(D안) */
+const StatusDot = ({ status }: { status?: ModularStatus | null }) =>
+  status ? <span className={`dw-status ${statusTone(status.name)}`}><i className={`dw-dot ${statusTone(status.name)}`} />{status.name}</span> : <span className="dw-status dw-muted">상태 없음</span>
 
 const StatusBadge = ({ status }: { status?: ModularStatus | null }) =>
   status ? <span className={`badge ${statusTone(status.name)}`}>{status.name}</span> : <span className="badge">상태 없음</span>
@@ -86,7 +94,7 @@ export function ModularSection({ projectCode, openDocId = null, onDocClosed }: {
   const allCount = [...counts.values()].reduce((a, b) => a + b, 0)
 
   return (
-    <div className="modular">
+    <div className="modular dw">
       <div className="modular-toolbar">
         <div className="segmented" role="tablist" aria-label="보기">
           <button role="tab" aria-selected={view === 'list'} className={view === 'list' ? 'active' : ''} onClick={() => setView('list')}>목록</button>
@@ -113,13 +121,16 @@ export function ModularSection({ projectCode, openDocId = null, onDocClosed }: {
       </div>
 
       {meta.data && view === 'list' && (
-        <div className="status-chips" role="group" aria-label="상태">
+        <div className="status-chips dw-chips" role="group" aria-label="상태">
           <button className={statusId === '' ? 'active' : ''} onClick={() => reset(() => setStatusId(''))}>
             전체 <b>{allCount || ''}</b>
           </button>
-          {meta.data.statuses.map((s) => (
-            <button key={s.id} className={statusId === String(s.id) ? 'active' : ''} onClick={() => reset(() => setStatusId(String(s.id)))}>
-              <i className={`dot ${statusTone(s.name)}`} />
+          {/* D안: 진행 중 상태를 앞에, 끝난 상태(완료·문서 정리)는 뒤에 흐리게. 0건도 흐리게 */}
+          {[...meta.data.statuses].sort((a, b) => Number(isClosed(a.name)) - Number(isClosed(b.name))).map((s) => (
+            <button key={s.id}
+              className={[statusId === String(s.id) ? 'active' : '', isClosed(s.name) || !(counts.get(s.id) ?? 0) ? 'dw-dim' : ''].filter(Boolean).join(' ')}
+              onClick={() => reset(() => setStatusId(String(s.id)))}>
+              <i className={`dw-dot ${statusTone(s.name)}`} />
               {s.name} <b>{counts.get(s.id) ?? 0}</b>
             </button>
           ))}
@@ -150,46 +161,37 @@ export function ModularSection({ projectCode, openDocId = null, onDocClosed }: {
   )
 }
 
-/** 그룹웨어 기본 보기(view 459) 20열 중 앞 11열('국내/해외'까지)만 보여 준다 — 나머지는 행을 눌러 상세에서. 제목 열 = 프로젝트명. */
-const LIST_COLS = 11
+/** 그룹웨어 기본 보기(view 459) 20열 중 앞 11열('국내/해외'까지)만 보여 준다 — 나머지는 행을 눌러 상세에서. 제목 열 = 프로젝트명.
+ *  D안: 한 줄 38px 촘촘한 표, 상태는 색 점 + 글자, 코드는 파란 고정폭, 해외는 파랑 강조. */
 function BuildTable({ rows, onOpen }: { rows: ModularBuild[]; onOpen(id: number): void }) {
-  const cut = <T,>(a: T[]) => a.slice(0, LIST_COLS)
+  if (rows.length === 0) return <div className="dw-empty">조건에 맞는 모듈라 건이 없습니다.</div>
   return (
-    <DataTable
-      headers={cut(['연도', '상태', '설치위치', '프로젝트 코드', '프로젝트명', '출하 월', '설치 시작', '시운전 시작', '구분', '출하 예정일',
-        '국내/해외', '로봇 수', '로봇기종', '도장기 사양', '통신 사양', '공장', '고객사', '공정', '공정세부', '외부검수'])}
-      rows={rows.map((b) => ({
-        key: String(b.id),
-        cells: cut([
-          b.year ?? '-',
-          <StatusBadge status={b.status} />,
-          list(b.installLocations),
-          <span className="code">{b.projectCode}</span>,
-          <button className="row-title" onClick={() => onOpen(b.id)}>
-            {b.projectName}
+    <div className="dw-table">
+      <div className="dw-row dw-mod dw-head">
+        <span>연도</span><span>상태</span><span>설치위치</span><span>코드</span><span>프로젝트명</span><span>출하 월</span>
+        <span>설치 시작</span><span>시운전 시작</span><span>구분</span><span>출하 예정일</span><span>국내/해외</span>
+      </div>
+      {rows.map((b) => (
+        <button key={b.id} className="dw-row dw-mod" onClick={() => onOpen(b.id)}>
+          <span className="dw-num dw-muted">{b.year ?? '-'}</span>
+          <StatusDot status={b.status} />
+          <span className="dw-ell dw-muted">{list(b.installLocations)}</span>
+          <span className="dw-code">{b.projectCode ?? '-'}</span>
+          <span className="dw-title">
+            <b>{b.projectName}</b>
             {!b.fromGroupware && <span className="badge blue mini">DY ONE</span>}
             {b.managedInDyone && <span className="badge blue mini">DY ONE 관리</span>}
             {b.gwDeleted && <span className="badge red mini">그룹웨어 삭제</span>}
-          </button>,
-          b.shipMonth ?? '-',
-          day(b.installStart),
-          day(b.commissioningStart),
-          b.category ?? '-',
-          day(b.shipDue),
-          b.region ?? '-',
-          b.robotCount ?? '-',
-          list(b.robotModels),
-          list(b.applicators),
-          list(b.comms),
-          b.plant ?? '-',
-          b.customer ?? '-',
-          b.process ?? '-',
-          b.processDetail ?? '-',
-          b.externalInspection ?? '-',
-        ]),
-      }))}
-      empty="조건에 맞는 모듈라 건이 없습니다."
-    />
+          </span>
+          <span className="dw-muted">{b.shipMonth ?? '-'}</span>
+          <span className="dw-num dw-muted">{day(b.installStart)}</span>
+          <span className="dw-num dw-muted">{day(b.commissioningStart)}</span>
+          <span className="dw-muted">{b.category ?? '-'}</span>
+          <span className="dw-num dw-muted">{day(b.shipDue)}</span>
+          <span className={b.region === '해외' ? 'dw-abroad' : 'dw-muted'}>{b.region ?? '-'}</span>
+        </button>
+      ))}
+    </div>
   )
 }
 

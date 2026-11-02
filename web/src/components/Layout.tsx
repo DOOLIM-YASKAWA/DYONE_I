@@ -4,12 +4,22 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import type { AppNotification } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import logo from '../assets/dyone-logo.png'
 import { platform } from '../platform/bridge'
-import { visibleRoutes } from '../routes'
+import { visibleRoutes, type MenuGroup } from '../routes'
 import { DemoMemos } from './DemoMemos' // [임시 · 데모] 화면 메모(포스트잇)
+import { Icon, type IconName } from './icons'
 
 const channelLabel = { web: 'PC 웹', desktop: 'Windows 앱', mobile: '모바일 앱' }[platform.kind]
 
+type MenuItem = { path: string; icon: IconName; name: string; short?: string }
+/** 펼침 메뉴 묶음(위쪽 메뉴 · 휴대폰 전체 메뉴 공통) */
+const GROUP_NAME: Record<Exclude<MenuGroup, 'main'> | 'admin', string> = { eng: '엔지니어링', life: '생활', admin: '관리' }
+
+/**
+ * 화면 틀(D안, 2026-11-02): 위쪽 파란 메뉴 막대 + 화면 머리말 파란 띠(theme-d.css).
+ * PC는 위쪽 메뉴(엔지니어링·생활·관리는 펼침), 휴대폰은 ☰ 전체 메뉴 + 아래 바로가기.
+ */
 export function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
   const partner = user?.kind === 'partner'
@@ -19,66 +29,91 @@ export function Layout({ children }: { children: ReactNode }) {
   const [menuOpenAt, setMenuOpenAt] = useState<string | null>(null)
   const menuOpen = menuOpenAt === location.pathname
   const setMenuOpen = (open: boolean) => setMenuOpenAt(open ? location.pathname : null)
-  const current = routes.find((r) => location.pathname.startsWith(r.path)) ?? routes[0]
   const wideLayout = (location.pathname.startsWith('/smartlab') || location.pathname.startsWith('/srs-analyzer') || location.pathname.startsWith('/process'))  // 임베드 화면은 본문 최대폭 해제
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
   }, [location.pathname])
 
+  const main: MenuItem[] = routes.filter((r) => r.group === 'main')
+  const groups = ([
+    ['eng', routes.filter((r) => r.group === 'eng')],
+    ['life', routes.filter((r) => r.group === 'life')],
+    ['admin', user?.isAdmin ? [{ path: '/admin/partners', icon: 'shield', name: '협력사 관리' }] : []],
+  ] as [keyof typeof GROUP_NAME, MenuItem[]][]).filter(([, items]) => items.length > 0)
+  const isIn = (items: MenuItem[]) => items.some((r) => location.pathname.startsWith(r.path))
+  // 펼침 메뉴에서 고르면 포커스를 풀어 닫는다(펼침은 :hover/:focus-within으로 열린다)
+  const closePop = () => (document.activeElement as HTMLElement | null)?.blur()
+
   return (
     <>
-      <aside id="sidebar" className={menuOpen ? 'open' : ''}>
-        <NavLink className="brand" to={partner ? '/projects' : '/home'}>
-          <span className="brand-mark">D</span>
-          <span>
-            DY <b>ONE</b>
-            <small>INTERNAL WORKSPACE</small>
-          </span>
-        </NavLink>
-        <p className="nav-label">WORK &amp; LIFE</p>
-        <nav id="navigation" aria-label="주 메뉴">
-          {routes.map((r) => (
-            <NavLink key={r.path} to={r.path} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
-              <span className="nav-icon">{r.icon}</span>
-              {r.name}
-            </NavLink>
-          ))}
-          {user?.isAdmin && (
-            <NavLink to="/admin/partners" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
-              <span className="nav-icon">⚿</span>
-              협력사 관리
-            </NavLink>
-          )}
-        </nav>
-        <div className="sidebar-foot">
-          <span className="avatar">{user?.name[0]}</span>
-          <div>
-            <b>{user?.displayName}</b>
-            <small>
-              {user?.department} · {channelLabel}
-            </small>
-          </div>
-        </div>
-      </aside>
-      <div id="menuShade" hidden={!menuOpen} onClick={() => setMenuOpen(false)} />
-
-      <div className="workspace">
-        <header className="topbar">
-          <div>
-            <button className="icon-btn mobile-only" aria-label="전체 메뉴 열기" onClick={() => setMenuOpen(true)}>
-              ☰
-            </button>
-            <span id="breadcrumb">워크스페이스 / {location.pathname.startsWith('/admin/partners') ? '협력사 관리' : current.name}</span>
-          </div>
-          <div>
+      <header className="dy-top">
+        <div className="dy-top-in">
+          <button className="dy-icon-btn dy-mobile" aria-label="전체 메뉴 열기" onClick={() => setMenuOpen(true)}>
+            <Icon name="menu" size={20} />
+          </button>
+          <NavLink className="dy-brand" to={partner ? '/projects' : '/home'}>
+            <img src={logo} alt="DY ONE" height={24} />
+            <span>INTERNAL</span>
+          </NavLink>
+          <nav className="dy-nav" aria-label="주 메뉴">
+            {main.map((r) => (
+              <NavLink key={r.path} to={r.path} className={({ isActive }) => `dy-nav-item${isActive ? ' active' : ''}`}>{r.short ?? r.name}</NavLink>
+            ))}
+            {groups.map(([g, items]) => (
+              <div key={g} className={`dy-group${isIn(items) ? ' active' : ''}`}>
+                <button className="dy-nav-item" aria-haspopup="true">{GROUP_NAME[g]}<Icon name="down" size={14} /></button>
+                <div className="dy-pop" role="menu">
+                  {items.map((r) => (
+                    <NavLink key={r.path} to={r.path} role="menuitem" onClick={closePop} className={({ isActive }) => (isActive ? 'active' : '')}>
+                      <Icon name={r.icon} />{r.name}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </nav>
+          <div className="dy-top-right">
             <span className="demo-chip">개발 · dyone DB 읽기 전용</span>
             {!partner && <NotificationBell />}
-            <button className="avatar mini avatar-button" title="로그아웃" onClick={logout}>
+            <button className="dy-avatar" title={`${user?.displayName ?? ''} · 로그아웃`} aria-label="로그아웃" onClick={logout}>
               {user?.name[0]}
             </button>
           </div>
-        </header>
+        </div>
+      </header>
+
+      <div id="menuShade" hidden={!menuOpen} onClick={() => setMenuOpen(false)} />
+      <aside className={`dy-drawer${menuOpen ? ' open' : ''}`} aria-label="전체 메뉴" aria-hidden={!menuOpen}>
+        <div className="dy-drawer-head">
+          <img src={logo} alt="DY ONE" height={22} />
+          <button className="dy-icon-btn" aria-label="전체 메뉴 닫기" onClick={() => setMenuOpen(false)}><Icon name="close" size={20} /></button>
+        </div>
+        <nav aria-label="전체 메뉴 목록">
+          <small>업무</small>
+          {main.map((r) => (
+            <NavLink key={r.path} to={r.path} className={({ isActive }) => (isActive ? 'active' : '')}><Icon name={r.icon} />{r.name}</NavLink>
+          ))}
+          {groups.map(([g, items]) => (
+            <div key={g}>
+              <small>{GROUP_NAME[g]}</small>
+              {items.map((r) => (
+                <NavLink key={r.path} to={r.path} className={({ isActive }) => (isActive ? 'active' : '')}><Icon name={r.icon} />{r.name}</NavLink>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div className="dy-drawer-foot">
+          <span className="dy-avatar">{user?.name[0]}</span>
+          <div>
+            <b>{user?.displayName}</b>
+            <small>{user?.department} · {channelLabel}</small>
+          </div>
+          <button className="text-button" onClick={logout}>로그아웃</button>
+        </div>
+      </aside>
+
+      <div className="dy-workspace">
         <main id="main" className={wideLayout ? 'flush' : undefined}>{children}</main>
         <footer className="demo-footer">
           개발 환경 · dyone DB(그룹웨어 프로젝트·조직도·공정·SmartLab 미러)를 읽기 전용으로 표시합니다. 그룹웨어 인증·ERP·AI·주차·출입은 아직 연결되지 않았습니다.
@@ -91,12 +126,12 @@ export function Layout({ children }: { children: ReactNode }) {
       <nav id="bottomNav" aria-label="모바일 바로가기">
         {routes.slice(0, 4).map((r) => (
           <NavLink key={r.path} to={r.path} className={({ isActive }) => (isActive ? 'active' : '')}>
-            <span>{r.icon}</span>
-            {r.name}
+            <Icon name={r.icon} size={20} />
+            {r.short ?? r.name}
           </NavLink>
         ))}
         <button onClick={() => setMenuOpen(true)}>
-          <span>☰</span>전체
+          <Icon name="menu" size={20} />전체
         </button>
       </nav>
     </>
@@ -124,8 +159,8 @@ function NotificationBell() {
 
   return (
     <div className="bell">
-      <button className="secondary bell-button" aria-label={`알림 ${unread}건`} onClick={() => setOpen((v) => !v)}>
-        🔔{unread > 0 && <span className="bell-count">{unread}</span>}
+      <button className="dy-icon-btn bell-button" aria-label={`알림 ${unread}건`} onClick={() => setOpen((v) => !v)}>
+        <Icon name="bell" />{unread > 0 && <span className="bell-count">{unread > 99 ? '99+' : unread}</span>}
       </button>
       {open && (
         <div className="bell-panel panel" role="dialog" aria-label="알림함">

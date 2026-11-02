@@ -4,6 +4,8 @@ import { api, downloadFile } from '../../api/client'
 import type { MotosimCellFile, MotosimNode, MotosimProject, MotosimTree, MotosimZone } from '../../api/motosimTypes'
 import { ErrorBox, Loading } from '../../components/ui'
 import '../../styles/motosim.css'
+import '../../styles/d-misc.css'
+import { Icon } from '../../components/icons'
 import {
   broker, brokerWithToken, errorText, fmtBytes, fmtDateTime, isDesktop, lastWork, newJobId, useBrokerEvent, useRunPath, zoneVcl,
   type CellPlan, type MotosimStatus, type RunEvent, type TransferProgress,
@@ -121,11 +123,13 @@ export function MotosimPage() {
     const k = key(level, n.id)
     return (
       <li key={k}>
-        <div className="ms-row" onDoubleClick={() => toggle(k)}>
+        <div className={`ms-row${count === 0 ? ' dm-zero' : ''}`} onDoubleClick={() => toggle(k)}>
           <button className="ms-chevron" onClick={() => toggle(k)} aria-label={`${n.name} ${isOpen(k) ? '접기' : '펼치기'}`} aria-expanded={isOpen(k)} disabled={filtering}>
             {isOpen(k) ? '▾' : '▸'}
           </button>
-          <span className="ms-folder" aria-hidden>▤</span>
+          <span className="ms-folder dm-folder" aria-hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24"><path className="fb" d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9.2l2 2.2h8.3A1.5 1.5 0 0 1 21 8.7V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18z" /><path className="ff" d="M3 10.2a1.5 1.5 0 0 1 1.5-1.5h15a1.5 1.5 0 0 1 1.5 1.5V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18z" /></svg>
+          </span>
           <button className="ms-name" onClick={() => toggle(k)} title={LEVEL_LABEL[level]}>{n.name}</button>
           {count > 0 && <span className="ms-count">{count}</span>}
         </div>
@@ -135,23 +139,23 @@ export function MotosimPage() {
   }
 
   return (
-    <div className="ms">
+    <div className="ms dm-ms">
       <header className="ms-header">
         <div className="ms-header-left">
-          <button className="ms-ghost" onClick={() => setDialog('hub')}>▦ 런처 허브</button>
+          <button className="ms-ghost" onClick={() => setDialog('hub')}><Icon name="projects" size={16} /> 런처 허브</button>
           <span className="ms-divider" />
           <h1>MotoSim Launcher <small>DY ONE</small></h1>
         </div>
         <div className="ms-header-right">
-          <button className="ms-btn dark" onClick={() => setDialog('admin')}>⛨ 관리자</button>
-          <button className="ms-btn blue" onClick={runAnyVcl} disabled={!isDesktop} title={isDesktop ? '내 PC의 .vcl을 골라 실행' : 'Windows 앱에서만 실행할 수 있습니다'}>▶ MotoSim 실행하기</button>
+          <button className="ms-btn dark" onClick={() => setDialog('admin')}><Icon name="shield" size={16} /> 관리자</button>
+          <button className="ms-btn blue" onClick={runAnyVcl} disabled={!isDesktop} title={isDesktop ? '내 PC의 .vcl을 골라 실행' : 'Windows 앱에서만 실행할 수 있습니다'}><Icon name="robot" size={16} /> MotoSim 실행하기{!isDesktop && <small className="dm-only">Windows 앱 전용</small>}</button>
           <span className="ms-pill">모토심 버전 : <b>{isDesktop ? (versionLabel ?? '설치 안 됨') : '—'}</b></span>
-          <button className="ms-btn dark" onClick={() => setDialog('version')} disabled={!isDesktop}>⚙ 버전 변경</button>
+          <button className="ms-btn dark" onClick={() => setDialog('version')} disabled={!isDesktop}><Icon name="process" size={16} /> 버전 변경</button>
           <span className="ms-pill">총 Cell <b>{totalCells}</b>개</span>
         </div>
       </header>
 
-      {!isDesktop && <div className="ms-web-note">PC 웹에서는 조회·브라우저 다운로드·삭제만 됩니다. Cell 업로드·MotoSim 실행은 DY ONE Windows 앱에서 해 주세요.</div>}
+      {!isDesktop && <div className="ms-web-note dm-note"><Icon name="it" size={16} />PC 웹에서는 조회·브라우저 다운로드·삭제만 됩니다. Cell 업로드·MotoSim 실행은 DY ONE Windows 앱에서 해 주세요.</div>}
       {run && <RunBanner run={run} onClose={() => setRun(null)} />}
 
       <div className="ms-main">
