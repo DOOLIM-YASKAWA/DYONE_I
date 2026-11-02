@@ -106,6 +106,46 @@ export interface ProjectFile {
   departmentId?: number
   department?: string
   uploadedAt: string
+  /** me(올린 사람만) · dept(같은 부서) · project(모든 부서) */
+  share: Share
+  /** 내가 올린 자료(공유 범위는 올린 사람만 바꿈) */
+  mine: boolean
+  /** 프로젝트별 직접 입력 종류 */
+  projectCategoryId?: number
+  /** 폴더째 올린 묶음(같은 값 = 한 번에 올린 한 폴더) */
+  bundleId?: string
+  /** 묶음 안 폴더 경로(맨 위 폴더 이름부터, 파일 이름 제외) */
+  relPath?: string
+}
+
+export type Share = 'me' | 'dept' | 'project'
+
+/** project.project_category — 그 프로젝트 안에서만 쓰는 직접 입력 자료 종류 */
+export interface ProjectCategory {
+  id: number
+  name: string
+}
+
+/** project.project_journal — 프로젝트 진행 일지 */
+export interface JournalItem {
+  id: number
+  projectId: number
+  projectCode: string
+  projectName: string
+  stageId?: number
+  stage?: string
+  authorId: number
+  authorName?: string
+  departmentId?: number
+  department?: string
+  share: Share
+  status: 'run' | 'done'
+  body: string
+  createdAt: string
+  updatedAt: string
+  mine: boolean
+  /** 상태를 바꿀 수 있음(작성자·같은 부서) */
+  canStatus: boolean
 }
 
 /** smartlab.lab_test */

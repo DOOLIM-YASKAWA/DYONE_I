@@ -96,6 +96,37 @@ public class ProjectFile
     public long? DepartmentId { get; set; }      // 업로더 소속 부서(org.department.id) 스냅샷
     public DateTimeOffset UploadedAt { get; set; }
     public bool IsActive { get; set; }
+    public string Share { get; set; } = "project"; // me(올린 사람만) · dept(같은 부서) · project(모든 부서)
+    public long? ProjectCategoryId { get; set; }   // project.project_category — 프로젝트별 직접 입력 종류
+    public Guid? BundleId { get; set; }             // 폴더째 올린 묶음(같은 값 = 한 번에 올린 한 폴더)
+    public string? RelPath { get; set; }            // 묶음 안 폴더 경로(맨 위 폴더 이름부터)
+}
+
+/// <summary>project.project_category — 프로젝트 안에서만 쓰는 직접 입력 자료 종류</summary>
+public class ProjectCategory
+{
+    public long Id { get; set; }
+    public long ProjectId { get; set; }
+    public string Name { get; set; } = "";
+    public long? CreatedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+/// <summary>project.project_journal — 프로젝트 진행 일지(개인·부서 공유·프로젝트 공유)</summary>
+public class ProjectJournal
+{
+    public long Id { get; set; }
+    public long ProjectId { get; set; }
+    public long? StageId { get; set; }
+    public long AuthorId { get; set; }
+    public long? DepartmentId { get; set; }      // 작성 당시 부서 스냅샷
+    public string Share { get; set; } = "me";    // me · dept · project
+    public string Status { get; set; } = "run";  // run · done
+    public string Body { get; set; } = "";
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public long? UpdatedBy { get; set; }
+    public bool IsActive { get; set; }
 }
 
 /// <summary>plant.* — 공정 기준정보: 고객사 → 공장 → 부스 → 존 (MotoSim Launcher와 같은 구조)</summary>
