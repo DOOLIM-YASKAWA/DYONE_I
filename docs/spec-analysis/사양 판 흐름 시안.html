@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사양 판 흐름 시안</title>
+<style>
+:root{
+  --bg:#eef0f3; --card:#fff; --line:#e3e6eb; --text:#1d2330; --sub:#6b7280; --faint:#9aa1ad;
+  --accent:#2457d6; --accent-soft:#e8eefc; --chg:#fff4c2; --chg-line:#e6c84a;
+  --add:#e3f6e8; --add-text:#17803d; --del:#fde8e8; --del-text:#b42318; --warn:#fff1e6; --warn-text:#b54708;
+  --ok:#e3f6e8; --ok-text:#17803d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 "Pretendard","Malgun Gothic",system-ui,sans-serif}
+.wrap{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+@media (max-width:860px){.wrap{grid-template-columns:1fr}.side{position:static!important;height:auto!important}}
+
+/* 왼쪽 단계 목록 */
+.side{background:#1f2633;color:#d6dbe4;padding:16px 12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.side h1{font-size:14px;margin:0 6px 2px;color:#fff}
+.side .sub{font-size:11.5px;color:#9aa3b2;margin:0 6px 12px}
+.phase{font-size:11px;color:#8b95a7;margin:14px 6px 4px;letter-spacing:.02em}
+.st{display:flex;gap:8px;align-items:flex-start;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:12.5px;line-height:1.4}
+.st:hover{background:#2b3446}
+.st.on{background:#2457d6;color:#fff}
+.st.done{color:#aab3c2}
+.st .no{flex:none;width:20px;height:20px;border-radius:50%;background:#384257;color:#cfd6e2;font-size:11px;display:grid;place-items:center;margin-top:1px}
+.st.on .no{background:#fff;color:#2457d6;font-weight:700}
+.st.done .no{background:#2f6b45;color:#c9f0d6}
+.st .who{display:block;font-size:10.5px;opacity:.7}
+
+/* 오른쪽 */
+.main{display:flex;flex-direction:column;min-width:0}
+.guide{background:#fff;border-bottom:1px solid var(--line);padding:14px 22px}
+.guide .ph{font-size:11.5px;color:var(--accent);font-weight:700}
+.guide h2{margin:2px 0 4px;font-size:17px}
+.guide p{margin:0;color:#3d4554;font-size:13.5px}
+.guide .look{margin-top:8px;background:var(--accent-soft);color:#27407e;border-radius:7px;padding:7px 10px;font-size:12.5px}
+.nav{display:flex;gap:8px;align-items:center;margin-top:10px}
+.nav .cnt{font-size:12px;color:var(--sub)}
+
+/* 앱 화면 틀 */
+.stage{padding:18px 22px 60px}
+.app{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.bar{display:flex;align-items:center;gap:12px;padding:9px 16px;border-bottom:1px solid var(--line);background:#fbfbfc}
+.logo{font-weight:800;font-size:13px;color:var(--accent)}
+.crumb{font-size:12.5px;color:var(--sub)}
+.bar .sp{flex:1}
+.bell{position:relative;font-size:16px;cursor:default}
+.bell .badge{position:absolute;top:-6px;right:-9px;background:#e5484d;color:#fff;border-radius:999px;font-size:10px;padding:0 5px;font-weight:700}
+.me{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:#fff}
+.me b{color:var(--accent)}
+.body{padding:16px 18px;position:relative}
+
+.ptabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:-4px 0 14px;overflow-x:auto}
+.ptab{padding:7px 12px;font-size:13px;color:var(--sub);border-bottom:2px solid transparent;white-space:nowrap}
+.ptab.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+
+/* 판 줄기 */
+.track{display:grid;grid-template-columns:62px 1fr;row-gap:16px;align-items:center;margin:2px 0 14px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fcfcfd}
+.track .lab{font-weight:600;font-size:12px;color:var(--sub)}
+.line{position:relative;display:flex;align-items:center;gap:56px}
+.line::before{content:"";position:absolute;left:0;right:0;top:12px;height:2px;background:var(--line)}
+.vv{position:relative;z-index:1;text-align:center}
+.ver{display:inline-block;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:2px 11px;font-size:12px;white-space:nowrap}
+.ver.sel{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.ver.ghost{border-style:dashed;color:var(--faint)}
+.vv small{display:block;font-size:10.5px;color:var(--faint)}
+
+/* 공통 요소 */
+.btn{display:inline-block;border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 11px;font-size:12.5px;color:var(--text);white-space:nowrap}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.hl{outline:3px solid #ffb02e;outline-offset:2px}
+.btn.mini{font-size:11.5px;padding:2px 8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.big{font-size:14.5px;font-weight:600;margin-right:4px}
+.chip{border-radius:999px;padding:1px 9px;font-size:11.5px;background:var(--line);white-space:nowrap}
+.chip.c{background:var(--chg);border:1px solid var(--chg-line)}
+.chip.a,.chip.ok{background:var(--add);color:var(--add-text)}
+.chip.d{background:var(--del);color:var(--del-text)}
+.chip.w{background:var(--warn);color:var(--warn-text)}
+.chip.b{background:var(--accent-soft);color:var(--accent)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#fafbfc;color:var(--sub);font-weight:600;font-size:11.5px;white-space:nowrap}
+td.k{font-weight:600;white-space:nowrap;width:120px}
+td.y{background:var(--chg);box-shadow:inset 3px 0 0 var(--chg-line)}
+td.e{box-shadow:inset 3px 0 0 #8aa8f0}
+td.need{color:var(--warn-text);background:var(--warn)}
+tr.same td{color:var(--faint)}
+tr.dim td{opacity:.35}
+.old{color:var(--del-text);text-decoration:line-through}
+.new{font-weight:600}
+.pg{color:var(--accent);font-size:11.5px;white-space:nowrap}
+.dept{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:5px;padding:0 5px;margin:1px 2px 1px 0;color:var(--sub);white-space:nowrap;background:#fff}
+.why{display:block;font-size:11.5px;color:#7a5d00;margin-top:3px}
+.flag{display:block;font-size:11.5px;color:var(--warn-text);background:var(--warn);border-radius:5px;padding:3px 7px;margin-top:4px}
+.mark{display:block;font-size:10.5px;color:#4b67b8;margin-top:2px}
+.muted{color:var(--faint);font-size:11.5px}
+.tag{font-size:10.5px;border-radius:5px;padding:1px 6px;white-space:nowrap}
+.tag.c{background:var(--chg)}.tag.a{background:var(--add);color:var(--add-text)}.tag.d{background:var(--del);color:var(--del-text)}.tag.w{background:var(--warn);color:var(--warn-text)}
+
+.drop{border:2px dashed #c4ccd8;border-radius:10px;padding:18px;text-align:center;color:var(--sub);font-size:13px;margin-bottom:12px}
+.file{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:12.5px}
+.file .ic{width:28px;height:32px;border-radius:4px;background:#e5484d;color:#fff;font-size:9.5px;display:grid;place-items:center;font-weight:700}
+.file .ic.p{background:#d9822b}
+.file .nm{flex:1;min-width:0}
+.file .nm small{display:block;color:var(--faint)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.box{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fff}
+.box h3{margin:0 0 6px;font-size:13px;display:flex;align-items:center;gap:6px}
+.box ul{margin:0;padding-left:16px}.box li{font-size:12px;margin:3px 0}
+.box.me{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+
+/* 모달 · 알림함 */
+.dim-bg{position:absolute;inset:0;background:rgba(20,26,38,.35);display:flex;align-items:flex-start;justify-content:center;padding-top:26px;z-index:5}
+.modal{background:#fff;border-radius:12px;width:min(620px,94%);box-shadow:0 10px 30px rgba(0,0,0,.2);overflow:hidden}
+.modal .mh{padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
+.modal .mb{padding:12px 16px;font-size:13px}
+.modal .mf{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#fafbfc}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11.5px;color:var(--sub);margin-bottom:3px}
+.inp{border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:13px;background:#fff}
+.who-row{display:grid;grid-template-columns:22px 130px 1fr;gap:6px;align-items:start;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.who-row:last-child{border-bottom:none}
+.cb{width:15px;height:15px;border:1.5px solid var(--accent);border-radius:3px;background:var(--accent);color:#fff;font-size:10px;display:grid;place-items:center;margin-top:2px}
+.cb.off{background:#fff}
+.inbox{position:absolute;right:14px;top:4px;width:min(400px,92%);background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:6;overflow:hidden}
+.inbox .ih{padding:9px 12px;font-weight:700;font-size:13px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.noti{padding:9px 12px;border-bottom:1px solid var(--line);font-size:12.5px}
+.noti.unread{background:#f5f8ff}
+.noti b{display:block;font-size:12.5px}
+.noti .t{font-size:10.5px;color:var(--faint)}
+.noti ul{margin:4px 0 0;padding-left:16px;color:#3d4554}
+.under{opacity:.45;pointer-events:none}
+
+.matrix td,.matrix th{text-align:center}
+.matrix td.k{text-align:left}
+.st-ok{color:var(--ok-text);font-weight:600}.st-wait{color:var(--sub)}.st-q{color:var(--warn-text);font-weight:600}
+.cmt{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:12.5px;background:#fbfbfc}
+.cmt b{font-size:12px}.cmt .t{font-size:10.5px;color:var(--faint);margin-left:4px}
+.cmt.re{margin-left:22px;background:#fff}
+textarea.inp{width:100%;min-height:58px;font-family:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side">
+    <h1>사양 판 흐름 시안</h1>
+    <p class="sub">현대 아산 중도 Door 내판 (DLP-25-274) 실제 값으로 따라가 보는 시나리오</p>
+    <div id="steps"></div>
+  </aside>
+  <div class="main">
+    <div class="guide">
+      <div class="ph" id="gPh"></div>
+      <h2 id="gTitle"></h2>
+      <p id="gText"></p>
+      <div class="look" id="gLook"></div>
+      <div class="nav"><button class="btn" id="prev">← 이전</button><button class="btn pri" id="next">다음 →</button><span class="cnt" id="cnt"></span><span class="cnt">· 키보드 ← → 로도 넘깁니다</span></div>
+    </div>
+    <div class="stage"><div class="app">
+      <div class="bar"><span class="logo">DY ONE</span><span class="crumb" id="crumb"></span><span class="sp"></span>
+        <span class="bell">🔔<span class="badge" id="badge"></span></span><span class="me" id="me"></span></div>
+      <div class="body" id="screen"></div>
+    </div></div>
+  </div>
+</div>
+<script>
+// ── 공용 조각 ──────────────────────────────────────────
+const P = (on) => `<div class="ptabs">${['개요','문서','사양서 분석','사양정리','부서별 확인','판 비교'].map(t=>`<span class="ptab ${t===on?'on':''}">${t}</span>`).join('')}</div>`;
+// 판 줄기: specs/sums = [[이름, 아래글, 'sel'|'ghost'|'' ]]
+const T = (specs, sums) => `<div class="track">
+  <div class="lab">사양서</div><div class="line">${specs.map(([n,s,c])=>`<span class="vv"><span class="ver ${c||''}">${n}</span><small>${s}</small></span>`).join('')}</div>
+  <div class="lab">사양정리</div><div class="line">${sums.length?sums.map(([n,s,c])=>`<span class="vv"><span class="ver ${c||''}">${n}</span><small>${s}</small></span>`).join(''):'<span class="muted" style="position:relative;z-index:1;background:#fcfcfd;padding-right:6px">아직 저장한 판 없음</span>'}</div></div>`;
+const D = n => `<span class="dept">${n}</span>`;
+const who = (on, name, what) => `<div class="who-row"><span class="cb ${on?'':'off'}">${on?'✓':''}</span><b>${name}</b><span>${what}</span></div>`;
+const modal = (title, body, foot) => `<div class="dim-bg"><div class="modal"><div class="mh">${title}</div><div class="mb">${body}</div><div class="mf">${foot}</div></div></div>`;
+
+// 사양정리 칸 (시나리오 rev1 = V2 기준)
+const R1 = {
+  'Robot':'스프레이: MPX3500 * 2ea, 오프너: MPX2600 * 2ea (FRT · RR 각각)',
+  'Booth size':'20,700(L) * 6,000(W) * 4,500(H) — 입구 부스 연장 5m 시 24,700(L)',
+  'Basic Condition':'75 UPH(MAX) / Floor Conveyor(연속) 8.28m/min / 사이클타임 48초 / 바디 피치 6,900',
+  'Body Size':'차종 : DN8 FL, GN7, GN7개조, CE, CE개조, ME + 옵션',
+  'Utility':'Power : AC 400V(±10%)×3Φ×(50Hz±5%) / Compressed Air : 6~8 Bar',
+  'Tracking rail':'4R1C * 2ea (기존 9.5M 2R1C * 4ea)',
+  'Atomizer':'SAMES PPH707 SB : 2 (유성 내부하전 정전벨) / REGULATOR + AA + AO',
+  'Color(CCV)':'CCV: 24개(20칼라+4스페어), Crystal 세정장치 적용',
+  'FGP':'PSMP 5cc FGP',
+  'Panel':'FRT 1MCP/4RC/2AP/1OP/1VSP · RR 1MCP/4RC/4AP/1OP/1VSP',
+  'System':'PLC: MITSUBISHI (MELSEC-Q), 라인제어 세이프티 PLC',
+  'Training':'2주 * 2회 (보전/생산) – 교육 센터',
+  'Schedule':"'26 6월 OLT → '26 8월(하계 셧다운) 설치 → '26 8월 9일 SOP",
+  'Stand by':'제어 1 & 기계 1 * 2 shift * 4주 / 티쳐 1 * 2 shift * 3주',
+  'Others':'입/출구 라이트 커튼, 안전펜스(메쉬·플랩도어), 모니터링 시스템, 로봇 자켓, UPS(OP), 입구 부스 연장 5m',
+};
+const sheet = (rows, opt={}) => `<div class="tw"><table><thead><tr><th>칸</th><th>값</th>${opt.col?`<th>${opt.col}</th>`:''}</tr></thead><tbody>${
+  Object.entries(rows).map(([k,v])=>{const o=(opt.cell||{})[k]||{};return `<tr class="${o.tr||''}"><td class="k">${k}</td><td class="${o.cls||''}">${v}${o.note||''}</td>${opt.col?`<td>${o.side||''}</td>`:''}</tr>`}).join('')}</tbody></table></div>`;
+
+// ── 단계 ──────────────────────────────────────────────
+const S = [
+// 1단계
+{ph:'1단계 · 처음 올릴 때', who:'영업부', title:'사양서 V2를 프로젝트 문서에 올린다', crumb:'프로젝트 › 현대 아산 중도 Door 내판 로봇 교체 › 문서', bell:0,
+ text:'영업부가 고객에게서 받은 사양서(V2, 2025-11-05)를 프로젝트 문서에 올립니다. 분류는 이름을 보고 "사양서"로 자동으로 고릅니다.',
+ look:'확인할 것: 올리는 곳은 지금 프로젝트 문서 화면과 같습니다. 새로 생기는 것은 오른쪽의 [사양서 분석] 버튼 하나입니다.',
+ html:()=>P('문서')+`<div class="drop">여기에 파일을 끌어다 놓거나 <b>파일 선택</b></div>
+  <div class="file"><span class="ic">PDF</span><span class="nm">설비사양서]아산)도장 중도 도어내판 로봇 노후교체_V2_251105.pdf<small>3.1MB · 분류: 사양서 (자동) · 방금 올림 · 영업부</small></span><span class="btn pri hl">사양서 분석</span></div>
+  <div class="file" style="opacity:.6"><span class="ic p">PPT</span><span class="nm">★아산 도장 중도 도어 내판 로봇 노후 교체 사양설명회_251113_v2.pdf<small>분류: 회의·설명회</small></span></div>`},
+
+{ph:'1단계 · 처음 올릴 때', who:'영업부', title:'사양정리 초안이 만들어진다', crumb:'프로젝트 › … › 사양정리', bell:0,
+ text:'사양서를 읽어 영업부 양식(V5)의 칸을 채웁니다. 사양서에 없는 칸은 비워 두고, 모델은 이력에서 후보를 붙입니다. 여기까지는 지금 있는 기능입니다.',
+ look:'확인할 것: 판 줄기에 사양서 V2만 있고, 사양정리는 아직 저장한 판이 없습니다. 초안은 고칠 수 있는 작업본일 뿐 기록이 아닙니다.',
+ html:()=>P('사양정리')+T([['V2','11/05 · 지금','sel']],[])+
+  `<div class="sum"><span class="big">사양정리 초안 (V2 기준)</span><span class="chip w">확인 필요 2칸</span><span class="chip b">모델 후보 3자리</span><span class="sp" style="flex:1"></span><span class="btn">pptx 내려받기</span></div>`+
+  sheet({...R1,'Tracking rail':'주행레일 레일길이 11.5m','Panel':'(사양서에 없음 — 확인 필요)','Stand by':'(사양서에 없음 — 확인 필요)'},
+   {cell:{'Panel':{cls:'need'},'Stand by':{cls:'need'},'Robot':{note:'<span class="mark">모델: 이력 후보에서 MPX3500 채택</span>'}}})},
+
+{ph:'1단계 · 처음 올릴 때', who:'영업부', title:'부서별 확인 항목이 정리된다', crumb:'프로젝트 › … › 부서별 확인', bell:0,
+ text:'사양서에서 부서마다 꼭 봐야 할 문장을 골라 부서 카드로 보여 줍니다(지금 있는 146개 확인 항목). 이 결과가 나중에 "어느 부서에 알릴지"의 기준이 됩니다.',
+ look:'확인할 것: 카드마다 "사양정리 칸"이 붙어 있습니다. 예를 들어 설계팀은 Booth·Utility·Panel 칸에 걸립니다. 이 연결로 바뀐 칸 → 알릴 부서가 정해집니다.',
+ html:()=>P('부서별 확인')+`<div class="grid">
+  <div class="box"><h3>설계팀 <span class="chip">7</span></h3><ul><li>입구 부스 연장 5m, 레일연장용 하부보강 <span class="pg">p3</span></li><li>주행레일 11.5m <span class="pg">p2</span></li><li>부스 내 방폭사양 <span class="pg">p16</span></li></ul><div class="muted" style="margin-top:6px">사양정리 칸: Booth · Utility · Panel · Robot</div></div>
+  <div class="box"><h3>구매팀 <span class="chip">5</span></h3><ul><li>로봇 가반 20kg 이상 <span class="pg">p9</span></li><li>세이프티 PLC <span class="pg">p17</span></li><li>국내 방폭인증품 <span class="pg">p2</span></li></ul><div class="muted" style="margin-top:6px">사양정리 칸: Robot · FGP · Color</div></div>
+  <div class="box"><h3>소프트웨어팀 <span class="chip">6</span></h3><ul><li>MELSEC-Q, LADDER <span class="pg">p17</span></li><li>I/O·메모리 30% 여유 <span class="pg">p17</span></li></ul><div class="muted" style="margin-top:6px">사양정리 칸: System</div></div>
+  <div class="box"><h3>PM팀 <span class="chip">4</span></h3><ul><li>납기 지체보상 0.1%/일 <span class="pg">p4</span></li><li>공사 일정 <span class="pg">p3</span></li></ul><div class="muted" style="margin-top:6px">사양정리 칸: Robot · Schedule · Stand by</div></div>
+  <div class="box"><h3>모듈라팀 <span class="chip">3</span></h3><ul><li>듀얼 CCV 20색 + 스페어 4 <span class="pg">p10</span></li><li>REGULATOR + AA + AO <span class="pg">p8</span></li></ul><div class="muted" style="margin-top:6px">사양정리 칸: Atomizer · Color · FGP</div></div>
+  <div class="box"><h3>호남·영남지사 · 어플리케이션팀 · 교육실</h3><div class="muted">각 2~3건 …</div></div></div>`},
+
+{ph:'1단계 · 처음 올릴 때', who:'영업부', title:'다듬은 초안을 rev1로 저장한다 — 알릴 부서를 고른다', crumb:'프로젝트 › … › 사양정리', bell:0,
+ text:'영업부가 칸을 다듬은 뒤(Tracking rail을 "4R1C * 2ea"로 고치고, Panel·Stand by를 채움) [rev1로 저장]을 누릅니다. 저장 창에서 알릴 부서를 자동으로 골라 보여 줍니다. 첫 판이라 관련 부서 전부가 기본으로 선택됩니다.',
+ look:'확인할 것: 부서마다 "무엇을 받게 되는지"가 한 줄로 보입니다. 체크를 빼면 그 부서는 알림을 받지 않습니다.',
+ html:()=>`<div class="under">${P('사양정리')+T([['V2','11/05','sel']],[])+sheet(R1,{cell:{'Tracking rail':{cls:'e',note:'<span class="mark">영업부가 고친 칸</span>'}}})}</div>`+
+  modal('사양정리 rev1로 저장',
+   `<div class="row" style="margin-bottom:10px"><div class="field" style="flex:1"><label>판 이름</label><div class="inp">rev1</div></div><div class="field" style="flex:1"><label>기준 사양서</label><div class="inp">V2 (11/05)</div></div></div>
+    <div class="field"><label>바뀐 내용 메모 (알림에 같이 나감)</label><div class="inp">첫 사양정리 — 사양설명회 전 초안</div></div>
+    <div class="field"><label>알릴 부서 (첫 판이라 사양정리 칸과 이어진 부서 전부)</label>
+    ${who(1,'설계팀','Booth size · Utility · Panel · Robot · Tracking rail')}
+    ${who(1,'PM팀','Robot · Schedule · Stand by')}
+    ${who(1,'구매팀','Robot · FGP · Color(CCV)')}
+    ${who(1,'소프트웨어팀','System')}
+    ${who(1,'모듈라팀','Atomizer · Color(CCV) · FGP')}
+    ${who(1,'어플리케이션팀','Basic Condition · Body Size · Booth size')}
+    ${who(1,'호남·영남지사','Utility · Stand by · Atomizer')}
+    ${who(1,'교육실','Training')}</div>`,
+   `<span class="btn">알리지 않고 저장</span><span class="btn pri hl">저장하고 8개 부서에 알리기</span>`)},
+
+{ph:'1단계 · 처음 올릴 때', who:'설계팀', title:'설계팀에 알림이 온다', crumb:'홈', bell:1,
+ text:'설계팀 사람의 화면입니다. 종 모양 알림함에 한 건이 와 있습니다. 프로젝트 인원으로 등록된 설계팀 사람이 있으면 그 사람에게, 없으면 설계팀 전체에게 갑니다.',
+ look:'확인할 것: 알림 한 건에 설계팀과 관련된 칸만 들어 있습니다. 누르면 사양정리 화면이 설계팀 칸만 걸러진 채로 열립니다.',
+ html:()=>`<div class="under"><div class="grid"><div class="box"><h3>내 할 일</h3><div class="muted">…</div></div><div class="box"><h3>최근 프로젝트</h3><div class="muted">…</div></div></div><div style="height:260px"></div></div>
+  <div class="inbox"><div class="ih">알림 <span class="muted">모두 읽음</span></div>
+   <div class="noti unread"><b>[DLP-25-274 아산] 사양정리 rev1 — 설계팀 확인 요청</b>
+    <ul><li>Booth size 20,700(L) * 6,000(W) * 4,500(H), 입구 연장 5m</li><li>Tracking rail 4R1C * 2ea</li><li>Utility AC 400V × 50Hz / 6~8 Bar</li><li>Panel FRT 2AP · RR 4AP</li></ul>
+    <div class="row" style="margin-top:6px"><span class="t">영업부 · 방금</span><span style="flex:1"></span><span class="btn pri mini hl">열기</span></div></div>
+   <div class="noti"><b>그룹웨어 변경: 조직도 갱신</b><span class="t">어제</span></div></div>`},
+
+{ph:'1단계 · 처음 올릴 때', who:'설계팀', title:'설계팀은 자기 칸만 보고 [확인함]을 누른다', crumb:'프로젝트 › … › 사양정리 rev1 (설계팀 보기)', bell:0,
+ text:'알림을 누르면 사양정리 rev1이 열립니다. 설계팀과 관련된 칸은 진하게, 나머지는 흐리게 보입니다. 오른쪽에는 그 칸의 근거인 사양서 문장(부서별 확인)이 붙어 있습니다.',
+ look:'확인할 것: 아래 버튼은 [확인함] 하나입니다. 누른 사람과 날짜가 판별 확인 현황에 남습니다.',
+ html:()=>P('사양정리')+`<div class="sum"><span class="big">rev1 · 설계팀 보기</span><span class="chip b">설계팀 칸 5개</span><span style="flex:1"></span><span class="muted">전체 칸 보기</span></div>`+
+  sheet(R1,{col:'사양서 근거 (부서별 확인)',cell:{
+   'Robot':{side:'<span class="pg">p9</span> 레일하우스 포함 방폭 7축 로봇'},
+   'Booth size':{side:'<span class="pg">p3·p6</span> 입구 부스 연장 5m, 레일연장용 하부보강'},
+   'Utility':{side:'<span class="pg">p8</span> AC 400V (±10%) × 50Hz (±5%) × 3Φ'},
+   'Tracking rail':{side:'<span class="pg">p2</span> 주행레일 레일길이 11.5m'},
+   'Panel':{side:'<span class="muted">사양서에 수량 없음</span>'},
+   ...Object.fromEntries(['Basic Condition','Body Size','Atomizer','Color(CCV)','FGP','System','Training','Schedule','Stand by','Others'].map(k=>[k,{tr:'dim'}]))}})+
+  `<div class="row" style="margin-top:12px;justify-content:flex-end"><span class="btn pri hl">확인함</span></div>`},
+
+{ph:'1단계 · 처음 올릴 때', who:'영업부 · PM팀', title:'누가 확인했는지 한눈에 본다', crumb:'프로젝트 › … › 사양정리 › 확인 현황', bell:0,
+ text:'영업부와 PM은 판마다 부서별 확인 상태를 봅니다. 3일이 지나도 확인하지 않은 부서에는 자동으로 한 번 더 알림이 갑니다.',
+ look:'확인할 것: rev1은 8개 부서 중 6곳이 확인했습니다. 구매팀·교육실은 대기 중이고, 재알림 날짜가 보입니다.',
+ html:()=>P('사양정리')+T([['V2','11/05','sel']],[['rev1','V2 기준 · 11/06','sel']])+
+  `<div class="sum"><span class="big">rev1 확인 현황</span><span class="chip ok">확인 6</span><span class="chip">대기 2</span></div>
+  <div class="tw"><table class="matrix"><thead><tr><th style="text-align:left">부서</th><th>상태</th><th>확인한 사람·때</th><th>다음 재알림</th></tr></thead><tbody>
+  <tr><td class="k">설계팀</td><td class="st-ok">확인함</td><td>설계팀 담당 · 11/06</td><td>—</td></tr>
+  <tr><td class="k">PM팀</td><td class="st-ok">확인함</td><td>PM 담당 · 11/06</td><td>—</td></tr>
+  <tr><td class="k">소프트웨어팀</td><td class="st-ok">확인함</td><td>11/07</td><td>—</td></tr>
+  <tr><td class="k">모듈라팀</td><td class="st-ok">확인함</td><td>11/07</td><td>—</td></tr>
+  <tr><td class="k">어플리케이션팀</td><td class="st-ok">확인함</td><td>11/07</td><td>—</td></tr>
+  <tr><td class="k">호남·영남지사</td><td class="st-ok">확인함</td><td>11/08</td><td>—</td></tr>
+  <tr><td class="k">구매팀</td><td class="st-wait">확인 대기</td><td>—</td><td>11/09 (3일째)</td></tr>
+  <tr><td class="k">교육실</td><td class="st-wait">확인 대기</td><td>—</td><td>11/09 (3일째)</td></tr></tbody></table></div>`},
+
+// 2단계
+{ph:'2단계 · 사양서가 바뀔 때', who:'영업부', title:'고객이 사양서 V5를 보낸다 — 이전 판과 묶는다', crumb:'프로젝트 › … › 문서', bell:0,
+ text:'같은 프로젝트에 사양서를 또 올리면, 이름이 비슷한 이전 사양서(V2)를 찾아 "새 판으로 묶을까요?"라고 묻습니다. 묶으면 판 줄기에 V5가 이어 붙습니다.',
+ look:'확인할 것: 자동으로 찾은 이전 판이 틀리면 직접 고를 수 있습니다. "별개 사양서"를 고르면 묶지 않습니다(예: 같은 프로젝트의 다른 공정 사양서).',
+ html:()=>`<div class="under">${P('문서')}<div class="file"><span class="ic">PDF</span><span class="nm">설비사양서]아산)도장 중도 도어내판 로봇 노후교체_V2_251105.pdf<small>분류: 사양서</small></span></div></div>`+
+  modal('같은 프로젝트에 이전 사양서가 있습니다',
+   `<div class="file"><span class="ic">PDF</span><span class="nm"><b>새로 올림</b> · 설비사양서]아산)도장 중도 도어내판 로봇 노후교체_<b>V5_251117</b>.pdf</span></div>
+    <p style="margin:10px 0 6px">이 파일을 아래 사양서의 <b>새 판</b>으로 묶을까요?</p>
+    <div class="file" style="border-color:var(--accent)"><span class="cb">✓</span><span class="nm">V2_251105 (11/05) <small>이름 비교: 판 표시(V2→V5)와 날짜만 다름</small></span></div>
+    <div class="muted">다른 사양서 고르기 · 별개 사양서로 두기</div>`,
+   `<span class="btn">별개 사양서로</span><span class="btn pri hl">V5로 묶고 비교하기</span>`)},
+
+{ph:'2단계 · 사양서가 바뀔 때', who:'영업부', title:'사양서끼리 비교 — 핵심 항목 14개', crumb:'프로젝트 › … › 판 비교', bell:0,
+ text:'사양서 V2와 V5를 핵심 항목(로봇 대수·레일·가반·PLC·부스…)으로만 비교합니다. 바뀐 항목이 위에 오고, 그대로인 항목도 "그대로"로 남겨 빠짐없이 봤다는 걸 알 수 있게 합니다.',
+ look:'확인할 것: 가반 20→15kg은 사양정리 칸에는 없지만 사양서에서는 바뀐 항목이라, 구매팀에 알릴 대상이 됩니다(11단계).',
+ html:()=>P('판 비교')+T([['V2','11/05','sel'],['V5','11/17 · 새로','sel']],[['rev1','V2 기준']])+
+  `<div class="sum"><span class="big">핵심 항목 14개 중 8개 바뀜</span><span class="chip c">값 바뀜 4</span><span class="chip a">추가 3</span><span class="chip d">삭제 1</span><span class="chip">그대로 6</span></div>
+  <div class="tw"><table><thead><tr><th>항목</th><th>V2</th><th>V5</th><th>쪽</th><th>걸리는 부서</th></tr></thead><tbody>
+  <tr><td class="k">레일</td><td>주행레일 11.5m</td><td class="y"><span class="old">11.5m</span> → <span class="new">9.5m</span></td><td class="pg">p2</td><td>${D('설계팀')}${D('구매팀')}</td></tr>
+  <tr><td class="k">가반하중</td><td>20kg 이상</td><td class="y"><span class="old">20kg</span> → <span class="new">15kg</span> 이상</td><td class="pg">p9·p14</td><td>${D('구매팀')}</td></tr>
+  <tr><td class="k">제어·PLC</td><td>라인제어 세이프티 PLC</td><td class="y">세이프티 <span class="old">PLC</span> → <span class="new">릴레이</span></td><td class="pg">p17</td><td>${D('소프트웨어팀')}${D('구매팀')}</td></tr>
+  <tr><td class="k">도장기</td><td>REGULATOR + AA + AO</td><td class="y"><span class="new">레귤레이터 삭제</span></td><td class="pg">p8</td><td>${D('모듈라팀')}</td></tr>
+  <tr><td class="k">부스·크기</td><td>입구 부스 연장 5m (24,700L)</td><td class="y"><span class="tag d">삭제</span> 연장 없음, 부스 하부 추가 보강</td><td class="pg">p2·p6</td><td>${D('설계팀')}${D('PM팀')}</td></tr>
+  <tr><td class="k">인증·방폭</td><td>—</td><td class="y"><span class="tag a">추가</span> RFID CE 인증·방폭, 기기별 방폭인증서</td><td class="pg">p18·p29</td><td>${D('소프트웨어팀')}${D('구매팀')}</td></tr>
+  <tr><td class="k">공급 수량</td><td>—</td><td class="y"><span class="tag a">추가</span> 부스 확인용 발판 4SET</td><td class="pg">p16</td><td>${D('설계팀')}</td></tr>
+  <tr><td class="k">추가 요구</td><td>—</td><td class="y"><span class="tag a">추가</span> 플립도어, 라이트커튼 300~900mm, 오프너 변형 체크 지그, HMI 퍼지모드 …</td><td class="pg">p13~18</td><td>${D('설계팀')}${D('소프트웨어팀')}</td></tr>
+  <tr class="same"><td class="k">로봇 대수</td><td colspan="2">신규 로봇 8대 — 그대로</td><td class="pg">p2</td><td></td></tr>
+  <tr class="same"><td class="k">차종 · UPH · 일정 · 전원 · 칼라 · 보증</td><td colspan="2">그대로 (6차종+옵션 / 72UPH·MAX 75 / 400V 50Hz / 20색 / 10년)</td><td></td><td></td></tr>
+  </tbody></table></div><div class="muted" style="margin-top:8px">▸ 그 밖의 변경 16건 (접혀 있음)</div>`},
+
+{ph:'2단계 · 사양서가 바뀔 때', who:'영업부', title:'V5로 사양정리를 만든다 — rev1을 이어받는다', crumb:'프로젝트 › … › 사양정리', bell:0,
+ text:'[V5로 사양정리 만들기]를 누르면 빈 초안이 아니라 rev1을 이어받습니다. 사양서가 바뀐 칸만 새 값으로 바꾸고 노란색으로 표시합니다. 영업부가 직접 고친 칸(Tracking rail)은 덮어쓰지 않고 확인 표시만 답니다.',
+ look:'확인할 것: 노란 칸 4개는 자동으로 바뀐 칸, 주황 경고 1개는 사람이 판단해야 하는 칸입니다. 나머지는 rev1 값 그대로입니다.',
+ html:()=>P('사양정리')+T([['V2','11/05'],['V5','11/17','sel']],[['rev1','V2 기준','sel'],['rev2','V5 기준 · 작성 중','ghost']])+
+  `<div class="sum"><span class="big">rev2 작성 중 (V5 기준, rev1 이어받음)</span><span class="chip c">바뀐 칸 4</span><span class="chip w">확인 필요 1</span><span class="chip">이어받은 칸 10</span></div>`+
+  sheet({...R1,
+   'Booth size':'20,700(L) * 6,000(W) * 4,500(H)',
+   'Atomizer':'SAMES PPH707 SB : 2 (유성 내부하전 정전벨) / AA + AO',
+   'System':'PLC: MITSUBISHI (MELSEC-Q), 라인제어 <b>세이프티 릴레이</b> / <b>RFID: CE 인증·방폭사양</b>',
+   'Others':'입/출구 라이트 커튼, 안전펜스(메쉬·플랩도어), 모니터링 시스템, 로봇 자켓, UPS(OP), <b>부스 하부 추가 보강, 부스 확인용 발판 4SET</b>'},
+   {col:'출처',cell:{
+    'Booth size':{cls:'y',note:'<span class="why">V2→V5: 입구 부스 연장 5m 삭제 (p6)</span>',side:'<span class="tag c">V5에서 바뀜</span>'},
+    'Atomizer':{cls:'y',note:'<span class="why">V2→V5: REGULATOR 삭제 (p8)</span>',side:'<span class="tag c">V5에서 바뀜</span>'},
+    'System':{cls:'y',note:'<span class="why">V2→V5: 세이프티 PLC→릴레이 (p17), RFID CE·방폭 추가 (p18)</span>',side:'<span class="tag c">V5에서 바뀜</span>'},
+    'Others':{cls:'y',note:'<span class="why">V2→V5: 부스 연장 삭제 → 하부 추가 보강, 발판 4SET 추가 (p2·p16)</span>',side:'<span class="tag c">V5에서 바뀜</span>'},
+    'Tracking rail':{cls:'e',note:'<span class="flag">⚠ 사양서 V5에서 주행레일 11.5m → 9.5m (p2). 이 칸은 영업부가 rev1에서 고친 칸이라 덮어쓰지 않았습니다.</span><span class="row" style="margin-top:4px"><span class="btn mini">V5 값으로 바꾸기</span><span class="btn mini">직접 고치기</span><span class="btn mini">그대로 둠</span></span>',side:'<span class="tag w">확인 필요</span>'},
+   }})},
+
+{ph:'2단계 · 사양서가 바뀔 때', who:'영업부', title:'rev2로 저장 — 이번엔 바뀐 칸의 부서만 알린다', crumb:'프로젝트 › … › 사양정리', bell:0,
+ text:'Tracking rail을 "9.5M 2R1C * 4ea (C/T검토 후 문제 없을 시)"로 고친 뒤 rev2로 저장합니다. 이번에는 바뀐 칸과 이어진 부서만 고릅니다. 사양서에서만 바뀐 항목(가반 15kg)도 함께 담깁니다.',
+ look:'확인할 것: 8개 부서 중 5곳만 선택됐습니다. 교육실·어플리케이션팀·지사는 바뀐 칸이 없어 빠졌습니다.',
+ html:()=>`<div class="under">${P('사양정리')}<div style="height:300px"></div></div>`+
+  modal('사양정리 rev2로 저장',
+   `<div class="row" style="margin-bottom:10px"><div class="field" style="flex:1"><label>판 이름</label><div class="inp">rev2</div></div><div class="field" style="flex:1"><label>기준 사양서</label><div class="inp">V5 (11/17)</div></div></div>
+    <div class="field"><label>바뀐 내용 메모</label><div class="inp">사양서 V5 반영 — 부스 연장 삭제, 레일 9.5m, 세이프티 릴레이</div></div>
+    <div class="field"><label>알릴 부서 (바뀐 칸 5개 · 사양서 변경 8개 기준으로 자동 선택)</label>
+    ${who(1,'설계팀','Booth size · Tracking rail · Others')}
+    ${who(1,'소프트웨어팀','System (세이프티 릴레이, RFID CE·방폭)')}
+    ${who(1,'모듈라팀','Atomizer (REGULATOR 삭제)')}
+    ${who(1,'구매팀','사양서 변경: 가반 20→15kg, 세이프티 릴레이, 방폭인증서')}
+    ${who(1,'PM팀','Others (부스 하부 추가 보강) · 공사 범위 변경')}
+    ${who(0,'어플리케이션팀','바뀐 칸 없음')}
+    ${who(0,'호남·영남지사','바뀐 칸 없음')}
+    ${who(0,'교육실','바뀐 칸 없음')}</div>`,
+   `<span class="btn">알리지 않고 저장</span><span class="btn pri hl">저장하고 5개 부서에 알리기</span>`)},
+
+{ph:'2단계 · 사양서가 바뀔 때', who:'소프트웨어팀', title:'소프트웨어팀은 바뀐 것만 받는다', crumb:'홈', bell:1,
+ text:'소프트웨어팀이 받는 알림입니다. 이전 판과 비교해 바뀐 값만 "이전 → 이번"으로 담깁니다. 열면 rev1→rev2 비교 화면이 소프트웨어팀 칸만 걸러진 채로 열립니다.',
+ look:'확인할 것: rev1 알림(전체 칸)과 달리 이번 알림은 바뀐 것만 담습니다. 바뀐 게 없는 부서에는 아예 가지 않습니다.',
+ html:()=>`<div class="under"><div class="grid"><div class="box"><h3>내 할 일</h3><div class="muted">…</div></div><div class="box"><h3>최근 프로젝트</h3><div class="muted">…</div></div></div><div style="height:240px"></div></div>
+  <div class="inbox"><div class="ih">알림</div>
+   <div class="noti unread"><b>[DLP-25-274 아산] 사양정리 rev2 — 소프트웨어팀 변경 1칸</b>
+    <ul><li>System: 라인제어 <span class="old">세이프티 PLC</span> → <b>세이프티 릴레이</b></li><li>System: <b>RFID CE 인증·방폭사양</b> 추가</li></ul>
+    <div class="muted" style="margin-top:4px">근거: 사양서 V5 p17·p18 · 메모 "사양서 V5 반영"</div>
+    <div class="row" style="margin-top:6px"><span class="t">영업부 · 방금</span><span style="flex:1"></span><span class="btn mini">확인함</span><span class="btn pri mini hl">비교 열기</span></div></div>
+   <div class="noti"><b>[DLP-25-274 아산] 사양정리 rev1 — 소프트웨어팀 확인 요청</b><span class="t">11/06 · 확인함</span></div></div>`},
+
+// 3단계
+{ph:'3단계 · 사양정리만 바뀔 때', who:'영업부', title:'영업부가 pptx를 직접 고쳐 올린다', crumb:'프로젝트 › … › 문서', bell:0,
+ text:'이후로는 사양서는 그대로이고 사양정리만 바뀝니다. 영업부가 사양정리 pptx를 직접 고쳐 올리면, 앱이 표를 칸으로 읽어 rev3 후보로 만듭니다. 앱에서 칸을 고쳐 저장해도 같은 흐름입니다.',
+ look:'확인할 것: "16칸 읽음 · rev2와 비교해 4칸 바뀜 · 사양서와 다른 칸 1"이 바로 보입니다. 여기서 rev3로 저장할지 정합니다.',
+ html:()=>P('문서')+`<div class="file" style="border-color:var(--accent)"><span class="ic p">PPT</span><span class="nm">[DLP-25-274]현대 아산 중도 Door 내판 로봇 교체 사양정리 rev7.pptx<small>분류: 사양정리 (자동) · 방금 올림 · 영업부</small></span></div>
+  <div class="box" style="margin-top:8px"><h3>사양정리 표를 읽었습니다</h3>
+   <div class="sum" style="margin:0"><span class="chip">16칸 읽음</span><span class="chip c">rev2와 비교해 4칸 바뀜</span><span class="chip w">사양서와 다른 칸 1</span><span style="flex:1"></span><span class="btn">비교만 보기</span><span class="btn pri hl">rev3로 저장</span></div>
+   <div class="muted" style="margin-top:6px">기준 사양서: V5 (이전 판 rev2와 같음)</div></div>`},
+
+{ph:'3단계 · 사양정리만 바뀔 때', who:'영업부', title:'사양정리끼리 비교 — 칸 단위', crumb:'프로젝트 › … › 판 비교', bell:0,
+ text:'rev2와 rev3을 같은 칸끼리 비교합니다. 칸마다 사양서 V5와 맞는지도 함께 봅니다. Utility 60Hz는 사양서의 50Hz와 달라 주황색으로 표시됩니다.',
+ look:'확인할 것: 바뀐 칸 4개와 "기타 사항"이 늘어난 칸만 보입니다(그대로인 칸은 숨김). 오른쪽 끝 열이 "사양서와 대조"입니다.',
+ html:()=>P('판 비교')+T([['V2','11/05'],['V5','11/17']],[['rev1','V2'],['rev2','V5','sel'],['rev3','V5 · pptx','sel']])+
+  `<div class="sum"><span class="big">16칸 중 4칸 바뀜</span><span class="chip c">바뀜 4</span><span class="chip w">사양서와 다름 1</span><span class="chip">그대로 12 (숨김)</span></div>
+  <div class="tw"><table><thead><tr><th>칸</th><th>rev2</th><th>rev3</th><th>걸리는 부서</th><th>사양서 V5와 대조</th></tr></thead><tbody>
+  <tr><td class="k">Utility</td><td>AC 400V×3Φ×(50Hz±5%)</td><td class="y"><span class="old">50Hz</span> → <span class="new">60Hz</span></td><td>${D('설계팀')}${D('지사')}</td><td><span class="flag" style="margin:0">⚠ 사양서 p8 "AC 400V × <b>50Hz</b> × 3Φ"와 다름</span></td></tr>
+  <tr><td class="k">Panel</td><td>FRT 2AP · RR 4AP</td><td class="y">FRT·RR 같이 <span class="new">2AP</span> <span class="muted">(판넬룸 에어컨 2개소)</span></td><td>${D('설계팀')}</td><td class="muted">사양서에 수량 없음</td></tr>
+  <tr><td class="k">Stand by</td><td>제어·기계 4주 / 티쳐 3주</td><td class="y">제어·기계 <span class="old">4주</span> <span class="new">3주</span> / 티쳐 <span class="old">3주</span> <span class="new">4주</span></td><td>${D('PM팀')}${D('지사')}</td><td class="muted">사양서에 없음</td></tr>
+  <tr><td class="k">System</td><td>MELSEC-Q, 세이프티 릴레이</td><td class="y">+ <span class="new">임베디드(SPC 3세대)</span>, <span class="new">Eco Paint Save</span></td><td>${D('소프트웨어팀')}</td><td class="muted">✔ 어긋남 없음</td></tr>
+  <tr class="same"><td class="k">기타 사항 추가</td><td colspan="2">Booth: 난연장판 교체 · Atomizer: 고전압 케이블 이중화, 신규 오프너 제안 · Others: 모니터링 V2.5, 센서 커버</td><td>${D('설계팀')}${D('모듈라팀')}</td><td></td></tr>
+  </tbody></table></div>`},
+
+{ph:'3단계 · 사양정리만 바뀔 때', who:'영업부', title:'rev3 저장 — 사양서와 다른 칸은 사유를 묻는다', crumb:'프로젝트 › … › 사양정리', bell:0,
+ text:'rev3로 저장할 때, 사양서와 다른 칸이 있으면 먼저 사유를 묻습니다. 사유를 모르면 "고객 질의 필요"로 두고 저장할 수 있습니다. 알릴 부서는 바뀐 칸 기준으로 고릅니다.',
+ look:'확인할 것: 사유 칸이 비어 있어도 저장은 됩니다. 그러면 그 칸에 "고객 질의 필요" 표시가 붙고, 알림에도 함께 나갑니다.',
+ html:()=>`<div class="under">${P('사양정리')}<div style="height:330px"></div></div>`+
+  modal('사양정리 rev3로 저장',
+   `<div class="flag" style="margin:0 0 10px;padding:8px 10px">⚠ 사양서와 다른 칸 1개 — <b>Utility 60Hz</b> (사양서 V5 p8은 50Hz)
+     <div class="row" style="margin-top:6px"><span class="btn mini">일부러 바꿈 → 사유 적기</span><span class="btn mini">고객 질의 필요로 두기</span></div></div>
+    <div class="field"><label>바뀐 내용 메모</label><div class="inp">사양설명회 후 수정 — 전원 60Hz, AP 통합, 스탠바이 조정</div></div>
+    <div class="field"><label>알릴 부서 (바뀐 칸 4개 기준)</label>
+    ${who(1,'설계팀','Utility · Panel · Booth 기타')}
+    ${who(1,'호남·영남지사','Utility · Stand by')}
+    ${who(1,'PM팀','Stand by')}
+    ${who(1,'소프트웨어팀','System')}
+    ${who(1,'모듈라팀','Atomizer 기타 (고전압 케이블 이중화)')}
+    ${who(0,'구매팀 · 어플리케이션팀 · 교육실','바뀐 칸 없음')}</div>`,
+   `<span class="btn">알리지 않고 저장</span><span class="btn pri hl">저장하고 5개 부서에 알리기</span>`)},
+
+{ph:'3단계 · 사양정리만 바뀔 때', who:'영업부 · PM팀', title:'판별 · 부서별 확인 현황 전체', crumb:'프로젝트 › … › 사양정리 › 확인 현황', bell:0,
+ text:'판 줄기 아래에 판 × 부서 표가 쌓입니다. 영업부와 PM은 어느 판에서 누가 확인을 안 했는지를 한 화면에서 봅니다.',
+ look:'확인할 것: "—"는 그 판에서 알림을 받지 않은 부서(바뀐 칸 없음)입니다. 미확인 칸에는 재알림 날짜가 보입니다.',
+ html:()=>P('사양정리')+T([['V2','11/05'],['V5','11/17']],[['rev1','V2'],['rev2','V5'],['rev3','V5 · pptx','sel']])+
+  `<div class="sum"><span class="big">확인 현황</span><span class="chip ok">확인함</span><span class="chip">대기</span><span class="chip">— 알림 안 감</span></div>
+  <div class="tw"><table class="matrix"><thead><tr><th style="text-align:left">부서</th><th>rev1 (V2)</th><th>rev2 (V5)</th><th>rev3 (pptx)</th></tr></thead><tbody>
+  <tr><td class="k">설계팀</td><td class="st-ok">확인 11/06</td><td class="st-ok">확인 11/18</td><td class="st-wait">대기<br><span class="muted">재알림 11/24</span></td></tr>
+  <tr><td class="k">PM팀</td><td class="st-ok">확인</td><td class="st-ok">확인</td><td class="st-ok">확인 11/21</td></tr>
+  <tr><td class="k">소프트웨어팀</td><td class="st-ok">확인</td><td class="st-ok">확인</td><td class="st-wait">대기<br><span class="muted">재알림 11/24</span></td></tr>
+  <tr><td class="k">모듈라팀</td><td class="st-ok">확인</td><td class="st-ok">확인</td><td class="st-ok">확인</td></tr>
+  <tr><td class="k">구매팀</td><td class="st-ok">확인 11/10</td><td class="st-ok">확인</td><td class="muted">—</td></tr>
+  <tr><td class="k">호남·영남지사</td><td class="st-ok">확인</td><td class="muted">—</td><td class="st-ok">확인</td></tr>
+  <tr><td class="k">어플리케이션팀</td><td class="st-ok">확인</td><td class="muted">—</td><td class="muted">—</td></tr>
+  <tr><td class="k">교육실</td><td class="st-ok">확인 11/12</td><td class="muted">—</td><td class="muted">—</td></tr>
+  </tbody></table></div>
+  <div class="muted" style="margin-top:10px">※ 이 표의 날짜·확인 상태는 시안용 예시입니다.</div>`},
+];
+
+// ── 그리기 ────────────────────────────────────────────
+let cur = 0;
+const stepsEl = document.getElementById('steps');
+function drawSide(){
+  let last = '', h = '';
+  S.forEach((s,i)=>{
+    if (s.ph!==last){ h += `<div class="phase">${s.ph}</div>`; last = s.ph; }
+    h += `<div class="st ${i===cur?'on':i<cur?'done':''}" data-i="${i}"><span class="no">${i<cur?'✓':i+1}</span><span>${s.title}<span class="who">${s.who} 화면</span></span></div>`;
+  });
+  stepsEl.innerHTML = h;
+  stepsEl.querySelectorAll('.st').forEach(e=>e.onclick=()=>go(+e.dataset.i));
+}
+function go(i){
+  cur = Math.max(0, Math.min(S.length-1, i)); const s = S[cur];
+  document.getElementById('gPh').textContent = `${s.ph} · ${cur+1} / ${S.length}`;
+  document.getElementById('gTitle').textContent = s.title;
+  document.getElementById('gText').textContent = s.text;
+  document.getElementById('gLook').textContent = s.look;
+  document.getElementById('crumb').textContent = s.crumb;
+  document.getElementById('me').innerHTML = `보는 사람: <b>${s.who}</b>`;
+  const b = document.getElementById('badge'); b.textContent = s.bell||''; b.style.display = s.bell?'':'none';
+  document.getElementById('screen').innerHTML = s.html();
+  document.getElementById('prev').disabled = cur===0;
+  document.getElementById('next').textContent = cur===S.length-1 ? '처음으로' : '다음 →';
+  document.getElementById('cnt').textContent = `${cur+1} / ${S.length}`;
+  drawSide();
+  try { history.replaceState(null,'','#'+(cur+1)); } catch(e) {}
+  window.scrollTo({top:0});
+}
+document.getElementById('prev').onclick = ()=>go(cur-1);
+document.getElementById('next').onclick = ()=>go(cur===S.length-1?0:cur+1);
+document.addEventListener('keydown', e=>{ if(e.key==='ArrowRight') go(cur+1); if(e.key==='ArrowLeft') go(cur-1); });
+go((parseInt(location.hash.slice(1))||1)-1);
+</script>
+</body>
+</html>
