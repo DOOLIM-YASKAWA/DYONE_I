@@ -34,6 +34,7 @@ builder.Services.AddSingleton<DyOne.Api.Modules.Spec.SpecLibrary>();
 // 사양정리 초안: 설비 이력 색인(NAS 도면 제목·사양정리 표, 캐시 파일) + 사내 AI(Llm:BaseUrl·Model·ApiKey, 키 없으면 규칙 초안)
 builder.Services.AddSingleton<DyOne.Api.Modules.Spec.SpecEquipment>();
 builder.Services.AddHttpClient("llm");
+builder.Services.AddSingleton<DyOne.Api.Platform.Llm>(); // 사내 AI 공통 클라이언트(화면 에이전트·자료 분류 등)
 builder.Services.AddSingleton<DyOne.Api.Modules.Spec.SpecAi>();
 
 // --- 인증: 그룹웨어 로그인 API로 검증 → org.employee(login_id)로 직원 확인 → DY ONE 자체 JWT ---
@@ -113,6 +114,7 @@ app.MapAuth();
 app.MapHome();
 app.MapProjects();
 app.MapProjectFiles();
+app.MapProjectJournal();
 DyOne.Api.Modules.Spec.SpecModule.MapSpec(app);
 DyOne.Api.Modules.Spec.SpecDraftModule.MapSpecDraft(app);
 DyOne.Api.Modules.Spec.SpecDeptModule.MapSpecDept(app);
@@ -121,6 +123,7 @@ app.MapProjectTestData();
 app.MapModular();
 app.MapWorks();
 app.MapAi();
+app.MapAiAgents();
 app.MapNotifications();
 app.MapSmartLab();
 app.MapSrsAnalyzer();
