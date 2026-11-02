@@ -208,3 +208,11 @@ td { padding: 11px 16px; line-height: 1.55; border-top-color: #F2F4F7; }
   .pl-right { width: 100%; justify-content: space-between; }
   .pl-pager { justify-content: center; }
 }
+
+/* ── 사양서 분석(엔지니어링 메뉴) ── */
+.spec-page { overflow: visible; width: 100%; box-sizing: border-box; }
+.spec-page-pick { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.spec-page-pick .project-picker { flex: 1 1 360px; }
+.spec-page-current { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+.spec-page-current a { font-size: 13px; font-weight: 600; }
+.spec-page-body { padding: 18px 20px 22px; }

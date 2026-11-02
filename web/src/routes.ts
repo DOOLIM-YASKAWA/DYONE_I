@@ -9,6 +9,7 @@ export const routes: readonly { path: string; icon: IconName; name: string; shor
   { path: '/home', icon: 'home', name: '홈', group: 'main', enabled: true },
   { path: '/projects', icon: 'projects', name: '프로젝트', group: 'main', enabled: true },
   { path: '/journal', icon: 'journal', name: '프로젝트 진행 일지', short: '진행 일지', group: 'main', enabled: true },
+  { path: '/spec', icon: 'spec', name: '사양서 분석', group: 'eng', enabled: true },
   { path: '/modular', icon: 'modular', name: '모듈라', group: 'eng', enabled: true },
   { path: '/org', icon: 'org', name: '조직도', group: 'main', enabled: true },
   { path: '/works/281', icon: 'issue', name: 'ES 이슈', group: 'eng', enabled: true },
