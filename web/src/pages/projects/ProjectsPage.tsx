@@ -7,7 +7,6 @@ import type { AiSource, Code, LabTest, PagedResult, Project, ProjectDetail, Sect
 import { NotConnected } from '../../components/NotConnected'
 import { Badge, DataTable, ErrorBox, GwEndBadge, Loading, PageHead, StageBadge } from '../../components/ui'
 import { Icon } from '../../components/icons'
-import { platform } from '../../platform/bridge'
 import { DesktopTools } from './DesktopTools'
 import { ModularSection } from './ModularSection'
 import { WorksAppSection } from './WorksAppSection'
@@ -23,7 +22,6 @@ const md = (v?: string) => (v ? `${new Date(v).getMonth() + 1}.${String(new Date
 /** 진행 단계 점 색(D안) — 단계 이름 기준 */
 const STAGE_COLOR: Record<string, string> = { '영업': '#2563EB', '수주': '#15803D', '설계·검토': '#6D28D9', '모듈라': '#0F766E', '현장': '#B45309', '라인 대응·종료': '#475467' }
 const CUSTOMERS = ['전체', '현대', '기아', 'GM', '르노', '쌍용', '기타']
-const GW_WORKS = (applet: number | string) => `https://gw.doolim-yaskawa.com/app/works/applet/${applet}/home`
 
 export function ProjectsPage() {
   const [params, setParams] = useSearchParams()
@@ -147,22 +145,6 @@ export function ProjectsPage() {
     )
   }
 
-  const worksLink = (
-    <a
-      className="secondary"
-      href={GW_WORKS(spec.applet)}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={(e) => {
-        if (platform.kind !== 'web') {
-          e.preventDefault()
-          void platform.openExternal(e.currentTarget.href)
-        }
-      }}
-    >
-      원본 WORKS 열기 ↗
-    </a>
-  )
   const listing = section === 'progress' && !scope
 
   return (
@@ -171,7 +153,6 @@ export function ProjectsPage() {
         eyebrow="PROJECT WORKSPACE"
         title="프로젝트"
         sub={listing ? '그룹웨어 WORKS · dyone DB 미러(읽기 전용) · 매일 동기화' : '그룹웨어 프로젝트 · 공정 배당 · SmartLab 랩 테스트 (dyone DB)'}
-        action={partner ? undefined : worksLink}
       />
       <div className="project-solo">
         {scope && (
