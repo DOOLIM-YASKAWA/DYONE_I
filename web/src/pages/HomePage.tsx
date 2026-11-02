@@ -61,8 +61,6 @@ function HomeRow({ p, sub, tags }: { p: Project; sub: string; tags?: string[] })
 const SERVICES: [string, IconName, string, string][] = [
   ['/chat', 'spark', 'AI 챗봇', '프로젝트·랩 테스트 검색'],
   ['/meals', 'meals', '오늘의 식단', '점심·저녁 메뉴'],
-  ['/vehicles', 'car', '방문 차량', '방문 차량 등록'],
-  ['/access', 'badge', '모바일 출입', '모바일 사원증'],
 ]
 
 export function HomePage() {
