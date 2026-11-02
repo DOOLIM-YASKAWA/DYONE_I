@@ -2,35 +2,36 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../../api/client'
-import type { Code, ProgressStatus, ProjectDetail, StageHistoryItem } from '../../api/types'
+import { useAuth, useIsPartner } from '../../auth/AuthContext'
+import type { Code, JournalItem, ProgressStatus, ProjectDetail, ProjectFile, StageHistoryItem } from '../../api/types'
 import { ErrorBox, GwEndBadge, Loading } from '../../components/ui'
 import { ProjectFilesTab } from './ProjectFiles'
 import { ProjectMembersTab } from './ProjectMembers'
-import { STAGE_FEATURE, StageFeature } from './StageFeature'
+import { ProgressJournalList, ProjectJournalTab } from './ProjectJournal'
+import { useProjectMembers } from './ProjectMembers'
+import { RelatedWork } from './RelatedWork'
+import { AgentPanel } from '../../ai/AgentPanel'
 import '../../styles/project-detail.css'
 
 const dateTime = (v?: string) => (v ? new Date(v).toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }) : '-')
 const STATUS_LABEL: Record<ProgressStatus, string> = { wait: '대기', run: '진행', done: '완료' }
-const TABS = ['프로젝트 인원', '프로젝트 진행 상황 이력', '프로젝트 파일'] as const
+const TABS = ['프로젝트 자료함', '프로젝트 인원', '프로젝트 진행 단계', '프로젝트 진행 일지', '관련 업무'] as const
 type Tab = (typeof TABS)[number]
+/** 협력사에게 숨기는 탭(관련 업무 = 사내 연계 앱, 진행 일지 = 사내 일지) */
+const PARTNER_HIDDEN: readonly Tab[] = ['프로젝트 진행 일지', '관련 업무']
 
 /**
- * 프로젝트 전용 풀페이지 상세. 상단 진행 단계바(S1~S9) + 단계 상세 + 섹션 탭.
- * - 단계 클릭 = 그 단계의 관련 문서·업무 보기(단계는 안 바뀜)
- * - 단계 변경 = 우측 '진행 상황 변경' 버튼으로만
+ * 프로젝트 전용 풀페이지 상세. 머리 카드(오른쪽에 지금 단계 "모듈라 진행") + 탭 5개.
+ * 프로젝트 자료함 | 프로젝트 인원 | 프로젝트 진행 단계 | 프로젝트 진행 일지 | 관련 업무
+ * - 진행 단계: 단계별 대기·진행·완료(영업·수주는 그룹웨어) + 변경 이력
+ * - 관련 업무: 보는 사람 부서의 업무 기능만(PM은 전부)
  */
 export function ProjectDetailPage() {
   const { id } = useParams()
   const pid = Number(id)
   const qc = useQueryClient()
-  const [tab, setTab] = useState<Tab>('프로젝트 인원')
-  // 프로젝트 섹션(인원·진행 상황 이력·파일, 진행 상황보다 위)은 접어 두고, 관련 버튼을 누르면 펼치기만 한다(스크롤은 하지 않음)
-  const [sectionOpen, setSectionOpen] = useState(false)
-  const openTab = (t: Tab) => {
-    setTab(t)
-    setSectionOpen(true)
-  }
-  const [viewIdx, setViewIdx] = useState<number | null>(null) // 보고 있는 단계(null=현재 단계)
+  const partner = useIsPartner() // 협력사: 보기만(진행 상황 변경·관련 업무·진행 일지 숨김)
+  const [tab, setTab] = useState<Tab>('프로젝트 자료함')
   const [menuIdx, setMenuIdx] = useState<number | null>(null) // 상태 메뉴를 연 단계
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null) // 메뉴 위치(화면 기준) — 단계바가 가로 스크롤돼도 잘리지 않게
   const [note, setNote] = useState('')
@@ -46,6 +47,9 @@ export function ProjectDetailPage() {
     queryFn: () => api<StageHistoryItem[]>(`/api/projects/${pid}/stage-history`),
     enabled: !Number.isNaN(pid),
   })
+  const { user } = useAuth()
+  const members = useProjectMembers(pid)
+  const files = useQuery({ queryKey: ['project-files', pid], queryFn: () => api<ProjectFile[]>(`/api/projects/${pid}/files`), enabled: !Number.isNaN(pid) })
   const save = useMutation({
     mutationFn: (v: { stageId: number; label: string; from: ProgressStatus; to: ProgressStatus; note?: string; undo?: boolean }) =>
       api(`/api/projects/${pid}/progress`, { method: 'PUT', json: { changes: [{ stageId: v.stageId, status: v.to }], note: v.note || null } }),
@@ -89,15 +93,31 @@ export function ProjectDetailPage() {
   if (isLoading) return <Loading />
   if (error || !data) return <ErrorBox error={error} />
   const p = data.project
-  // 단계마다 대기·진행·완료를 따로 가진다(여러 단계 동시 진행 가능). 대표 단계 = 진행 중 가장 뒤, 없으면 완료 중 가장 뒤
+  // 단계마다 대기·진행·완료를 따로 가진다(여러 단계 동시 진행 가능). 대표 단계 = 서버가 목록과 같은 규칙으로 계산한 값
   const progress = data.progress ?? []
   const list: Code[] = progress.map((s) => ({ id: s.stageId, code: s.code, name: s.name }))
   const statusOf = (i: number): ProgressStatus => progress[i]?.status ?? 'wait'
-  // 대표(현재) 단계: 서버가 목록과 같은 규칙으로 계산한 값
   const curIdx = progress.findIndex((s) => s.stageId === data.currentStageId)
-  const shownIdx = viewIdx ?? (curIdx >= 0 ? curIdx : 0)
-  const viewed = list[shownIdx]
-  const relation = { run: '진행 중인 단계', done: '완료한 단계', wait: '대기 중인 단계' }[statusOf(shownIdx)]
+  // 머리 카드 오른쪽: "모듈라 진행"처럼 단계 이름 + 상태만
+  const headStage = curIdx >= 0 ? `${list[curIdx].name} ${STATUS_LABEL[statusOf(curIdx)]}` : '단계 없음'
+  const count: Partial<Record<Tab, string | number>> = {
+    '프로젝트 자료함': files.data?.length ?? '',
+    '프로젝트 인원': members.data?.length ?? '',
+  }
+  // 단계(③~⑥)는 PM이 바꾼다. PM이 아직 없으면 누구나(지정되면 PM만)
+  const myId = Number(user?.id)
+  const hasPm = (members.data ?? []).some((m) => m.role === 'pm')
+  const isPm = (members.data ?? []).some((m) => m.role === 'pm' && m.employeeId === myId)
+  const isMember = (members.data ?? []).some((m) => m.employeeId === myId)
+  const canStage = !partner && (isPm || !hasPm)
+  // 진행 목록에 같이 보이는 '단계 변경' 줄
+  const changes = (history.data ?? []).map((h) => ({
+    at: h.changedAt,
+    stage: h.toStage ?? undefined,
+    text: h.source === 'groupware'
+      ? `그룹웨어 상태 ${h.gwFrom ?? '없음'} → ${h.gwTo ?? '없음'}`
+      : `${h.changedByName ?? '알 수 없음'}${h.changedByDept ? `(${h.changedByDept})` : ''}: ${h.toStage ?? ''} ${h.fromStatus ? STATUS_LABEL[h.fromStatus as ProgressStatus] ?? '' : ''} → ${h.toStatus ? STATUS_LABEL[h.toStatus as ProgressStatus] ?? '' : ''}${h.note ? ` · ${h.note}` : ''}`,
+  }))
 
   return (
     <>
@@ -106,10 +126,11 @@ export function ProjectDetailPage() {
         <div>
           <small>{p.code} · {p.partnerName ?? '발주처 미지정'} · {p.type ?? '종류 미지정'}</small>
           <h2>{p.name}</h2>
-          <button className="scope-pm" onClick={() => openTab('프로젝트 인원')} title="프로젝트 인원 보기·변경">
+          <button className="scope-pm" onClick={() => setTab('프로젝트 인원')} title="프로젝트 인원 보기·변경">
             PM <b>{p.pmName ?? '미지정'}</b> · 인원 보기 →
           </button>
         </div>
+        <button className="scope-stage" onClick={() => setTab('프로젝트 진행 단계')} title="진행 단계 보기·변경">{headStage}</button>
       </div>
       {(p.status === '마감' || p.status === '중단') && (
         <div className={`gw-end-note ${p.status === '중단' ? 'stop' : ''}`}>
@@ -117,202 +138,135 @@ export function ProjectDetailPage() {
         </div>
       )}
 
-      {/* 프로젝트 인원·진행 상황 이력·파일 — 맨 위 프로젝트 카드 바로 아래, 진행 상황보다 위에 둔다 */}
-      <div className={`project-sections${sectionOpen ? ' open' : ''}`}>
+      <section className="panel project-main">
         <div className="project-tabs" role="tablist" aria-label="프로젝트 섹션">
-          {TABS.map((t) => (
-            <button key={t} role="tab" aria-selected={sectionOpen && t === tab} className={sectionOpen && t === tab ? 'active' : ''}
-              onClick={() => (sectionOpen && t === tab ? setSectionOpen(false) : openTab(t))}>{t}</button>
+          {TABS.filter((t) => !partner || !PARTNER_HIDDEN.includes(t)).map((t) => (
+            <button key={t} role="tab" aria-selected={t === tab} className={t === tab ? 'active' : ''} onClick={() => setTab(t)}>
+              {t}{count[t] !== undefined && count[t] !== '' && <small>{count[t]}</small>}
+            </button>
           ))}
-          <button className="section-toggle" aria-expanded={sectionOpen} onClick={() => (sectionOpen ? setSectionOpen(false) : openTab(tab))}>
-            {sectionOpen ? '접기 ▴' : '펼치기 ▾'}
-          </button>
         </div>
-
-        {sectionOpen && (
-          <section className="panel">
-            <div className="panel-body" style={{ paddingTop: 18 }}>
-              {tab === '프로젝트 인원' && <ProjectMembersTab projectId={pid} />}
-              {tab === '프로젝트 진행 상황 이력' && <StageHistoryList query={history} stages={list} />}
-              {/* 전체 문서함: 올리면 '현재 단계'로 기록 */}
-              {tab === '프로젝트 파일' && <ProjectFilesTab projectId={pid} stage={list[curIdx]} />}
-            </div>
-          </section>
-        )}
-      </div>
-
-      <section className="panel stage-panel" style={{ marginBottom: 16 }}>
-        <div className="panel-head">
-          <div>
-            <h2>예상 현재 진행 상황</h2>
-            <p>
-              단계를 누르면 관련 문서·업무를, 아래 상태를 누르면 진행 상황을 바꿉니다(영업·수주는 그룹웨어 상태를 따릅니다).
-              {data.dyoneStage ? (
-                <>
-                  {' · 진행 상황 변경: '}
-                  <b>{data.dyoneStage.updatedByName ?? '알 수 없음'}</b>
-                  {data.dyoneStage.updatedByDept && ` (${data.dyoneStage.updatedByDept})`} · {dateTime(data.dyoneStage.updatedAt)}{' '}
-                  <button className="text-button" style={{ padding: 0 }} onClick={() => openTab('프로젝트 진행 상황 이력')}>변경 이력 보기 →</button>
-                </>
-              ) : (
-                ' · 아직 DY ONE에서 바꾼 적 없음(그룹웨어 상태 기준)'
-              )}
-            </p>
-          </div>
-        </div>
-        <div className="panel-body" style={{ paddingTop: 6 }}>
-          <div className="stage-flow">
-            {list.map((s, i) => {
-              const st = statusOf(i)
-              const label = `S${i + 1} ${s.name}`
-              return (
-                <div key={s.id} className={`stage-step ${st === 'run' ? 'current' : st === 'done' ? 'done' : 'todo'}${i === shownIdx ? ' selected' : ''}`}>
-                  {/* 단계(이름·점)를 누르면 그 단계 문서·업무 보기, 아래 상태 글자를 누르면 상태 바꾸기 */}
-                  <button className="s-view" onClick={() => setViewIdx(i)} aria-pressed={i === shownIdx}>
-                    <div className="s-num">S{i + 1}</div>
-                    <div className="s-name">{s.name}</div>
-                    <div className="s-marker"><span className="dot" /></div>
-                  </button>
-                  {progress[i]?.fromGroupware ? (
-                    // 영업·수주: 그룹웨어 상태로 자동 표시(바꾸지 않음)
-                    <span className="s-state s-state-gw" title="그룹웨어 프로젝트 상태를 따릅니다">
-                      {STATUS_LABEL[st]}
-                      <small>그룹웨어</small>
-                    </span>
-                  ) : (
-                  <button
-                    className="s-state s-state-btn"
-                    aria-haspopup="menu"
-                    aria-expanded={menuIdx === i}
-                    aria-label={`${label} 진행 상황: ${STATUS_LABEL[st]} — 눌러서 변경`}
-                    title="눌러서 진행 상황 변경"
-                    onClick={(e) => {
-                      const r = e.currentTarget.getBoundingClientRect()
-                      setMenuPos({ top: r.bottom + 4, left: r.left + r.width / 2 })
-                      setMenuIdx(menuIdx === i ? null : i)
-                      setNote('')
-                    }}
-                  >
-                    {STATUS_LABEL[st]}
-                  </button>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-          {menuIdx !== null && menuPos && list[menuIdx] && (() => {
-            const i = menuIdx
-            const st = statusOf(i)
-            const label = `S${i + 1} ${list[i].name}`
-            return (
-              <div className="s-menu" role="menu" aria-label={`${label} 진행 상황`} style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
-                {(['wait', 'run', 'done'] as ProgressStatus[]).map((k) => (
-                  <button
-                    key={k}
-                    role="menuitemradio"
-                    aria-checked={k === st}
-                    className={k === st ? 'on' : ''}
-                    disabled={save.isPending}
-                    onClick={() => (k === st ? setMenuIdx(null) : save.mutate({ stageId: list[i].id, label, from: st, to: k, note: note.trim() }))}
-                  >
-                    {k === st ? '✓ ' : ''}{STATUS_LABEL[k]}
-                    {st === 'done' && k === 'run' && <small> 재작업</small>}
-                  </button>
-                ))}
-                <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="사유(선택)" aria-label="변경 사유" />
-              </div>
-            )
-          })()}
-          {last && (
-            <p className="stage-last">
-              {last.label}: {STATUS_LABEL[last.from]} → {STATUS_LABEL[last.to]}{last.from === 'done' && last.to === 'run' ? ' (재작업)' : ''} 저장했습니다.{' '}
-              <button className="text-button" style={{ padding: 0 }} disabled={save.isPending}
-                onClick={() => save.mutate({ stageId: last.stageId, label: last.label, from: last.to, to: last.from, note: '되돌리기', undo: true })}>
-                되돌리기
-              </button>
-            </p>
+        <div className="panel-body">
+          {tab === '프로젝트 자료함' && <ProjectFilesTab projectId={pid} />}
+          {/* 자료함 도우미(사내 AI): 이 프로젝트 자료 목록을 보고 답한다 */}
+          {tab === '프로젝트 자료함' && !partner && (
+            <AgentPanel agent="project-docs" title="자료함 도우미" placeholder="자료에 대해 물어보세요"
+              context={() => [
+                `프로젝트: ${p.code} ${p.name} (${p.partnerName ?? '-'}) · 지금 단계: ${headStage}`,
+                `자료 ${files.data?.length ?? 0}건 (종류 | 단계 | 파일 | 폴더 | 올린 사람 | 날짜)`,
+                ...(files.data ?? []).slice(0, 400).map((f) => [f.category ?? '-', f.stage ?? '-', f.fileName, f.relPath ?? '', `${f.department ?? ''} ${f.uploadedByName ?? ''}`, f.uploadedAt.slice(0, 10)].join(' | ')),
+              ].join('\n')}
+              actions={[
+                { label: '자료 현황 요약', prompt: '이 프로젝트 자료를 종류별로 요약하고 최근 올라온 것을 알려줘' },
+                { label: '빠진 자료 짚기', prompt: '지금 단계에서 있어야 하는데 안 보이는 자료가 있는지 짚어줘' },
+                { label: '종류가 이상한 자료', prompt: '종류가 잘못 붙은 것 같은 자료가 있으면 알려줘' },
+              ]}
+              examples={['IP 리스트 어디 있어?', '현장 백업 최근 거 언제 올라왔어?', '사양서 최신 판이 뭐야?']} />
           )}
-          {save.error && <ErrorBox error={save.error} />}
+          {tab === '프로젝트 인원' && <ProjectMembersTab projectId={pid} />}
+          {tab === '프로젝트 진행 단계' && (
+            <div className="stage-panel">
+              <p className="dj-stage-note">
+                ① 영업·② 수주는 그룹웨어 상태를 따르고, ③~⑥은 PM이 아래 목록을 보고 바꿉니다.
+                {!hasPm && ' PM이 지정되지 않아 지금은 누구나 바꿀 수 있습니다.'}
+                {data.dyoneStage
+                  ? <> · 마지막 변경: <b>{data.dyoneStage.updatedByName ?? '알 수 없음'}</b>{data.dyoneStage.updatedByDept && ` (${data.dyoneStage.updatedByDept})`} · {dateTime(data.dyoneStage.updatedAt)}</>
+                  : ' · 아직 DY ONE에서 바꾼 적 없음(그룹웨어 상태 기준)'}
+              </p>
+              {/* D안: 6단계 큰 카드 — 진행 = 노랑 테두리·번호, 완료 = 파랑, 대기 = 회색, ①② 그룹웨어 출처 표시 */}
+              <div className="dj-stages">
+                {list.map((s, i) => {
+                  const st = statusOf(i)
+                  const label = `${s.name}`
+                  const gw = progress[i]?.fromGroupware
+                  return (
+                    <div key={s.id} className={`dj-step ${st}`}>
+                      <div className="dj-step-top">
+                        <span className="dj-step-num">{i + 1}</span>
+                        {gw && <span className="dj-step-src">그룹웨어</span>}
+                      </div>
+                      <b className="dj-step-name">{s.name}</b>
+                      {gw || !canStage ? (
+                        // 영업·수주: 그룹웨어 상태로 자동 표시(바꾸지 않음) · 협력사는 보기만
+                        <span className="dj-step-state" title={gw ? '그룹웨어 프로젝트 상태를 따릅니다' : 'PM이 바꿉니다'}>
+                          {STATUS_LABEL[st]}
+                        </span>
+                      ) : (
+                        <button
+                          className="dj-step-btn"
+                          aria-haspopup="menu"
+                          aria-expanded={menuIdx === i}
+                          aria-label={`${label} 진행 상황: ${STATUS_LABEL[st]} — 눌러서 변경`}
+                          title="눌러서 진행 상황 변경"
+                          onClick={(e) => {
+                            const r = e.currentTarget.getBoundingClientRect()
+                            setMenuPos({ top: r.bottom + 4, left: r.left + r.width / 2 })
+                            setMenuIdx(menuIdx === i ? null : i)
+                            setNote('')
+                          }}
+                        >
+                          {STATUS_LABEL[st]}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              {menuIdx !== null && menuPos && list[menuIdx] && (() => {
+                const i = menuIdx
+                const st = statusOf(i)
+                const label = list[i].name
+                return (
+                  <div className="s-menu" role="menu" aria-label={`${label} 진행 상황`} style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
+                    {(['wait', 'run', 'done'] as ProgressStatus[]).map((k) => (
+                      <button
+                        key={k}
+                        role="menuitemradio"
+                        aria-checked={k === st}
+                        className={k === st ? 'on' : ''}
+                        disabled={save.isPending}
+                        onClick={() => (k === st ? setMenuIdx(null) : save.mutate({ stageId: list[i].id, label, from: st, to: k, note: note.trim() }))}
+                      >
+                        {k === st ? '✓ ' : ''}{STATUS_LABEL[k]}
+                        {st === 'done' && k === 'run' && <small> 재작업</small>}
+                      </button>
+                    ))}
+                    <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="사유(선택)" aria-label="변경 사유" />
+                  </div>
+                )
+              })()}
+              {last && (
+                <p className="stage-last">
+                  {last.label}: {STATUS_LABEL[last.from]} → {STATUS_LABEL[last.to]}{last.from === 'done' && last.to === 'run' ? ' (재작업)' : ''} 저장했습니다.{' '}
+                  <button className="text-button" style={{ padding: 0 }} disabled={save.isPending}
+                    onClick={() => save.mutate({ stageId: last.stageId, label: last.label, from: last.to, to: last.from, note: '되돌리기', undo: true })}>
+                    되돌리기
+                  </button>
+                </p>
+              )}
+              {save.error && <ErrorBox error={save.error} />}
+              <PmDoneNote projectId={pid} show={isPm} lastChange={history.data?.find((h) => h.source !== 'groupware')?.changedAt} />
+              <ProgressJournalList projectId={pid} changes={changes} onWrite={partner || !isMember ? undefined : () => setTab('프로젝트 진행 일지')} />
+            </div>
+          )}
+          {tab === '프로젝트 진행 일지' && !partner && <ProjectJournalTab projectId={pid} currentStageCode={curIdx >= 0 ? list[curIdx].code : undefined} isMember={isMember} />}
+          {tab === '관련 업무' && !partner && <RelatedWork projectId={pid} projectCode={p.code} pmName={p.pmName} stages={list} />}
         </div>
       </section>
-
-      {/* 선택한 단계의 업무 기능(문서 업로드는 위 '프로젝트 파일' 탭에서) */}
-      {viewed && (
-        <section className="panel stage-feature-panel" style={{ marginBottom: 16 }}>
-          <div className="panel-head">
-            <div>
-              <h2>S{shownIdx + 1} {viewed.name}</h2>
-              <p>{relation} · {STAGE_FEATURE[viewed.code]?.title ?? '이 단계의 업무'}</p>
-            </div>
-            {shownIdx !== curIdx && curIdx >= 0 && (
-              <button className="text-button" onClick={() => setViewIdx(null)}>현재 단계로 →</button>
-            )}
-          </div>
-          <div className="panel-body">
-            <StageFeature key={viewed.id} stageCode={viewed.code} stage={viewed} projectId={pid} projectCode={p.code} onOpenFiles={() => openTab('프로젝트 파일')} />
-          </div>
-        </section>
-      )}
     </>
   )
 }
 
-const statusText = (s?: string) => (s && s in STATUS_LABEL ? STATUS_LABEL[s as ProgressStatus] : '-')
-const statusBadge = (s?: string) => (s === 'run' ? 'blue' : s === 'done' ? 'green' : '')
-
-/** 진행 상황 이력: 누가(부서·직위) · 언제 · 어떤 단계가 어떤 상태로(또는 예전 방식의 단계 이동) · 사유 */
-function StageHistoryList({ query, stages }: { query: { data?: StageHistoryItem[]; isLoading: boolean; error: unknown }; stages: Code[] }) {
-  if (query.isLoading) return <Loading />
-  if (query.error) return <ErrorBox error={query.error} />
-  const items = query.data ?? []
-  if (items.length === 0) return <div className="empty" style={{ padding: 40 }}>아직 DY ONE에서 단계를 바꾼 기록이 없습니다. 지금 단계는 그룹웨어 상태(영업중·수주)를 기준으로 보여 줍니다.</div>
-  const label = (id?: number, name?: string) => {
-    if (id == null || !name) return null
-    const i = stages.findIndex((s) => s.id === id)
-    return i >= 0 ? `S${i + 1} ${name}` : name
-  }
+/** PM에게: 마지막 단계 변경 뒤로 프로젝트 공유 일지가 '완료'된 것 — 단계를 바꿀지 확인 */
+function PmDoneNote({ projectId, show, lastChange }: { projectId: number; show: boolean; lastChange?: string }) {
+  const q = useQuery({ queryKey: ['journal', projectId], queryFn: () => api<JournalItem[]>(`/api/projects/${projectId}/journal`), enabled: show })
+  if (!show) return null
+  const done = (q.data ?? []).filter((x) => x.share === 'project' && x.status === 'done' && (!lastChange || x.updatedAt > lastChange))
+  if (done.length === 0) return null
   return (
-    <ol className="stage-history">
-      {items.map((h) => {
-        const from = label(h.fromStageId, h.fromStage)
-        const isStatus = !!h.toStatus
-        return (
-          <li key={h.id}>
-            <span className="dot" />
-            <div>
-              {h.source === 'groupware' ? (
-                // 그룹웨어 상태 동기화: '그룹웨어 상태  영업중 → 수주'
-                <div className="sh-change">
-                  <b className="sh-stage">그룹웨어 상태</b>
-                  <span className="badge">{h.gwFrom ?? '없음'}</span>
-                  <span className="sh-arrow">→</span>
-                  <span className="badge blue">{h.gwTo ?? '없음'}</span>
-                </div>
-              ) : isStatus ? (
-                // 단계별 진행 상황 변경: 'S4 설계·구매  완료 → 진행 · 재작업'
-                <div className="sh-change">
-                  <b className="sh-stage">{label(h.toStageId, h.toStage)}</b>
-                  <span className={`badge ${statusBadge(h.fromStatus)}`}>{statusText(h.fromStatus)}</span>
-                  <span className="sh-arrow">→</span>
-                  <span className={`badge ${statusBadge(h.toStatus)}`}>{statusText(h.toStatus)}</span>
-                  {h.fromStatus === 'done' && h.toStatus === 'run' && <span className="badge amber">재작업</span>}
-                </div>
-              ) : (
-                <div className="sh-change">
-                  {from ? <><span className="badge">{from}</span><span className="sh-arrow">→</span></> : <span className="sh-first">처음 지정</span>}
-                  <span className="badge blue">{label(h.toStageId, h.toStage)}</span>
-                </div>
-              )}
-              {h.note && <p className="sh-note">{h.note}</p>}
-              <small>
-                {h.source === 'groupware' ? '그룹웨어 동기화(매일 08:00)' : h.changedByName ?? '알 수 없음'}
-                {h.changedByPosition && ` ${h.changedByPosition}`}
-                {h.changedByDept && ` · ${h.changedByDept}`} · {dateTime(h.changedAt)}
-              </small>
-            </div>
-          </li>
-        )
-      })}
-    </ol>
+    <div className="stage-pm-note">
+      <span style={{ flex: 1 }}>마지막 단계 변경 뒤로 완료된 일 {done.length}건: {done.map((x) => `${x.department ?? ''} ${x.authorName ?? ''} — ${x.body.split('\n')[0]}`).join(' / ')}</span>
+      <span className="small">단계를 바꿀지 확인하세요</span>
+    </div>
   )
 }

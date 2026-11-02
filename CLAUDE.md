@@ -26,7 +26,7 @@
 ## 상시 규칙 (매 작업 자동 적용)
 
 - **커밋·푸시는 사용자의 명시적 승인 후에만.** 변경 후 "커밋/푸시할까요?"로 멈추고 대기한다.
-- **쓰기 대상은 `dyone` DB 하나뿐** — 로컬 복사본(localhost:5433)과 운영(192.168.30.111:12678). 그 안의 `org.*`·`project.project`·`sync.*`만. **다른 DB(KIA_HWASUNG4 등)는 쓰기는 물론 조회도 함부로 하지 않는다.**
+- **쓰기 대상은 `dyone` DB 하나뿐** — 로컬 복사본(localhost:5433)과 운영(192.168.30.111:12678). 그 안의 `org.*`·`project.project`·`project.project_member`·`partner.*`·`sync.*`만(`partner.*` 명단은 Worker, 비밀번호·로그인 중지는 API 관리자 화면). **다른 DB(KIA_HWASUNG4 등)는 쓰기는 물론 조회도 함부로 하지 않는다.**
 - **그룹웨어(tims)·ERP(NEOE)는 조회 전용.** dyone 쓰기는 미러 Worker만 수행.
 - **운영 비밀번호는 직접 입력하지 않는다.** 로컬 개발 호스트(localhost 등)만 예외. 비밀값은 user-secrets/환경변수로 두고 저장소에 넣지 않는다.
 - **보고는 추측이 아니라 데이터·스크린샷으로 검증해서** 한다. 안 된 건 안 됐다고 분명히.
@@ -38,4 +38,5 @@
 
 - 저장소: `E:\dy-one-internal` (내부용). 참고용 팀장님 클론: `E:\dyone-pilot`(운영 ERP/WMS/Works 직결, 수정 금지).
 - dyone DB 정본 = Docker `dyone_db`(PG18, localhost:5433). API 읽기전용, Worker만 미러 쓰기.
+- **참고 문서 = `docs/`** ([docs/README.md](docs/README.md)). 기능을 만들거나 분석하기 전에 관련 문서를 먼저 읽고, 새로 분석·정리한 결과(근거·규칙의 이유)도 여기에 남긴다. 예: 사양서 부서별 확인 항목 → `docs/spec-dept/`.
 - GW 프로젝트 상태(영업중/수주/마감/중단)의 진짜 출처 = ERP `WS_B_BSNSS_MAIN.WS_CM00008`(영업 단계) → 코드마스터 디코딩 → 매일 배치로 그룹웨어 applet285에 기록. `SA_PROJECTH.STA_PROJECT`(승인/진행/완료)와는 다른 필드.

@@ -50,7 +50,7 @@
 
 ## 3b. dyone 자체 프로젝트 상태(단계) — 스키마 (.111)
 로컬(5433)에만 생성됨. 운영(.111)에도 동일 생성 필요:
-- [ ] 코드 그룹 + 단계 코드셋: **`server/db/seed_reference_codes.sql` 실행**(현재 로컬 기준값: 영업·수주·설계·구매·모듈라·OLT·출하·현장 설치·시운전·인수·라인 대응·종료 + 사용 안 함 spec, 문서 분류 7종)
+- [ ] 코드 그룹 + 단계 코드셋: **`server/db/seed_reference_codes.sql` 실행**(현재 로컬 기준값: 영업·수주·설계·검토·모듈라·현장·라인 대응·종료 + 사용 안 함 spec·ship·commission, 문서 분류 17종 — 2026-10-30)
   - ⚠️ (2026-10-14 정정) 예전에 여기 적혀 있던 코드 SQL(`sales`, `done` 등)은 **옛 체계라 쓰면 안 된다.** 시드 스크립트만 쓴다.
 - [ ] dyone 상태 테이블:
   ```sql
@@ -86,12 +86,37 @@
 - [ ] (선택) 사내 AI 키 `Llm:ApiKey`(user-secrets/환경변수) — 없으면 규칙 초안(빈 칸·기타 사항은 사람이 채움)
 - 이전 판(pilot 이식본, `spec` 스키마)은 2026-10-15 삭제 — 운영 적용할 것 없음. 백업은 side-session-notes
 
+## 3e. 프로젝트 상세 개편 — 6단계·자료 공유 범위·직접 입력 종류·진행 일지 (2026-10-30 로컬 적용)
+- [ ] 운영 dyone(.111)에 `server/db/project_docs_v2.sql` 적용 — `project_stage_v2.sql`·`project_files_schema.sql` 다음, **API 배포 전**
+  - 적용 전 운영에서 `select c.code, s.status, count(*) from project.project_stage_status s join code.code c on c.id = s.stage_id group by 1,2` 로 출하·시운전 행 수를 확인해 두고, 적용 후 '현장'에 합쳐졌는지 비교
+  - 기존 자료는 `share = project`(지금까지처럼 모두에게 보임). 새로 올리는 자료는 화면 기본값 '개인'
+- [ ] 운영 dyone 접속 계정에 `project.project_category`·`project.project_journal` **INSERT/UPDATE 권한**(project_file과 같은 방식)
+- [ ] `seed_reference_codes.sql`도 6단계·17종류 값으로 맞춰 둠(2026-10-30) — seed를 다시 돌려도 옛 이름으로 돌아가지 않음
+- [ ] 로컬 시험 데이터('[시험]' 일지·'[시험] 도장 조건표' 종류·업로드 자료)는 옮기지 않는다
+- [ ] (같은 스크립트) 폴더째 올리기 `project_file.bundle_id`·`rel_path` — 실물은 `FileStorage:Root\projects\<프로젝트>\<종류>\<맨 위 폴더>\…`로 폴더 구조를 지켜 저장. 묶음 ZIP 내려받기는 API 서버 **임시 폴더(%TEMP%)에 ZIP을 만들고 보낸 뒤 지운다** → 운영 API 서버 임시 폴더 여유 공간(가장 큰 묶음 크기 이상) 확인
+- [ ] 자료 종류 = NAS 13칸 + 현장 백업(14개). 13칸에 없던 옛 코드(contract·robot_sim·electric·photo·line)는 사용 안 함 — 운영엔 해당 코드로 올린 자료가 없어야 정상
+- [ ] (나중) 오피스·DWG 미리 보기: 운영 API 서버에 변환 도구(LibreOffice·ODA File Converter 등) 설치 + 설정키 — 아직 기능 없음(화면은 '변환 준비 중' 안내)
+
+## 3g. 사내 AI 공통 환경 (2026-10-30 로컬)
+- [ ] 운영 API에 환경변수 `Llm__ApiKey`(Worker와 같은 키) — 저장소·설정 파일에 넣지 않는다. `Llm:BaseUrl`·`Llm:Model`은 운영 appsettings
+- [ ] 운영 API 서버 → `192.168.11.146:18101` 접속 가능한지(방화벽). 배포 후 `GET /api/ai/status`가 `configured: true`인지
+- [ ] 자료함에서 파일 몇 개 끌어다 놓아 '✦ 종류: 사내 AI'와 'AI 확신' 표시가 나오는지, 자료함 도우미 창이 답하는지
+
 ## 3f. 수담푸드 메뉴 (2026-10-30 로컬, DB 변경 없음)
 - [ ] 운영 Worker 설정 `SudamMenu`(SourceUrl·Times) + `FileStorage:Root`를 **API와 같은 값**으로, Worker 계정에 `_meals` 폴더 쓰기 권한
 - [ ] 운영 Worker 서버에서 외부 인터넷 `m.site.naver.com`·`qrcodethumb-phinf.pstatic.net` 접속 가능한지(방화벽·프록시)
 - [ ] 운영 Worker에 사내 AI `Llm:BaseUrl`·`Llm:Model`·`Llm:ApiKey` — 모델이 이미지 입력을 받는지 확인. 없으면 화면은 원본 이미지로만 보임
 - [ ] 배포 후 Worker `RunOnStartup` 한 번(또는 다음 확인 시각) → `_meals\sudam.json`의 `extracted: true`·`days` 5일 확인, 화면 '수담푸드 메뉴'에서 원본 이미지와 글자 대조
 - [ ] (권장) 수담푸드에 사내 게시·자동 수집 양해
+
+## 3g. 협력사 로그인 · API 기본 차단 (2026-10-30 로컬, DEPLOY.md 14장)
+- [ ] 운영 dyone(.111)에 `server/db/partner.sql` 적용 — **API 배포 전**(project_member.sql 다음). 데이터 없음
+- [ ] 운영 DB 접속 계정에 `partner.company`·`partner.person` SELECT/UPDATE, `project.project_member` 새 칸 권한. Worker 쓰기 계정에 `partner.*` INSERT/UPDATE
+- [ ] 운영 Worker 설정 `PartnerSync`(DailyAt 08:10, BookId 15) → 배포 후 1회 실행해 `select company_id, count(*) from partner.person where is_active group by 1` 확인(로컬 기준 71:77 · 72:19 · 439:17 · 450:14 · 640:6)
+- [ ] 운영 관리자 화면 `/admin/partners`에서 5개 회사 공용 비밀번호 입력(로컬 해시 복사 금지)
+- [ ] 배포 후 직원 로그인·홈·프로젝트·조직도·SmartLab 임베드가 그대로인지(기본 정책이 직원 전용으로 바뀜). 옛 토큰으로 접속 중인 직원도 그대로여야 함
+- [ ] 로컬 시험 배정 행(task '[시험]…')은 운영에 없어야 함 — `check_prod_clean.sql`에 넣을지 검토
+- [ ] (5단계) 현장 협력사 외부 접속 방식(https 리버스 프록시 vs VPN) 결정
 
 ## 3e. 조직도 · 프로젝트 인원(PM·투입 인원) (2026-10-15 로컬 적용)
 - [ ] **결정 필요**: DY ONE 전용 테이블 추가 → 스키마 소유자(팀장님) 확인 후 운영 적용

@@ -10,6 +10,6 @@ public class AuditLog(ILogger<AuditLog> logger, IHttpContextAccessor http)
     {
         var user = http.HttpContext?.User is { Identity.IsAuthenticated: true } p ? p.Current() : null;
         logger.LogInformation("AUDIT {Action} {Entity}:{EntityId} by {UserId}({UserName}) · {Summary}",
-            action, entity, entityId, user?.Id ?? "system", user?.Name ?? "system", summary);
+            action, entity, entityId, user is null ? "system" : user.IsPartner ? $"partner:{user.Id}" : user.Id, user?.Name ?? "system", summary);
     }
 }

@@ -1,0 +1,135 @@
+/*
+ * D안 세부 디자인(2026-11-02) — 홈 · MotoSim · 수담푸드 메뉴 · 협력사 관리.
+ * 색 토큰(--blue · --sky · --point · --ink · --muted · --line)은 theme-d.css. 이 파일의 새 클래스는 dm- 접두사.
+ */
+
+/* ── 홈 ── */
+.dm-home { display: flex; flex-direction: column; gap: 20px; }
+.dm-cust { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+.dm-cust-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dm-cust-head > span { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.dm-cust-head h2 { margin: 0; font-size: 15px; }
+.dm-big { font-size: 30px; font-weight: 700; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.dm-cust-head small { color: var(--muted); font-size: 13px; }
+.dm-bar { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; background: #EEF2F8; }
+.dm-bar span { display: block; flex-grow: 0; flex-shrink: 0; }
+.dm-cust-nums { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.dm-cust-nums button { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 0; border-radius: 9px; background: #F7F9FC; text-align: left; cursor: pointer; }
+.dm-cust-nums button:hover { background: #EEF4FC; }
+.dm-cust-nums span { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.dm-cust-nums i { width: 8px; height: 8px; border-radius: 2px; }
+.dm-cust-nums b { font-size: 20px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dm-home-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.dm-list { overflow: hidden; }
+.dm-list-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px 6px; flex-wrap: wrap; }
+.dm-list-head > span { display: flex; align-items: center; gap: 8px; }
+.dm-list-head h2 { margin: 0; font-size: 15px; }
+.dm-list-head em { font-style: normal; font-size: 12px; color: var(--muted); background: #EEF2F8; border-radius: 4px; padding: 1px 6px; }
+.dm-list-head small { font-size: 12px; color: var(--muted); }
+.dm-list-sub { margin: 0; padding: 0 20px 10px; font-size: 12px; color: var(--muted); }
+.dm-hrow { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 20px; border: 0; border-top: 1px solid #F2F4F7; background: #fff; text-align: left; cursor: pointer; }
+.dm-hrow:hover { background: #F7FAFE; }
+.dm-hrow-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.dm-hrow-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.dm-hrow-top b { font-weight: 600; font-size: 14px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-hrow small { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-code { flex: none; font-size: 12px; font-weight: 600; color: var(--blue); font-variant-numeric: tabular-nums; }
+.dm-tag { flex: none; font-size: 11px; padding: 1px 6px; border-radius: 5px; background: #F2F4F7; color: var(--muted); }
+.dm-tag.pm { background: #FFF6BF; color: #6B5300; font-weight: 700; }
+.dm-stage { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); white-space: nowrap; }
+.dm-stage i { width: 7px; height: 7px; border-radius: 4px; }
+.dm-stage em { font-style: normal; font-size: 11px; font-weight: 600; color: #15803D; }
+.dm-stage.dim { color: #98A2B3; }
+.dm-empty { padding: 28px 20px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.7; border-top: 1px solid #F2F4F7; }
+.dm-services { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.dm-services button { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; text-align: left; cursor: pointer; }
+.dm-services button:hover { border-color: #B9CDF2; }
+.dm-services button > span:first-child { width: 40px; height: 40px; border-radius: 10px; background: #EAF2FC; color: var(--blue); display: grid; place-items: center; flex: none; }
+.dm-services b { display: block; font-size: 14px; color: var(--ink); }
+.dm-services small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+@media (max-width: 1050px) { .dm-home-grid { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  .dm-cust-nums { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dm-services { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dm-hrow { padding: 10px 14px; }
+  .dm-hrow-top { flex-wrap: wrap; }
+  .dm-hrow-top b { white-space: normal; flex-basis: 100%; order: 2; }
+}
+
+/* ── MotoSim ── */
+.dm-ms .ms-header .ms-btn, .dm-ms .ms-header .ms-ghost { display: inline-flex; align-items: center; gap: 6px; }
+.dm-ms .ms-btn.blue small.dm-only { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--point); color: var(--navy); }
+.dm-ms .ms-web-note.dm-note { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid #F5DC6B;
+  background: #FFF9D9; color: #5C4800; font-size: 13px; }
+.dm-ms .ms-web-note.dm-note svg { color: #8A6D00; flex: none; }
+.dm-ms .dm-folder { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: #EAF2FC; font-size: 0; }
+.dm-ms .dm-folder .fb { fill: #0056B9; }
+.dm-ms .dm-folder .ff { fill: #9CC9FF; }
+.dm-ms .ms-row.dm-zero .ms-name { color: #98A2B3; }
+.dm-ms .ms-row.dm-zero .dm-folder { background: #F2F4F7; }
+.dm-ms .ms-row.dm-zero .dm-folder .fb { fill: #98A2B3; }
+.dm-ms .ms-row.dm-zero .dm-folder .ff { fill: #D0D5DD; }
+.dm-ms .ms-count { font-variant-numeric: tabular-nums; }
+.ms-hub .ms-hub-card { border-radius: 14px; border: 1px solid var(--line); box-shadow: none; }
+.ms-hub .ms-hub-card-head h3 { font-size: 15px; }
+.ms-hub .ms-empty { color: var(--muted); font-size: 13px; padding: 16px 0; }
+
+/* ── 수담푸드 메뉴 ── */
+.dm-meals .meal-days.dm-days, .dm-meals .meal-days { gap: 8px; }
+.dm-meals .meal-days button { border-radius: 999px; height: 38px; padding: 0 16px; border-color: var(--line); }
+.dm-meals .meal-days button.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 700; }
+.dm-meals .meal-today, .dm-meals .meal-days button.active .meal-today { background: var(--point); color: var(--navy); font-weight: 700; }
+.dm-meals .meal-card .meal-head { align-items: flex-start; }
+.dm-meal-main { display: flex; flex-direction: column; gap: 2px; margin-left: auto; text-align: right; }
+.dm-meal-main small { font-size: 12px !important; font-weight: 700; color: var(--blue); }
+.dm-meal-main b { font-size: 26px; font-weight: 700; letter-spacing: -.6px; color: var(--ink); }
+.dm-meals .meal-week { gap: 0; padding: 0; margin: 0 18px 20px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.dm-meals .meal-week-day { border: 0; border-right: 1px solid var(--line); border-radius: 0; padding: 0 0 10px; }
+.dm-meals .meal-week-day:last-child { border-right: 0; }
+.dm-meals .meal-week-day strong { display: block; padding: 10px 12px; margin: 0 0 6px; background: #F9FAFB; border-bottom: 1px solid var(--line); }
+.dm-meals .meal-week-day span { padding: 3px 12px; font-size: 13px; }
+.dm-meals .meal-week-day.today { background: #FFFBE6; }
+.dm-meals .meal-week-day.today strong { background: var(--point); color: var(--navy); }
+.dm-meals .meal-week-day.active { box-shadow: inset 0 0 0 2px var(--blue); }
+
+/* ── 협력사 관리 ── */
+.dm-partners { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+.dm-p-table { overflow: hidden; }
+.dm-p-head { padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.dm-p-head h2 { margin: 0 0 4px; font-size: 16px; }
+.dm-p-head h2 em { font-style: normal; color: var(--muted); font-weight: 500; }
+.dm-p-head small { font-size: 12px; color: var(--muted); }
+.dm-p-table table { min-width: 720px; }
+.dm-p-table td { vertical-align: middle; }
+.dm-p-table .r { text-align: right; }
+.dm-p-table .num { font-variant-numeric: tabular-nums; }
+.dm-p-table tr.dm-off td { color: #98A2B3; }
+.dm-strong { color: var(--blue) !important; font-weight: 700; }
+.dm-dim { color: #98A2B3; }
+.dm-sub { color: var(--muted); }
+.dm-dot { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; flex-wrap: wrap; }
+.dm-dot::before { content: ""; width: 7px; height: 7px; border-radius: 4px; background: currentColor; }
+.dm-dot small { flex-basis: 100%; padding-left: 13px; font-weight: 400; font-size: 11px; color: var(--muted); }
+.dm-dot.ok { color: var(--ink); }
+.dm-dot.ok::before { background: var(--blue); }
+.dm-dot.on { color: #15803D; }
+.dm-dot.no { color: #B42318; }
+.dm-stop { height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid #FDA29B; background: #fff; color: #B42318; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.dm-stop:hover { background: #FEF3F2; }
+.dm-btn { height: 32px; padding: 0 10px; font-size: 12px; white-space: nowrap; }
+.dm-p-pw { padding: 20px; display: flex; flex-direction: column; gap: 12px; position: sticky; top: 80px; }
+.dm-p-pw-title { display: flex; align-items: center; gap: 10px; }
+.dm-p-pw-title h2 { margin: 0; font-size: 16px; }
+.dm-lock { width: 36px; height: 36px; border-radius: 10px; background: #FFF6BF; color: #6B5300; display: grid; place-items: center; flex: none; }
+.dm-p-pw p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.7; }
+.dm-picked { padding: 10px 12px; border-radius: 10px; background: #F7F9FC; font-size: 13px; color: var(--muted); }
+.dm-picked b { color: var(--ink); }
+.dm-p-pw form { display: flex; flex-direction: column; gap: 10px; }
+.dm-p-pw label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #344054; }
+.dm-p-pw input { height: 44px; border-radius: 10px; }
+.dm-p-pw .primary { height: 44px; }
+.dm-ok { color: #15803D !important; }
+@media (max-width: 1050px) {
+  .dm-partners { grid-template-columns: 1fr; }
+  .dm-p-pw { position: static; }
+}

@@ -8,18 +8,18 @@ insert into code.code_group (key, name) values
   ('document_category', '문서 분류')
 on conflict (key) do update set name = excluded.name;
 
--- ---------------------------------------------------------------- 진행 단계 (S1~S8)
--- S1 영업·S2 수주는 그룹웨어 상태로 표시, S3~S8은 DY ONE에서 관리. spec(사양 검토·견적)은 옛 코드라 사용 안 함으로 둔다.
+-- ---------------------------------------------------------------- 진행 단계 (①~⑥, 2026-10-30 project_docs_v2.sql)
+-- ① 영업·② 수주는 그룹웨어 상태로 표시, ③~⑥은 DY ONE에서 PM이 관리. 옛 코드(spec·ship·commission)는 지난 이력이 가리켜 사용 안 함으로 둔다.
 with v(code, name, sort_order, is_active) as (values
   ('opportunity', '영업',            1, true),
   ('order',       '수주',            2, true),
-  ('design',      '설계·구매',       3, true),
-  ('modula',      '모듈라·OLT',      4, true),
-  ('ship',        '출하',            5, true),
-  ('install',     '현장 설치',       6, true),
-  ('commission',  '시운전·인수',     7, true),
-  ('line',        '라인 대응·종료',  8, true),
-  ('spec',        '사양 검토·견적', 90, false)
+  ('design',      '설계·검토',       3, true),
+  ('modula',      '모듈라',          4, true),
+  ('install',     '현장',            5, true),
+  ('line',        '라인 대응·종료',  6, true),
+  ('spec',        '사양 검토·견적', 90, false),
+  ('ship',        '출하',           91, false),
+  ('commission',  '시운전·인수',    92, false)
 ), upd as (
   update code.code c set name = v.name, sort_order = v.sort_order, is_active = v.is_active
   from v where c.group_key = 'project_stage' and c.code = v.code
@@ -29,15 +29,23 @@ insert into code.code (group_key, code, name, sort_order, is_active)
 select 'project_stage', v.code, v.name, v.sort_order, v.is_active from v
 where not exists (select 1 from code.code c where c.group_key = 'project_stage' and c.code = v.code);
 
--- ---------------------------------------------------------------- 문서 분류
+-- ---------------------------------------------------------------- 문서 분류(자료 종류) = NAS 프로젝트 폴더 13칸 + 현장 백업 (2026-10-30)
+-- 13칸에 없는 옛 코드(contract·robot_sim·electric·photo·line)는 project_docs_v2.sql이 사용 안 함으로 둔다
 with v(code, name, sort_order) as (values
-  ('spec',   '사양서',      0),
-  ('quote',  '견적',        1),
-  ('design', '설계',        2),
-  ('modula', '모듈라',      3),
-  ('line',   '라인 대응',   4),
-  ('report', '보고·회의록', 5),
-  ('etc',    '기타',        9)
+  ('quote',      '제안서',          1),
+  ('spec',       '사양서',          2),
+  ('schedule',   '수행 계획서',     3),
+  ('design',     '도면',            4),
+  ('modula',     '모듈라빌드',      5),
+  ('teach',      '티칭 DATA',       6),
+  ('plc',        'PLC DATA',        7),
+  ('hmi',        'HMI DATA',        8),
+  ('commission', '커미셔닝 DATA',   9),
+  ('manual',     '매뉴얼',         10),
+  ('report',     '회의록',         11),
+  ('final',      '완료보고서',     12),
+  ('etc',        '기타자료',       13),
+  ('backup',     '현장 백업',      14)
 ), upd as (
   update code.code c set name = v.name, sort_order = v.sort_order, is_active = true
   from v where c.group_key = 'document_category' and c.code = v.code

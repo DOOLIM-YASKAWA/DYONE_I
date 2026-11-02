@@ -46,6 +46,8 @@
 | `org_contact.sql` | 직원 연락처 테이블(휴대폰·직통, 2026-10-15) | ✅ 적용(데이터는 운영 Worker가 그룹웨어에서) |
 | `org_history.sql` | 직원 소속·부서 이름 이력 테이블(부서 자동 부여 P1, 2026-10-28) | ✅ 적용(데이터 없음 — 운영 Worker가 적용 다음 날부터 날마다 기록하고, 처음 한 번 그룹웨어 결재·부서 정보로 그 이전을 채움). 로컬 이력을 옮기지 않음 |
 | `project_member.sql` | 프로젝트 인원(PM·투입 인원) 테이블 (2026-10-15) | ✅ 적용(데이터 없음 — 로컬에서 지정한 PM·인원은 시험 데이터라 옮기지 않음). **운영 적용 전 스키마 소유자(팀장님) 확인** |
+| `partner.sql` | 협력사 미러(`partner.company`·`partner.person`) + `project.project_member.partner_person_id`(2026-10-30) | ✅ 적용(데이터 없음 — 명단은 운영 Worker `partner-sync`가 주소록에서, 공용 비밀번호는 **운영 관리자 화면에서 새로** 넣는다). 로컬 비밀번호 해시·시험 배정 행(협력사 1명 → 프로젝트 1건)은 옮기지 않음. **API 배포 전에 먼저 적용**(로그인·프로젝트 목록이 partner 표를 읽음) |
+| `project_docs_v2.sql` | 프로젝트 상세 개편(2026-10-30): 진행 단계 8→6(출하·시운전 → 현장, 코드는 사용 안 함), 자료 종류 7→17(기준 코드), `project.project_category`(프로젝트별 직접 입력 종류), `project_file.share`·`project_category_id`, `project.project_journal`(진행 일지) | ✅ 적용(표·칼럼·기준 코드만. 단계 상태 합치기는 운영 기존 행에 그대로 적용됨 — 운영 출하·시운전 상태 행이 '현장'으로 합쳐짐). 로컬 '[시험]' 일지·직접 입력 종류·업로드 자료는 옮기지 않음. **API 배포 전에 먼저 적용**(자료 목록·일지 API가 새 칼럼·표를 읽음) |
 | `demo_memo.sql` | 데모 기간 화면 메모 | ❌ 운영에서는 기능 꺼짐(`DemoMemo:Enabled=false`) — 적용하지 않거나 데이터 없이 |
 
 ---
@@ -94,6 +96,7 @@
 | `FileStorage__Root` | 업로드 문서 저장 경로 | `E:\dy-one-internal\.filestore` | **사내 NAS UNC(예 `\\nas\dyone-files`) — 실제 경로 미정** |
 | `ConnectionStrings__DyOneWrite`(+`DyOneWriteProd`) + `*__Password` | Worker/쓰기 대상 | user-secrets(로컬) | 운영 .111 + 비번 |
 | `Gw__Password` | Worker 그룹웨어 읽기 | user-secrets | 운영 시크릿 |
+| `Auth__PartnerTokenMinutes` | 협력사 토큰 만료(분) | 기본 240(직원 480) | 그대로 또는 더 짧게 |
 | (SmartLab) `SLAB_SECRET`, `DYONE_SSO_SECRET`, `PG*` | SmartLab 서버 | 로컬 임시값 | 운영 시크릿(아래 7장) |
 
 ---
@@ -102,7 +105,7 @@
 
 - **읽기**: API는 `ConnectionStrings:DyOne`(읽기 전용, `default_transaction_read_only=on`). 운영은 `.111:12678`.
 - **쓰기(dyone 자체 데이터만)**: 사용자 편집(진행 단계·프로젝트 문서 등)은 읽기 연결에서 read-only 옵션만 제거해 쓴다. Worker 미러 적재는 `DyOneWrite`/`DyOneWriteProd`.
-- ⚠️ **운영 DB 접속 계정에 아래 테이블 INSERT/UPDATE 권한 필요**: `project.project_stage`, `project.project_file`, `project.project_member`(+ 앞으로 추가되는 dyone 자체 테이블), 미러 테이블 전체.
+- ⚠️ **운영 DB 접속 계정에 아래 테이블 INSERT/UPDATE 권한 필요**: `project.project_stage`, `project.project_file`, `project.project_member`, `partner.company`(공용 비밀번호 해시·로그인 중지)·`partner.person`(마지막 로그인)(+ 앞으로 추가되는 dyone 자체 테이블), 미러 테이블 전체.
 
 ---
 
@@ -120,6 +123,8 @@
 | **프로젝트 인원(PM·투입 인원)** | `project.project_member`(조직도 `org.employee` 참조) | `server/db/project_member.sql` |
 | **직원 연락처(휴대폰·직통)** | `org.employee_contact`(Worker 조직도 동기화가 채움) — API 배포 전 필수 | `server/db/org_contact.sql` |
 | **소속·부서 이력(부서 자동 부여)** | `org.employee_dept_history`·`org.department_history`(Worker 조직도 동기화가 채움, 표가 없으면 건너뜀). 운영은 적용한 날이 sync 이력 시작일이 되고 그 이전은 결재 근사 이력 | `server/db/org_history.sql` |
+| **협력사(주소록 미러 + 공용 비밀번호)** | `partner.company`·`partner.person` + `project.project_member.partner_person_id`(employee_id nullable, 둘 중 하나 check) — API 배포 전 필수 | `server/db/partner.sql` |
+| **프로젝트 상세 개편(6단계·자료 공유 범위·직접 입력 종류·진행 일지)** | `project.project_category`·`project.project_journal` + `project.project_file.share`·`project_category_id` + 단계·자료 종류 기준 코드 — API 배포 전 필수 | `server/db/project_docs_v2.sql` |
 | **MotoSim(런처 이관)** | `motosim.*`(Cell 파일 이력·NAS 업로드 조각·공지·활동·Drive 폴더 매핑·즐겨찾기·런처 권한·플러그인 버전) — API 배포 전 필수. NAS 폴더 규칙·프록시 크기 제한은 DEPLOY-PENDING. 이력은 전환 직전 `E:\dy-one\etl\etl-motosim.mjs --allow-prod`로 복사(DEPLOY-PENDING) | `server/db/motosim_schema.sql` |
 
 > ⚠️ `source_updated_at` 컬럼을 **먼저** 안 만들면 Worker 운영 적재(MERGE)가 실패한다.
@@ -160,6 +165,7 @@
   - `WriteTargets__1=DyOneWriteProd` 추가 + `ConnectionStrings__DyOneWriteProd`(.111) + `DyOneWriteProd__Password`.
   - `Gw__Password`(그룹웨어 읽기) 시크릿.
   - **매일 08:00 자동 적재**가 필요하면 운영 서버에 Worker를 **서비스로 상주**(Project/Org Sync `DailyAt=08:00`, Modular/Works Sync는 `IntervalMinutes=1`로 상시 변경 감지).
+  - 협력사 명단 `PartnerSync`(`DailyAt=08:10`, `BookId=15` 그룹웨어 회사 공용 주소록) — `partner.sql` 적용 전에는 건너뜀.
 - ⚠️ 5장 `source_updated_at` 적용 **후에만** 운영 타깃 포함 실행.
 
 ---
@@ -211,7 +217,7 @@
 | `Spec:LibraryCache`·`Spec:EquipmentCache` | 비움 → `FileStorage:Root\_spec\library.json`·`equipment.json` | 같음. **API와 Worker가 같은 경로**여야 함, 두 계정 모두 쓰기 가능 |
 | `Spec:PythonPath` | `python` (PyMuPDF·python-pptx 설치됨) | PDF 표 인식·초안 pptx·사양서 쪽 그림에 필요. 없으면 PDF는 .NET(PdfPig) 대체, pptx·쪽 그림은 안 됨 |
 | PDF가 아닌 사양서(pptx·xlsx·docx) | 이 PC의 Microsoft Office(COM, pywin32)로 PDF로 바꿔 `{저장 파일}.view.pdf`로 둠(한 번만, 약 20초) | API 서비스 계정에서 Office COM이 안 되면 **LibreOffice 설치 + `Spec:SofficePath`**(soffice.exe 경로). 둘 다 없으면 글만 읽고 쪽 그림·하이라이트 없음 |
-| `Llm:BaseUrl`·`Llm:Model`·`Llm:ApiKey` | BaseUrl·Model은 appsettings, **ApiKey 없음**(user-secrets) → 규칙 초안 | 사내 AI 키(user-secrets/환경변수). 없으면 규칙 초안 |
+| `Llm:BaseUrl`·`Llm:Model`·`Llm:ApiKey` | BaseUrl·Model은 appsettings, ApiKey는 API user-secrets(2026-10-30 Worker와 같은 키 넣음) | 사내 AI 키(user-secrets/환경변수 `Llm__ApiKey`). 없으면 규칙 초안 · 자료 종류는 규칙만 · 화면 AI 에이전트 꺼짐 |
 | Worker `SpecIndex` | `DailyAt 03:00`, `RunOnStartup false` + Worker에도 `Spec:*`·`FileStorage:Root` 설정 | 같음 |
 | 색인 만들기 | Worker 매일 + 화면 '다시 읽기'(관리자만)(라이브러리 수 분, 설비 이력 NAS 프로젝트 약 1,100개 수 분) | 배포 직후 1회 버튼 또는 Worker `RunOnStartup` 한 번 |
 
@@ -235,4 +241,33 @@
 
 ---
 
+## 14. 협력사 로그인 · API 기본 차단 (2026-10-30, docs/partner-access)
+
+- **API 기본 차단**: 인증 Default·Fallback 정책 = `staff`(직원 전용). 협력사 토큰(`kind=partner`)은 `.PartnerAllowed()`를 붙인 9개 API(내 정보·기준 코드·배정된 프로젝트 목록/상세/단계 이력/인원/자료 목록·내려받기)만 통과하고, 배정 안 된 프로젝트는 404. 개발 환경은 시작할 때 허용 목록과 실제가 같은지 로그로 확인(`ProjectAccess`). kind 없는 옛 토큰은 직원으로 본다 → 배포해도 직원 로그인이 끊기지 않음.
+- **협력사 로그인**: 아이디 = 그룹웨어 주소록 이메일(`partner.person`), 비밀번호 = 회사 공용 비밀번호(`partner.company.password_hash`, 해시만). 주소록에 있고·회사 로그인 중지가 아니고·**배정된 진행 프로젝트가 1개 이상**일 때만. 계정별 5회 실패 15분 잠금(메모리 — API 재시작 시 풀림), 토큰 240분.
+- **관리자 화면** `/admin/partners`(관리자 = `access.app_employee` app_key='*'): 회사별 공용 비밀번호 설정·교체, 회사 로그인 중지.
+- 이번 단계에서 협력사는 **보기만**(올리기·단계 변경·인원 배정은 4단계). 협력사 배정 화면이 아직 없어 운영에서는 4단계 전까지 실제로 로그인할 수 있는 협력사가 없다.
+
+| 항목 | 로컬 | 운영 |
+|---|---|---|
+| 스키마 | `partner.sql` 적용(2026-10-30) | API 배포 전 적용 |
+| 명단 | Worker 1회 실행 — 5개 회사 133명(구매처 0명, 이메일 없는 1명·우리 직원 1명 제외) | 운영 Worker `partner-sync`가 채움(로컬 복사 X) |
+| 공용 비밀번호 | 5개 회사 같은 초기값(사용자 결정, 값은 저장소에 없음) | **운영 관리자 화면에서 새로 입력**. DB 복사 금지 |
+| 시험 배정 | 협력사 1명 → 프로젝트 1건(`project_member.task`가 '[시험]'로 시작) | ❌ 옮기지 않음 |
+| 외부 접속 | 사내망만 | 현장 협력사용 https/VPN — 미정(5단계) |
+
+---
+
 *갱신: 새 기능·설정 변경 때마다 이 표와 DEPLOY-PENDING을 같이 수정할 것.*
+
+## 15. 사내 AI 공통 환경 (2026-10-30)
+- 서버 공통 클라이언트 `Platform/Llm.cs`(DI 싱글턴) — 모든 AI 기능은 이것으로 부른다. 설정은 `Llm:BaseUrl`·`Llm:Model`·`Llm:ApiKey`(위 12장과 같은 값). 생각 과정 끔(`enable_thinking=false`), 기능별 걸린 시간·토큰을 로그로 남김.
+- API: `GET /api/ai/status`(연결 여부·모델·에이전트 목록), `POST /api/ai/agent/{agent}`(화면 에이전트 대화, 역할 지시는 서버 `AiAgentModule.Agents`), `POST /api/ai/classify-docs`(자료 종류 분류). 직원 전용(협력사 차단은 기본 정책).
+- 화면: `web/src/ai/`(aiClient·AgentPanel). 자료함은 올릴 때 종류를 사내 AI가 정하고(규칙 결과는 참고), 자료함 탭에 '자료함 도우미' 창.
+
+| 항목 | 로컬 | 운영 |
+|---|---|---|
+| `Llm:ApiKey`(API) | user-secrets | 환경변수 `Llm__ApiKey` — 없으면 AI 기능 꺼지고 규칙으로 동작 |
+| 사내 AI 주소 | `http://192.168.11.146:18101/v1`(dy-linux) | 운영 API 서버에서 이 주소에 닿는지(방화벽) |
+| 감사 기록 | 에이전트 질문 앞 200자 `ai.agent` | 같음 |
+

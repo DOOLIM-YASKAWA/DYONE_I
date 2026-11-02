@@ -1,0 +1,106 @@
+/*
+ * 진행 일지(메뉴 '진행 일지' · 프로젝트 '진행 일지' 탭) · 프로젝트 '진행 단계' 탭 — D안(2026-11-02).
+ * 색 토큰은 theme-d.css(--blue · --sky · --point · --ink · --muted · --line). 클래스는 dj- 접두사(공용 이름과 겹치지 않게).
+ */
+.dj { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+/* ── 쓰기 칸 ── */
+.dj-write { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 8px 22px rgba(16, 24, 40, .06); }
+.dj-write-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dj-project { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border: 1px solid #D0D5DD; border-radius: 10px; color: var(--blue);
+  flex: 0 1 380px; min-width: 0; background: #fff; }
+.dj-project select { flex: 1; min-width: 0; border: 0; outline: none; padding: 0; background: transparent; font-weight: 600; color: var(--ink); font-size: 14px; }
+.dj-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.dj-pills button { height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #D0D5DD; background: #fff; color: #344054; font-size: 13px; white-space: nowrap; }
+.dj-pills button.on { border-color: var(--blue); background: var(--blue); color: #fff; font-weight: 600; }
+.dj-text { width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid #D0D5DD; border-radius: 10px; font-size: 14px; color: var(--ink); }
+.dj-text:focus { outline: 3px solid #CFE3FB; border-color: var(--blue); }
+textarea.dj-text { min-height: 110px; resize: vertical; line-height: 1.6; }
+.dj-write-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dj-share { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.dj-share small { font-size: 12px; color: var(--muted); }
+.dj-seg { display: inline-flex; padding: 3px; border-radius: 9px; background: #F2F4F7; }
+.dj-seg button { height: 28px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font-size: 13px; }
+.dj-seg button.on { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(16, 24, 40, .08); }
+.dj-actions { display: flex; gap: 8px; }
+.dj-btn { height: 40px; padding: 0 16px; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; border: 1px solid #D0D5DD; background: #fff;
+  color: #344054; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.dj-btn.primary { border: 0; background: var(--blue); color: #fff; font-weight: 700; padding: 0 22px; }
+.dj-btn:disabled { opacity: .55; }
+.dj-ro { font-size: 13px; color: var(--muted); }
+
+/* ── 목록 ── */
+.dj-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.dj-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.dj-toolbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.dj-toolbar-left > b { font-size: 16px; }
+.dj-scope { font-size: 13px; color: var(--muted); }
+.dj-filter { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #344054; }
+.dj-filter select { padding: 6px 9px; font-size: 13px; }
+.dj-list-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.dj-list-head b { font-size: 15px; }
+.dj-list-head small { font-size: 12px; color: var(--muted); }
+.dj-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #344054; }
+.dj-check input { margin: 0; accent-color: var(--blue); }
+.dj-table { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.dj-card .dj-table { border: 0; border-radius: 0; }
+.dj-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) 104px 140px 72px 112px; gap: 12px; align-items: center; min-height: 48px; padding: 6px 18px;
+  border-bottom: 1px solid #F2F4F7; font-size: 13px; color: var(--ink); min-width: 760px; box-sizing: border-box; }
+.dj-row.with-project { grid-template-columns: 56px 210px minmax(0, 1fr) 104px 140px 72px 112px; min-width: 980px; }
+.dj-row.progress { grid-template-columns: 96px 150px minmax(0, 1fr) 104px 64px; }
+.dj-row.sys { background: #FCFCFD; color: var(--muted); }
+.dj-head { min-height: 34px; background: #F9FAFB; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--muted); }
+.dj-day { padding: 7px 18px; background: #FCFCFD; border-bottom: 1px solid #F2F4F7; font-size: 12px; font-weight: 700; color: #344054; }
+.dj-none { padding: 32px 18px; text-align: center; color: var(--muted); font-size: 13px; }
+.dj-num { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.dj-body { line-height: 1.5; min-width: 0; overflow-wrap: anywhere; }
+.dj-who { font-size: 13px; color: #344054; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.dj-who small { display: block; font-size: 12px; color: var(--muted); }
+.dj-project-cell { display: flex; flex-direction: column; gap: 1px; min-width: 0; color: var(--ink); text-decoration: none; }
+.dj-project-cell small { font-size: 11px; font-weight: 600; color: var(--blue); font-variant-numeric: tabular-nums; }
+.dj-project-cell span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dj-project-cell:hover span { color: var(--blue); text-decoration: underline; }
+.dj-stage { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.dj-stage i { width: 7px; height: 7px; border-radius: 4px; flex: none; }
+.dj-dim { color: #98A2B3; }
+.dj-select { padding: 4px 7px; font-size: 12px; }
+.dj-status { display: inline-flex; padding: 2px; border-radius: 8px; background: #F2F4F7; }
+.dj-status button { height: 26px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 12px; }
+.dj-status button.run.on { background: var(--point); color: var(--navy); font-weight: 700; }
+.dj-status button.done.on { background: #fff; color: #15803D; font-weight: 700; box-shadow: 0 1px 2px rgba(16, 24, 40, .08); }
+.dj-status-text { font-size: 12px; font-weight: 600; }
+.dj-status-text.run { color: #8A6D00; }
+.dj-status-text.done { color: #15803D; }
+.dj-write-link { margin-top: 2px; }
+
+/* ── 진행 단계 탭: 6단계 큰 카드 ── */
+.dj-stage-note { margin: 0 0 12px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.dj-stages { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.dj-step { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: #FCFCFD; min-width: 0; }
+.dj-step-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.dj-step-num { width: 28px; height: 28px; border-radius: 14px; display: grid; place-items: center; background: #F2F4F7; color: #667085; font-size: 13px; font-weight: 700; }
+.dj-step-src { font-size: 11px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; background: #fff; }
+.dj-step-name { font-size: 15px; font-weight: 700; color: #344054; }
+.dj-step-state { font-size: 13px; color: var(--muted); }
+.dj-step-btn { align-self: flex-start; height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #D0D5DD; background: #fff; color: #344054; font-size: 13px; font-weight: 600; }
+.dj-step-btn::after { content: " ▾"; font-size: 10px; color: var(--muted); }
+.dj-step-btn:hover, .dj-step-btn[aria-expanded=true] { border-color: var(--blue); color: var(--blue); }
+.dj-step.run { border: 2px solid var(--point); background: #FFFDF0; padding: 13px; }
+.dj-step.run .dj-step-num { background: var(--point); color: var(--navy); }
+.dj-step.run .dj-step-name { color: var(--ink); }
+.dj-step.run .dj-step-state { color: #8A6D00; font-weight: 700; }
+.dj-step.done { background: #fff; }
+.dj-step.done .dj-step-num { background: #EAF2FC; color: var(--blue); }
+.dj-step.done .dj-step-state { color: var(--blue); font-weight: 600; }
+.dj-step.wait .dj-step-name { color: #667085; }
+
+@media (max-width: 1100px) {
+  .dj-stages { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .dj-stages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dj-write { padding: 14px; }
+  .dj-actions { width: 100%; }
+  .dj-actions .dj-btn { flex: 1; justify-content: center; }
+}

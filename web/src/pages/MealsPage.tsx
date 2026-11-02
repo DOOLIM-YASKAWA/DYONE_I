@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { api } from '../api/client'
 import { Empty, ErrorBox, Loading, PageHead } from '../components/ui'
 import '../styles/meals.css'
+import '../styles/d-misc.css'
 
 // 수담푸드(구내식당) 주간 점심 식단. Worker(SudamMenuJob)가 네이버 QR 메뉴판 이미지를 사내 AI로 읽어 캐시 파일에 쓰고,
 // API(/api/meals/sudam)는 그 파일을 그대로 준다. 글자를 못 읽은 주는 원본 이미지(요일별 한 장)를 대신 보여 준다.
@@ -65,7 +66,7 @@ export function MealsPage() {
         </section>
       )}
       {data && selected && (
-        <>
+        <div className="dm-meals">
           {!textMode && <div className="notice">메뉴 글자를 아직 읽지 못해 업체가 올린 이미지를 그대로 보여 드립니다.</div>}
           <div className="meal-days">
             {days.map((d) => (
@@ -85,9 +86,12 @@ export function MealsPage() {
                     {parse(selected.date).getMonth() + 1}월 {parse(selected.date).getDate()}일 {WEEKDAY[parse(selected.date).getDay()]}요일
                   </h2>
                 </div>
-                {selected.items.filter((i) => i.main).map((i) => (
-                  <span key={i.name} className="meal-main-chip">{i.name}</span>
-                ))}
+                {selected.items.some((i) => i.main) && (
+                  <span className="dm-meal-main">
+                    <small>메인</small>
+                    {selected.items.filter((i) => i.main).map((i) => <b key={i.name}>{i.name}</b>)}
+                  </span>
+                )}
               </div>
               {selected.items.length > 0 && !showImage ? (
                 <ul className="meal-list">
@@ -135,7 +139,7 @@ export function MealsPage() {
             )}
           </div>
           {textMode && <p className="meal-footnote">메뉴 글자는 사내 AI가 업체 식단 이미지를 읽은 것이라 틀릴 수 있습니다. 이상하면 '원본 이미지'로 확인해 주세요.</p>}
-        </>
+        </div>
       )}
     </>
   )

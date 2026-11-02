@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using DyOne.Api.Platform;
 using DyOne.Data;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -52,20 +53,23 @@ public static class ProjectsModule
 
         g.MapGet("/codes/{group}", async (string group, DyOneDbContext db, CancellationToken ct) =>
             await db.Codes.Where(c => c.GroupKey == group && c.IsActive).OrderBy(c => c.SortOrder)
-                .Select(c => new { c.Id, c.Code, c.Name }).ToListAsync(ct));
+                .Select(c => new { c.Id, c.Code, c.Name }).ToListAsync(ct)).PartnerAllowed();
 
-        g.MapGet("/projects", async (string? search, long? statusId, string? customer, int? page, int? pageSize, DyOneDbContext db, CancellationToken ct) =>
+        g.MapGet("/projects", async (string? search, long? statusId, string? customer, string? stage, int? page, int? pageSize, ClaimsPrincipal user, ProjectScope scope, DyOneDbContext db, CancellationToken ct) =>
         {
             var size = Math.Clamp(pageSize ?? 50, 1, 200);
             var current = Math.Max(page ?? 1, 1);
             var q = db.Projects.Where(p => p.IsActive);
+            // 협력사: 배정된 프로젝트만(진행 중 모집단 조건 없이 배정된 것 전부)
+            var visible = await scope.VisibleIdsAsync(user, ct);
+            if (visible is not null) q = q.Where(p => visible.Contains(p.Id));
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = $"%{search.Trim()}%";
                 q = q.Where(p => EF.Functions.ILike(p.Code, s) || EF.Functions.ILike(p.Name, s) || EF.Functions.ILike(p.PartnerName ?? "", s));
             }
             if (statusId is not null) q = statusId == 0 ? q.Where(p => p.StatusId == null) : q.Where(p => p.StatusId == statusId);
-            else
+            else if (visible is null)
             {
                 // [진행 중 모집단] 상태 미선택 시: 그룹웨어 영업중(0)/수주(1) '또는' dyone 진행 단계(project_stage)가 있는 것.
                 // → 영업부가 ERP에 넣는 영업·수주 + 대응 인원이 dyone에서 진행시킨 건. 그룹웨어 마감/중단·미지정(단계 없음)은 제외.
@@ -74,6 +78,26 @@ public static class ProjectsModule
                 q = q.Where(p => (p.StatusId != null && salesStatusIds.Contains(p.StatusId.Value)) || db.ProjectStages.Any(ps => ps.ProjectId == p.Id));
             }
             if (!string.IsNullOrWhiteSpace(customer)) q = FilterByCustomer(q, customer.Trim());
+            // 진행 단계(project_stage 코드) — 목록에 보이는 대표 단계(Compute)가 그 단계인 것만. 대표 단계는 DB 열이 아니라 계산값이라
+            // 조건에 맞는 후보(수천 건 수준)의 그룹웨어 상태·저장된 단계 상태를 읽어 메모리에서 거른다.
+            if (!string.IsNullOrWhiteSpace(stage))
+            {
+                var code = stage.Trim();
+                var cand = await q.Select(p => new { p.Id, p.StatusId }).ToListAsync(ct);
+                var candIds = cand.Select(c => c.Id).ToList();
+                var stageDefs = await StagesAsync(db, ct);
+                var gwNames = await db.Codes.Where(c => c.GroupKey == "project_status").ToDictionaryAsync(c => c.Id, c => c.Name, ct);
+                var savedAll = (await db.ProjectStageStatuses.Where(x => candIds.Contains(x.ProjectId)).Select(x => new { x.ProjectId, x.StageId, x.Status }).ToListAsync(ct))
+                    .GroupBy(x => x.ProjectId).ToDictionary(g => g.Key, g => (IReadOnlyDictionary<long, string>)g.ToDictionary(x => x.StageId, x => x.Status));
+                var none = new Dictionary<long, string>();
+                var match = cand.Where(c =>
+                {
+                    var gw = c.StatusId is { } sid && gwNames.TryGetValue(sid, out var n) ? n : null;
+                    var (steps, cur) = Compute(stageDefs, gw, savedAll.GetValueOrDefault(c.Id) ?? none);
+                    return cur >= 0 && steps[cur].Stage.Code == code;
+                }).Select(c => c.Id).ToList();
+                q = q.Where(p => match.Contains(p.Id));
+            }
 
             // 정렬: 최근 변경(ProjectActivity — 단계·파일·인원·그룹웨어·모듈라·ES·SmartLab·SRS 중 가장 최근 작업) 최신순.
             // 조건에 맞는 id만 읽고, 프로젝트별 최근 활동(한 번의 조회)과 붙여 메모리에서 정렬·페이지를 자른다(수천 건 수준).
@@ -86,16 +110,18 @@ public static class ProjectsModule
             var byId = await db.Projects.Where(p => pageIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id, ct);
             var rows = pageIds.Select(id => byId[id]).ToList();
             return new PagedResult<ProjectDto>(keys.Count, current, size, await ToDtosAsync(db, rows, ct));
-        });
+        }).PartnerAllowed();
 
         // 프로젝트 선택 상자용 검색(최대 20건)
-        g.MapGet("/projects/lookup", async (string? search, DyOneDbContext db, CancellationToken ct) =>
+        g.MapGet("/projects/lookup", async (string? search, ClaimsPrincipal user, ProjectScope scope, DyOneDbContext db, CancellationToken ct) =>
         {
             var s = $"%{search?.Trim()}%";
+            var visible = await scope.VisibleIdsAsync(user, ct);
             return await db.Projects.Where(p => p.IsActive && (EF.Functions.ILike(p.Code, s) || EF.Functions.ILike(p.Name, s)))
+                .Where(p => visible == null || visible.Contains(p.Id))
                 .OrderBy(p => p.ErpRegDate == null).ThenByDescending(p => p.ErpRegDate).Take(20)
                 .Select(p => new { p.Id, p.Code, p.Name }).ToListAsync(ct);
-        });
+        }).PartnerAllowed();
 
         g.MapGet("/projects/{id:long}", async (long id, IConfiguration config, DyOneDbContext db, CancellationToken ct) =>
         {
@@ -117,7 +143,7 @@ public static class ProjectsModule
 
             var (progress, currentStageId) = await ProgressAsync(db, id, dto.Status, ct);
             return Results.Ok(new { project = dto, assignments = await AssignmentsAsync(db, id, ct), apps, labTestCount = labCount, dyoneStage, progress, currentStageId });
-        });
+        }).PartnerAllowed();
 
         // dyone 자체 진행 단계 변경(사용자 편집). 그룹웨어는 안 건드림. 지금은 로그인한 전원 가능.
         // 바꿀 때마다 project.project_stage_history에 누가·언제·전→후·메모를 같은 트랜잭션으로 남긴다. 같은 단계로 바꾸면 아무것도 하지 않는다.
@@ -285,7 +311,7 @@ public static class ProjectsModule
                 // 이력 테이블 적용 전(server/db/project_stage_history.sql): 빈 목록
             }
             return Results.Ok(list);
-        });
+        }).PartnerAllowed();
 
         g.MapGet("/lab-tests", async (long? projectId, string? search, int? page, int? pageSize, DyOneDbContext db, CancellationToken ct) =>
         {

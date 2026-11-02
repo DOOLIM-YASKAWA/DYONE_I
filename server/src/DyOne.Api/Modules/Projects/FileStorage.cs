@@ -50,6 +50,47 @@ public class FileStorage(IConfiguration config)
         return ToRel(Path.Combine(dirRel, fileName));
     }
 
+    /// <summary>
+    /// 폴더째 올린 묶음의 맨 위 폴더 자리(Root 기준 상대). 같은 이름 폴더가 이미 있으면 " (2)", " (3)" … — 다른 묶음과 섞이지 않게.
+    /// 반환: projects/&lt;프로젝트&gt;/&lt;분류&gt;/&lt;맨 위 폴더&gt;
+    /// </summary>
+    public string NewBundleDir(string projectFolder, string? category, string topFolder)
+    {
+        var parent = Path.Combine("projects", SafeDir(projectFolder), SafeDir(category ?? Uncategorized));
+        var name = SafeSegment(topFolder);
+        var candidate = name;
+        for (var i = 2; Directory.Exists(Path.Combine(_root, parent, candidate)); i++) candidate = $"{name} ({i})";
+        Directory.CreateDirectory(Path.Combine(_root, parent, candidate));
+        return ToRel(Path.Combine(parent, candidate));
+    }
+
+    /// <summary>묶음 안 파일 저장: &lt;묶음 폴더&gt;/&lt;하위 경로&gt;/&lt;파일&gt;. subPath = 맨 위 폴더 아래 경로(없으면 빈 값).</summary>
+    public async Task<string> SaveInBundleAsync(string bundleDirRel, string? subPath, string originalName, Stream content, CancellationToken ct)
+    {
+        var dirRel = bundleDirRel;
+        foreach (var seg in (subPath ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries)) dirRel = Path.Combine(dirRel, SafeSegment(seg));
+        var dirAbs = FullPath(dirRel);
+        Directory.CreateDirectory(dirAbs);
+        var fileName = UniqueName(dirAbs, SafeFile(originalName));
+        await using var fs = new FileStream(Path.Combine(dirAbs, fileName), FileMode.CreateNew, FileAccess.Write, FileShare.None);
+        await content.CopyToAsync(fs, ct);
+        return ToRel(Path.Combine(dirRel, fileName));
+    }
+
+    /// <summary>묶음 폴더째 다른 분류로 옮긴다. 반환: 새 묶음 폴더 상대경로(옛 경로 접두를 이것으로 바꾸면 된다).</summary>
+    public string MoveBundleDir(string bundleDirRel, string projectFolder, string? newCategory)
+    {
+        var top = Path.GetFileName(bundleDirRel.TrimEnd('/'));
+        var dest = NewBundleDir(projectFolder, newCategory, top);
+        var src = FullPath(bundleDirRel);
+        if (Directory.Exists(src))
+        {
+            Directory.Delete(FullPath(dest)); // NewBundleDir가 만든 빈 자리 → 통째로 옮겨 넣는다
+            Directory.Move(src, FullPath(dest));
+        }
+        return dest;
+    }
+
     /// <summary>분류 변경 시 실물 파일을 새 분류 폴더로 이동. 반환값은 새 상대경로.</summary>
     public string MoveToCategory(string currentRelPath, string projectFolder, string? newCategory)
     {

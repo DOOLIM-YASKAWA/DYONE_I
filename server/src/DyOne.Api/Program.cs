@@ -12,7 +12,6 @@ using DyOne.Api.Modules.Projects;
 using DyOne.Api.Platform;
 using DyOne.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +34,7 @@ builder.Services.AddSingleton<DyOne.Api.Modules.Spec.SpecLibrary>();
 // 사양정리 초안: 설비 이력 색인(NAS 도면 제목·사양정리 표, 캐시 파일) + 사내 AI(Llm:BaseUrl·Model·ApiKey, 키 없으면 규칙 초안)
 builder.Services.AddSingleton<DyOne.Api.Modules.Spec.SpecEquipment>();
 builder.Services.AddHttpClient("llm");
+builder.Services.AddSingleton<DyOne.Api.Platform.Llm>(); // 사내 AI 공통 클라이언트(화면 에이전트·자료 분류 등)
 builder.Services.AddSingleton<DyOne.Api.Modules.Spec.SpecAi>();
 
 // --- 인증: 그룹웨어 로그인 API로 검증 → org.employee(login_id)로 직원 확인 → DY ONE 자체 JWT ---
@@ -77,9 +77,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         },
     };
 });
-// 명시적으로 AllowAnonymous가 없는 모든 엔드포인트는 로그인 필요
-builder.Services.AddAuthorizationBuilder()
-    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+// 명시적으로 AllowAnonymous가 없는 모든 엔드포인트는 로그인 필요 + 기본은 직원 전용.
+// 협력사(kind=partner)는 .PartnerAllowed()를 붙인 엔드포인트와 배정된 프로젝트만(Platform/ProjectAccess.cs, docs/partner-access)
+builder.Services.AddAuthorizationBuilder().AddProjectAccessPolicies();
+builder.Services.AddScoped<ProjectScope>();
+builder.Services.AddScoped<DyOne.Api.Modules.Partners.PartnerDirectory>(); // 협력사 로그인(주소록 이메일 + 회사 공용 비밀번호)
 
 // --- 공통 ---
 builder.Services.AddHttpContextAccessor();
@@ -112,6 +114,7 @@ app.MapAuth();
 app.MapHome();
 app.MapProjects();
 app.MapProjectFiles();
+app.MapProjectJournal();
 DyOne.Api.Modules.Spec.SpecModule.MapSpec(app);
 DyOne.Api.Modules.Spec.SpecDraftModule.MapSpecDraft(app);
 DyOne.Api.Modules.Spec.SpecDeptModule.MapSpecDept(app);
@@ -120,6 +123,7 @@ app.MapProjectTestData();
 app.MapModular();
 app.MapWorks();
 app.MapAi();
+app.MapAiAgents();
 app.MapNotifications();
 app.MapSmartLab();
 app.MapSrsAnalyzer();
@@ -128,5 +132,7 @@ DyOne.Api.Modules.Meals.MealsModule.MapMeals(app); // 수담푸드 식단(Worker
 DyOne.Api.Modules.Motosim.MotosimModule.MapMotosim(app); // MotoSim Launcher 이관 1단계(조회)
 app.MapDemoMemos(config); // [임시 · 데모] 화면 메모(포스트잇). DemoMemo:Enabled일 때만
 app.MapHub<NotificationHub>("/hubs/notifications");
+DyOne.Api.Modules.Partners.PartnersModule.MapPartners(app); // 협력사 회사별 공용 비밀번호(관리자)
+if (app.Environment.IsDevelopment()) ProjectAccess.WarnIfPartnerSurfaceChanged(app);
 
 app.Run();

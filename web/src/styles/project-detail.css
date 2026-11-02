@@ -41,3 +41,14 @@
 .project-row .row-tags .badge{font-size:11px;padding:3px 7px}
 .last-kind{display:block;color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap}
 .project-sections{margin-bottom:16px}
+
+/* 상세 화면 탭 5개(자료함·인원·진행 단계·진행 일지·관련 업무) */
+.scope-card .scope-stage{margin-left:auto;align-self:center;border:0;background:none;color:#fff;font-size:16px;font-weight:700;padding:6px 4px;white-space:nowrap}
+.scope-card .scope-stage:hover{text-decoration:underline}
+.project-main{margin-bottom:16px}
+.project-main>.project-tabs{padding:0 14px;margin-bottom:18px}
+.project-main>.panel-body{min-height:420px}
+.stage-history-title{font-size:15px;margin:22px 0 6px}
+.related-work .related-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.related-work .related-other{margin-left:auto;display:flex;align-items:center;gap:8px}
+.related-work .related-other select{padding:5px 8px;font-size:13px}

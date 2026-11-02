@@ -10,6 +10,7 @@ import './styles/project-ai.css'
 import './styles/mobile.css'
 import './styles/app.css'
 import './styles/modular.css'
+import './styles/theme-d.css' // D안 화면 틀 — 다른 스타일 뒤에 와서 덮어쓴다
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } },
