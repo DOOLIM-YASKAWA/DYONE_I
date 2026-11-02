@@ -10,6 +10,7 @@ export const ICON = {
   org: 'M9 3h6v5H9zM3 16h6v5H3zM15 16h6v5h-6zM12 8v4M6 16v-4h12v4',
   issue: 'M5 21V4M5 4h11l-2 4 2 4H5',
   lab: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 15h9',
+  spec: 'M14 3H6v18h12V7zM14 3v4h4M9 13.5l2 2 4-4.5',
   srs: 'M14 3H6v18h12V7zM14 3v4h4M11 16a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM13 15.5l2.5 2.5',
   process: 'M4 5h6v4H4zM14 15h6v4h-6zM7 9v4a2 2 0 0 0 2 2h5M17 15v-4a2 2 0 0 0-2-2h-5',
   robot: 'M4 21h9M8 21v-3M8 18l4-7M12 11l5-3M17 8l2.5 3M17 8l-1.5-3.5H19',

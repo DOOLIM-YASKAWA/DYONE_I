@@ -17,6 +17,7 @@ import { MotosimPage } from './pages/motosim/MotosimPage'
 import { AccessPage, ItPage, VehiclesPage } from './pages/ServicePages'
 import { MealsPage } from './pages/MealsPage'
 import { PartnersAdminPage } from './pages/PartnersAdminPage'
+import { SpecAnalysisPage } from './pages/SpecAnalysisPage'
 import { useRealtimeNotifications } from './realtime/useRealtimeNotifications'
 import { visibleRoutes } from './routes'
 
@@ -26,6 +27,7 @@ const pageElements: Record<string, ReactElement> = {
   '/home': <HomePage />,
   '/projects': <ProjectsPage />,
   '/journal': <JournalPage />,
+  '/spec': <SpecAnalysisPage />,
   '/modular': <ModularPage />,
   '/org': <OrgChartPage />,
   '/works/281': <WorksAppPage appletId={281} title="ES 이슈" />,
