@@ -38,4 +38,5 @@
 
 - 저장소: `E:\dy-one-internal` (내부용). 참고용 팀장님 클론: `E:\dyone-pilot`(운영 ERP/WMS/Works 직결, 수정 금지).
 - dyone DB 정본 = Docker `dyone_db`(PG18, localhost:5433). API 읽기전용, Worker만 미러 쓰기.
+- **참고 문서 = `docs/`** ([docs/README.md](docs/README.md)). 기능을 만들거나 분석하기 전에 관련 문서를 먼저 읽고, 새로 분석·정리한 결과(근거·규칙의 이유)도 여기에 남긴다. 예: 사양서 부서별 확인 항목 → `docs/spec-dept/`.
 - GW 프로젝트 상태(영업중/수주/마감/중단)의 진짜 출처 = ERP `WS_B_BSNSS_MAIN.WS_CM00008`(영업 단계) → 코드마스터 디코딩 → 매일 배치로 그룹웨어 applet285에 기록. `SA_PROJECTH.STA_PROJECT`(승인/진행/완료)와는 다른 필드.
