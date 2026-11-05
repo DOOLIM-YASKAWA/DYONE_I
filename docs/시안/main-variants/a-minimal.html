@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프로젝트 메인 A 미니멀</title>
+<link rel="stylesheet" href="common.css">
+<style>
+:root{--bg:#FAFAFB;--surface:#fff;--surface2:#F4F5F7;--ink:#0E1525;--sub:#5B6475;--mute:#9AA3B2;--line:#ECEEF2;--hover:#F7F8FA;--accent:#0B5BD3;--accent-soft:#EAF1FD}
+/* 상단 */
+.a-top{background:rgba(255,255,255,.85);backdrop-filter:saturate(1.6) blur(12px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.a-top .pm-wrap{height:58px;display:flex;align-items:center;gap:36px}
+.a-logo{font-weight:800;font-size:16px;letter-spacing:.4px;display:flex;align-items:center;gap:8px}
+.a-logo i{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#0B5BD3,#0B2A5B);display:inline-block}
+.a-nav{display:flex;gap:2px}
+.a-nav a{padding:7px 12px;border-radius:8px;color:var(--sub);font-size:13.5px;font-weight:500}
+.a-nav a:hover{background:var(--surface2);color:var(--ink)}
+.a-nav a.on{color:var(--ink);font-weight:650;background:var(--surface2)}
+.a-me{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub)}
+.a-me i{width:30px;height:30px;border-radius:50%;background:#E3E8F0;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;color:#334155;font-size:12px}
+/* 검색 */
+.a-hero{padding:36px 0 22px}
+.a-hero h1{margin:0 0 4px;font-size:26px;letter-spacing:-.6px}
+.a-hero .s{color:var(--mute);font-size:13px;margin-bottom:16px}
+.pm-search{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 16px;height:54px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px -12px rgba(16,24,40,.08);transition:all .2s}
+.pm-search:focus-within{border-color:#9DBCF2;box-shadow:0 0 0 4px #EAF1FD}
+.pm-search svg{color:var(--mute);flex:none}
+.pm-search input{border:0;outline:0;flex:1;font:inherit;font-size:15.5px;background:none;color:var(--ink)}
+.pm-search kbd{font:11px/1 inherit;color:var(--mute);border:1px solid var(--line);border-radius:5px;padding:3px 6px}
+/* 브리핑 */
+.a-brief{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px 14px;position:relative;overflow:hidden}
+.a-brief::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(#0B5BD3,#7C3AED)}
+.a-bf-h{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.a-bf-h h2{margin:0;font-size:15px;display:flex;align-items:center;gap:8px}
+.a-spark{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#0B5BD3,#7C3AED);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.a-bf-h small{color:var(--mute);font-size:12px}
+.a-seg{display:inline-flex;background:var(--surface2);border-radius:9px;padding:3px}
+.a-seg button{border:0;background:none;border-radius:7px;padding:3px 12px;font-size:12.5px;color:var(--sub)}
+.a-seg button.on{background:var(--surface);color:var(--ink);font-weight:650;box-shadow:0 1px 3px rgba(16,24,40,.1)}
+.a-bf-nav{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--accent)}
+.a-arrow{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--sub);font-size:14px;padding:0}
+.a-arrow:hover{border-color:var(--accent);color:var(--accent)}
+.a-brief li{font-size:13.5px;color:var(--sub);counter-increment:n}
+.a-brief ul{counter-reset:n}
+.a-brief li::before{content:"0" counter(n);font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums;font-weight:600;width:18px;flex:none}
+.a-brief li b{color:var(--ink)}
+.a-brief .pm-ev{color:var(--accent)}
+/* 두 칸 */
+.a-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.a-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.a-card-h{display:flex;align-items:center;gap:8px;padding:14px 18px 10px}
+.a-card-h h2{margin:0;font-size:15px}
+.a-badge{font-size:11.5px;font-weight:650;color:var(--sub);background:var(--surface2);border-radius:999px;padding:0 8px;line-height:20px}
+.a-card-h small{margin-left:auto;color:var(--mute);font-size:12px}
+.a-card .pm-row{padding:12px 18px}
+.a-card .pm-row:first-child{border-top:1px solid var(--line)}
+.a-foot{display:flex;align-items:center;gap:14px;padding:10px 18px;border-top:1px solid var(--line);font-size:12.5px}
+.a-foot a{color:var(--accent);font-weight:600;cursor:pointer}
+.a-foot .pm-only-sel{color:#7C3AED}
+.a-foot small{margin-left:auto;color:var(--mute)}
+/* 전체 */
+.a-sec{margin:30px 0 60px}
+.a-sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.a-sec-h h2{margin:0;font-size:17px;letter-spacing:-.3px}
+.a-sec-h small{color:var(--mute);font-size:12.5px}
+.a-tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.a-tools .sep{width:1px;height:18px;background:var(--line);margin:0 6px}
+.a-view{margin-left:auto}
+.a-tbl{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.a-tbl th{background:#FCFCFD}
+.pm-erp-order{color:#15803D}
+@media (max-width:900px){.a-pair{grid-template-columns:1fr}.a-nav{display:none}.a-hero{padding-top:22px}.a-view{margin-left:0}}
+</style>
+</head>
+<body>
+<header class="a-top"><div class="pm-wrap">
+  <span class="a-logo"><i></i>DY ONE</span>
+  <nav class="a-nav"><a class="on">프로젝트</a><a>다운로드</a><a>자료 검색</a><a>엔지니어링</a><a>협력사</a><a>사내 서비스</a></nav>
+  <span class="a-me">도장영업팀 홍길동 <i>홍</i></span>
+</div></header>
+
+<main class="pm-wrap">
+  <section class="a-hero">
+    <h1>프로젝트</h1>
+    <div class="s">ERP 기준 수주 412 · 영업중 1,387 · 어제 바뀐 프로젝트 23 (숫자 예시)</div>
+    <label class="pm-search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input placeholder="프로젝트 코드·이름·발주처·PM 검색"><kbd>/</kbd></label>
+  </section>
+
+  <section class="a-brief">
+    <div class="a-bf-h">
+      <h2><span class="a-spark">✦</span>오늘의 프로젝트 브리핑</h2><small>사내 AI · 07:00 · 지금 상태</small>
+      <div class="a-seg"><button class="on" data-bf="0">내 관심</button><button data-bf="1">회사 주요</button></div>
+      <div class="a-bf-nav"><button class="a-arrow" data-bfd="-1" aria-label="이전">‹</button><span class="pm-dots"><i class="on"></i><i></i></span><button class="a-arrow" data-bfd="1" aria-label="다음">›</button></div>
+    </div>
+    <div class="pm-bf-view" id="bfView"><div class="pm-bf-track" id="bfTrack"><ul id="bfFav"></ul><ul id="bfFeat"></ul></div></div>
+  </section>
+
+  <section class="a-pair">
+    <div class="a-card">
+      <div class="a-card-h"><h2>내 관심 프로젝트</h2><span class="a-badge" id="favCount"></span><small>★한 것만 · 최근 활동 순</small></div>
+      <div id="favList"></div>
+      <div class="a-foot" id="favMore"><a data-open="fav">모두 보기 →</a></div>
+    </div>
+    <div class="a-card">
+      <div class="a-card-h"><h2>회사 주요 프로젝트</h2><span class="a-badge" id="featCount"></span><small>영업 부서 선정 · 11/03</small></div>
+      <div id="featList"></div>
+      <div class="a-foot"><a data-open="feat">모두 보기 →</a><a class="pm-only-sel" data-open="cand">✦ 새 후보 4건 검토</a></div>
+    </div>
+  </section>
+
+  <section class="a-sec">
+    <div class="a-sec-h"><h2>전체 프로젝트</h2><small>3,114건 · 최근 활동 순 · 상태는 ERP 기준</small></div>
+    <div class="a-tools">
+      <button class="pm-chip on" data-g="c">전체</button><button class="pm-chip" data-g="c">현대</button><button class="pm-chip" data-g="c">기아</button><button class="pm-chip" data-g="c">GM</button><button class="pm-chip" data-g="c">르노</button><button class="pm-chip" data-g="c">KGM</button><button class="pm-chip" data-g="c">기타</button>
+      <span class="sep"></span>
+      <button class="pm-chip on" data-g="s">진행 중</button><button class="pm-chip" data-g="s">ERP 영업중</button><button class="pm-chip" data-g="s">ERP 수주</button><button class="pm-chip" data-g="s">마감·중단</button>
+      <span class="a-view a-seg"><button class="on">표</button><button>단계별 보드</button></span>
+    </div>
+    <div class="a-tbl pm-table-wrap"><table class="pm-table">
+      <thead><tr><th></th><th>프로젝트</th><th>고객사</th><th>ERP 상태</th><th>진행 단계</th><th>PM</th><th>최근 활동</th></tr></thead>
+      <tbody id="rows"></tbody></table></div>
+  </section>
+</main>
+<script src="common.js"></script>
+</body>
+</html>

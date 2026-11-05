@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프로젝트 메인 시안 v4</title>
+<style>
+:root{
+  --bg:#F4F6FA; --card:#fff; --ink:#101828; --sub:#475467; --mute:#98A2B3; --line:#E4E7EC; --line2:#F2F4F7;
+  --navy:#0B2A5B; --blue:#0056B9; --blue-soft:#E8F1FC; --amber:#B54708; --amber-soft:#FEF0C7;
+  --green:#067647; --green-soft:#DCFAE6; --violet:#6D28D9; --violet-soft:#EFE7FD;
+  --s-sales:#2563EB; --s-order:#15803D; --s-design:#6D28D9; --s-mod:#0F766E; --s-site:#B45309; --s-line:#475467;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Pretendard","Malgun Gothic",system-ui,sans-serif}
+button{font:inherit;cursor:pointer}
+a{color:inherit}
+.top{height:52px;background:var(--navy);color:#fff;display:flex;align-items:center;gap:28px;padding:0 24px}
+.top b{font-size:17px;letter-spacing:.5px}
+.top nav{display:flex;gap:4px}
+.top nav a{color:#C7D4EA;text-decoration:none;padding:6px 12px;border-radius:6px;font-size:13.5px}
+.top nav a.on{background:rgba(255,255,255,.14);color:#fff;font-weight:600}
+.top .me{margin-left:auto;font-size:13px;color:#C7D4EA;display:flex;gap:10px;align-items:center}
+.modes{display:inline-flex;background:rgba(255,255,255,.1);border-radius:999px;padding:2px}
+.modes button{border:0;background:none;color:#C7D4EA;border-radius:999px;padding:3px 10px;font-size:12px}
+.modes button.on{background:#FDB022;color:#101828;font-weight:600}
+.wrap{max-width:1360px;margin:0 auto;padding:20px 24px 60px}
+
+/* ① 검색 (맨 위) */
+.searchbar{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.searchbar h1{margin:0;font-size:22px;white-space:nowrap}
+.search{flex:1;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.search:focus-within{border-color:#84ADFF;box-shadow:0 0 0 3px #E8F1FC}
+.search input{border:0;outline:0;flex:1;font:inherit;font-size:15px}
+.kbd{font-size:11px;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.count{color:var(--sub);font-size:12.5px;white-space:nowrap}
+
+/* ② 브리핑 */
+.brief{background:linear-gradient(100deg,#0B2A5B 0%,#0056B9 100%);color:#fff;border-radius:12px;padding:12px 18px 10px;margin-bottom:14px}
+.bf-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.bf-head h3{margin:0;font-size:14px;font-weight:650}
+.tag{font-size:11px;background:rgba(255,255,255,.16);border-radius:4px;padding:1px 6px;color:#DCE7F8}
+.bf-tabs{display:inline-flex;background:rgba(255,255,255,.12);border-radius:999px;padding:2px}
+.bf-tabs button{border:0;background:none;color:#C7D4EA;border-radius:999px;padding:2px 12px;font-size:12.5px}
+.bf-tabs button.on{background:#fff;color:var(--navy);font-weight:650}
+.bf-nav{margin-left:auto;display:flex;align-items:center;gap:8px}
+.bf-arrow{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:50%;width:22px;height:22px;line-height:1;font-size:14px;padding:0}
+.bf-dots{display:inline-flex;gap:4px}
+.bf-dots i{width:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.35);transition:width .2s}
+.bf-dots i.on{width:14px;background:#fff}
+.bf-view{overflow:hidden;touch-action:pan-y}
+.bf-track{display:flex;transition:transform .35s ease}
+.bf-slide{flex:0 0 100%;min-width:0}
+.bf-slide ul{margin:0;padding-left:18px;color:#E3ECFA;font-size:13.5px}
+.bf-slide li{margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bf-slide li b{color:#fff;cursor:pointer}
+.ev{font-size:11.5px;color:#9FC2F5;text-decoration:underline;cursor:pointer;margin-left:6px}
+.bf-empty{color:#BFD2F0;font-size:13px;padding:4px 0}
+
+/* ③ 내 관심 | 회사 주요 */
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.box{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.box-h{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line2)}
+.box-h h2{margin:0;font-size:14.5px}
+.box-h .n{color:var(--mute);font-weight:500;font-size:13px}
+.box-h .hint{margin-left:auto;color:var(--mute);font-size:12px}
+.row{display:grid;grid-template-columns:22px minmax(0,1fr) auto 14px;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line2);cursor:pointer;min-height:58px}
+.row:last-child{border-bottom:0}
+.row:hover{background:#F8FAFF}
+.row:hover .go{color:var(--blue)}
+.ico{font-size:14px;text-align:center;color:#FDB022}
+.ico.pin{color:var(--blue);font-weight:700;font-size:13px}
+.t{min-width:0}
+.t .nm{font-weight:650;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t .cd{font-size:11.5px;color:var(--mute);margin-left:6px;font-weight:500}
+.t .sub{font-size:12.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.t .sub b{color:var(--blue);font-weight:600;margin-right:4px}
+.side{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--sub);white-space:nowrap}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:1px}
+.go{color:#D0D5DD;font-size:16px}
+.more{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#FCFCFD;border-top:1px solid var(--line2);font-size:12.5px}
+.more a{color:var(--blue);cursor:pointer;text-decoration:none}
+.more .meta{color:var(--mute);margin-left:auto}
+.empty{padding:20px 14px;text-align:center;color:var(--sub);font-size:13px;min-height:174px;display:flex;flex-direction:column;justify-content:center}
+.empty b{color:var(--ink)}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600;white-space:nowrap;line-height:18px}
+.p-gray{background:#F2F4F7;color:var(--sub)}
+.p-amber{background:var(--amber-soft);color:var(--amber)}
+.sample{font-size:10.5px;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:4px;font-weight:500}
+.brief .sample{color:#9FB6DD;border-color:rgba(255,255,255,.25)}
+body.no-fav #favList,body.no-fav #favMore{display:none}
+body:not(.no-fav) #favEmpty{display:none}
+
+/* 역할별 보기 */
+.only-sel{display:none !important}
+body.sel .only-sel{display:revert !important}
+.cand-link{color:var(--violet) !important;font-weight:600}
+
+/* 서랍 */
+.dim{position:fixed;inset:0;background:rgba(16,24,40,.35);display:none;z-index:9}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(720px,100%);background:#fff;box-shadow:-8px 0 24px rgba(16,24,40,.15);transform:translateX(100%);transition:transform .25s;z-index:10;display:flex;flex-direction:column}
+body.drawer-open .dim{display:block}
+body.drawer-open .drawer{transform:none}
+.drawer-h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.drawer-h h3{margin:0;font-size:16px}
+.drawer-h button{margin-left:auto;border:0;background:none;font-size:20px;color:var(--sub)}
+.drawer-b{overflow:auto;flex:1}
+.drawer-b .note{padding:10px 18px;font-size:12.5px;color:var(--sub);background:#F9FAFB;border-bottom:1px solid var(--line2)}
+.drawer .row.cand{grid-template-columns:30px minmax(0,1fr) auto auto;cursor:default}
+.score{display:inline-flex;min-width:26px;height:22px;border-radius:6px;background:var(--violet);color:#fff;font-weight:700;font-size:12px;align-items:center;justify-content:center}
+.rs{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.rs span{font-size:11px;background:#F2F4F7;border-radius:4px;padding:0 6px;color:var(--sub)}
+.btn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 9px;font-size:12px}
+.btn.ok{background:var(--violet);border-color:var(--violet);color:#fff}
+.btn.done{background:var(--green-soft);border-color:var(--green-soft);color:var(--green);font-weight:600}
+
+/* ④ 전체 목록 */
+.sec{margin-top:18px}
+.sec-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sec-h h2{margin:0;font-size:15px}
+.sec-h .hint{color:var(--mute);font-size:12.5px}
+.list-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px;font-size:12.5px;color:var(--sub)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-left:auto}
+.seg button{border:0;background:#fff;padding:5px 12px;font-size:12.5px;color:var(--sub)}
+.seg button.on{background:var(--blue-soft);color:var(--blue);font-weight:600}
+.tbl{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tbl table{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-weight:600;color:var(--sub);font-size:12px;background:#F9FAFB;padding:9px 12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--line2)}
+.tbl tr:hover td{background:#FAFBFF;cursor:pointer}
+.tstar{border:0;background:none;color:#D0D5DD;font-size:16px;padding:0}
+.tstar.on{color:#FDB022}
+.moved{font-size:11px;background:var(--amber-soft);color:var(--amber);border-radius:4px;padding:0 5px;margin-left:6px;white-space:nowrap}
+.legend{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:12.5px;color:var(--sub)}
+.legend h4{margin:0 0 6px;color:var(--ink);font-size:13px}
+.legend ul{margin:0;padding-left:18px}
+.legend li{margin:2px 0}
+.demo{border:1px solid var(--line);background:#fff;border-radius:6px;padding:1px 8px;font-size:12px;color:var(--sub);margin-left:6px}
+@media (max-width:960px){.pair{grid-template-columns:1fr}.searchbar{flex-wrap:wrap}.search{flex-basis:100%}.top nav{display:none}.tbl{overflow-x:auto}.tbl table{min-width:720px}.side .stage{display:none}.bf-slide li{white-space:normal}}
+</style>
+</head>
+<body>
+<div class="top">
+  <b>DY ONE</b>
+  <nav><a class="on">프로젝트</a><a>다운로드</a><a>자료 검색</a><a>엔지니어링</a><a>협력사</a><a>사내 서비스</a></nav>
+  <div class="me">
+    <span class="modes" title="시안 전용: 역할별 화면 미리 보기">
+      <button class="on" data-m="">직원</button><button data-m="sel">주요 선정 담당</button>
+    </span>
+    <span>도장영업팀 · 홍길동</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- ① 검색 -->
+  <div class="searchbar">
+    <h1>프로젝트</h1>
+    <label class="search">🔍 <input placeholder="프로젝트 코드·이름·발주처·PM 검색 (Enter)" autofocus><span class="kbd">/</span></label>
+    <span class="count">ERP 수주 412 · 영업중 1,387 <span class="sample">예시</span></span>
+  </div>
+
+  <!-- ② 오늘의 프로젝트 브리핑 -->
+  <div class="brief">
+    <div class="bf-head">
+      <h3>오늘의 프로젝트 브리핑</h3><span class="tag">사내 AI · 매일 07:00 · 어제 변화</span>
+      <div class="bf-tabs" role="tablist"><button class="on" data-i="0">내 관심</button><button data-i="1">회사 주요</button></div>
+      <div class="bf-nav">
+        <button class="bf-arrow" data-d="-1" aria-label="이전">‹</button><span class="bf-dots"><i class="on"></i><i></i></span><button class="bf-arrow" data-d="1" aria-label="다음">›</button>
+      </div>
+    </div>
+    <div class="bf-view" id="bfView">
+      <div class="bf-track" id="bfTrack">
+        <div class="bf-slide">
+          <ul id="favBrief">
+            <li><b data-go="DLP-24-260">기아 화성5 하도 및 신기술</b> — 모듈라 일정이 수정되고 설계팀 도면 6건이 올라왔습니다.<span class="ev">근거 2</span></li>
+            <li><b data-go="DLP-25-281">화성2 무빙실러 2차</b> — 업무 일지 2건, 현장 투입 인원이 1명 늘었습니다.<span class="ev">근거 2</span></li>
+            <li><b data-go="DLP-25-070">에코 사바나 가니쉬 신공장</b> — ERP 발주 2건이 새로 나갔습니다.<span class="ev">근거 1</span></li>
+          </ul>
+          <div class="bf-empty" id="favBriefEmpty" style="display:none">★로 고른 관심 프로젝트가 없습니다. 아래에서 ☆을 누르면 내일부터 여기에 요약이 나옵니다.</div>
+        </div>
+        <div class="bf-slide">
+          <ul>
+            <li><b data-go="DLP-24-054">현대 사우디 신공장 중상도 로봇</b> — 업무 일지 3건, 양산대응 인원 배정이 바뀌었습니다.<span class="ev">근거 3</span></li>
+            <li><b data-go="DLP-25-069">BHMC#4 이설</b> — 현장 사진 12장이 올라왔습니다.<span class="ev">근거 1</span></li>
+            <li><b data-go="DLP-25-104">에코플라스틱 국내 신공장</b> — 사양서 개정판(v4)이 올라왔습니다.<span class="ev">근거 1</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 내 관심 | 회사 주요 -->
+  <div class="pair">
+    <div class="box">
+      <div class="box-h"><h2>★ 내 관심 프로젝트</h2><span class="n" id="favN">5</span><span class="hint">내가 ★한 것만 · 최근 활동 순</span></div>
+      <div id="favList">
+        <div class="row" data-go="DLP-24-260"><span class="ico">★</span>
+          <span class="t"><div class="nm">기아 화성5 공장 하도 및 신기술<span class="cd">DLP-24-260</span></div><div class="sub">어제 · 설계팀 도면 업로드 · PM 김철수</div></span>
+          <span class="side"><span class="stage"><i class="dot" style="background:var(--s-mod)"></i>모듈라</span></span><span class="go">›</span></div>
+        <div class="row" data-go="DLP-25-281"><span class="ico">★</span>
+          <span class="t"><div class="nm">화성2 무빙실러 2차 10대 자동화<span class="cd">DLP-25-281</span></div><div class="sub">어제 · 업무 일지 2건 · PM 박민수</div></span>
+          <span class="side"><span class="stage"><i class="dot" style="background:var(--s-site)"></i>현장</span></span><span class="go">›</span></div>
+        <div class="row" data-go="DLP-25-070"><span class="ico">★</span>
+          <span class="t"><div class="nm">에코 사바나 가니쉬 신공장<span class="cd">DLP-25-070</span></div><div class="sub">어제 · ERP 발주 2건 · PM 정수진</div></span>
+          <span class="side"><span class="stage"><i class="dot" style="background:var(--s-line)"></i>라인 대응</span></span><span class="go">›</span></div>
+      </div>
+      <div class="empty" id="favEmpty"><b>★로 고른 프로젝트가 없습니다.</b>아래 전체 목록에서 ☆을 누르면 여기에 보입니다.<br><span style="color:var(--mute);font-size:12px">PM·투입 프로젝트를 자동으로 넣지 않습니다.</span></div>
+      <div class="more" id="favMore"><a data-open="fav">모두 보기 (5) ›</a><span class="meta"><button class="demo" id="demoEmpty">시안: ★ 없을 때</button></span></div>
+    </div>
+
+    <div class="box">
+      <div class="box-h"><h2>📌 회사 주요 프로젝트</h2><span class="n">5</span><span class="hint">영업 부서 선정 · AI 현재 상태</span></div>
+      <div class="row" data-go="DLP-24-054"><span class="ico pin">1</span>
+        <span class="t"><div class="nm">현대 사우디 신공장 중상도 로봇<span class="cd">DLP-24-054</span></div><div class="sub"><b>AI</b>양산(08/15) 뒤 양산대응 중이며, 최근 일지는 현장 보완 위주입니다.</div></span>
+        <span class="side"><span class="pill p-gray">128억</span><span class="stage"><i class="dot" style="background:var(--s-line)"></i>라인 대응</span></span><span class="go">›</span></div>
+      <div class="row" data-go="DLP-25-069"><span class="ico pin">2</span>
+        <span class="t"><div class="nm">BHMC#4 이설 프로젝트<span class="cd">DLP-25-069</span></div><div class="sub"><b>AI</b>현장 설치가 진행 중이고 최근 30일 활동이 꾸준합니다.</div></span>
+        <span class="side"><span class="pill p-gray">57억</span><span class="stage"><i class="dot" style="background:var(--s-site)"></i>현장</span></span><span class="go">›</span></div>
+      <div class="row" data-go="DLP-25-104"><span class="ico pin">3</span>
+        <span class="t"><div class="nm">에코플라스틱 국내 신공장<span class="cd">DLP-25-104</span></div><div class="sub"><b>AI</b>설계·검토 단계이며 사양서 개정판이 막 올라왔습니다.</div></span>
+        <span class="side"><span class="pill p-gray">59억</span><span class="stage"><i class="dot" style="background:var(--s-design)"></i>설계·검토</span></span><span class="go">›</span></div>
+      <div class="more"><a data-open="feat">모두 보기 (5) ›</a><a class="cand-link only-sel" data-open="cand">✨ 새 후보 4건 검토 ›</a><span class="meta">11/03 선정</span></div>
+    </div>
+  </div>
+
+  <!-- ④ 전체 프로젝트 -->
+  <div class="sec">
+    <div class="sec-h"><h2>전체 프로젝트</h2><span class="hint">3,114건 · 최근 활동 순 · 상태는 ERP 기준</span></div>
+    <div class="list-tools">
+      <button class="chip on">전체</button><button class="chip">현대</button><button class="chip">기아</button><button class="chip">GM</button><button class="chip">르노</button><button class="chip">KGM</button><button class="chip">기타</button>
+      <span style="width:12px"></span>
+      <button class="chip">ERP 영업중</button><button class="chip">ERP 수주</button><button class="chip">마감·중단</button>
+      <div class="seg"><button class="on">표</button><button>보드(단계별)</button></div>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th style="width:34px"></th><th>프로젝트</th><th>고객사</th><th>ERP 상태</th><th>진행 단계</th><th>PM</th><th>최근 활동</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="legend">
+    <h4>시안 v4 — 화면 순서</h4>
+    <ul>
+      <li>① 검색이 맨 위(지금 화면처럼). ② 오늘의 프로젝트 브리핑: 사내 AI가 어제 변화를 '내 관심'·'회사 주요' 두 장에 3줄씩, 밀기·탭·화살표로 넘김. 이름을 누르면 상세, '근거'를 누르면 자료·기록.</li>
+      <li>③ 왼쪽 내 관심(★한 것만), 오른쪽 회사 주요(영업 부서가 고른 것, 줄마다 AI 현재 상태 한 줄). 각 3개, 누르면 상세, 나머지는 '모두 보기'.</li>
+      <li>④ 전체 프로젝트. '주요 선정 담당'으로 바꾸면 회사 주요 칸에 '새 후보 검토'가 보입니다.</li>
+      <li>일정 주의는 내부 데이터(ERP 일정·NAS 문서 일정) 확인 후 다시 넣습니다.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="dim" id="dim"></div>
+<aside class="drawer" id="drawer"><div class="drawer-h"><h3 id="dTitle"></h3><button id="dClose" aria-label="닫기">×</button></div><div class="drawer-b" id="dBody"></div></aside>
+
+<script>
+const R=(ico,name,code,sub,side)=>`<div class="row" data-go="${code}"><span class="ico ${/\d/.test(ico)?'pin':''}">${ico}</span><span class="t"><div class="nm">${name}<span class="cd">${code}</span></div><div class="sub">${sub}</div></span><span class="side">${side}</span><span class="go">›</span></div>`;
+const D={
+ fav:['내 관심 프로젝트 (5)','★한 프로젝트 전체. 끌어서 순서를 바꿀 수 있습니다.',[
+  R('★','기아 화성5 공장 하도 및 신기술','DLP-24-260','어제 · 설계팀 도면 업로드',''),
+  R('★','화성2 무빙실러 2차 10대 자동화','DLP-25-281','어제 · 업무 일지 2건',''),
+  R('★','에코 사바나 가니쉬 신공장','DLP-25-070','어제 · ERP 발주 2건',''),
+  R('★','화성5 신기술 상도 샌딩 폴리싱 와이핑 자동화','DLP-26-119','3일 전 · 옛 코드 DLP-26-033 자료 연결',''),
+  R('★','현대 아산 중도 도어내판 교체','DLP-25-274','45일 전','')]],
+ feat:['회사 주요 프로젝트 (5)','영업 부서(주요 선정 담당)가 고른 것만 보입니다. AI 문장은 매일 아침 새로 씁니다.',[
+  R('1','현대 사우디 신공장 중상도 로봇','DLP-24-054','<b>AI</b>양산대응 중, 공사 종료 12/31','<span class="pill p-gray">128억</span>'),
+  R('2','BHMC#4 이설 프로젝트','DLP-25-069','<b>AI</b>현장 설치 진행 중','<span class="pill p-gray">57억</span>'),
+  R('3','에코플라스틱 국내 신공장','DLP-25-104','<b>AI</b>설계·검토, 사양서 개정판 접수','<span class="pill p-gray">59억</span>'),
+  R('4','GMK 부평1공장 TOP1,2 베이스외판 로보 교체','DLP-25-229','<b>AI</b>설계·검토 단계','<span class="pill p-gray">56억</span>'),
+  R('5','기아 조지아 6차수 중상도 로봇 교체','DLP-25-022','<b>AI</b>현장 설치 중','<span class="pill p-gray">48억</span>')]],
+ cand:['새 후보 검토','시스템이 매일 규칙 점수로 계산한 후보입니다. 점수 근거는 DB 값, 이유 문장은 사내 AI. [선정]해야 전원에게 보입니다.',[
+  ['7','현대 인도 MP2 PCS 신공장','DLP-26-147',['계약 37억 +4','신공장 +2','해외 +1'],'해외 신공장 대형 건, 초기 단계'],
+  ['7','서연이화 미국 중소물 도장 신공장','DLP-26-068',['계약 18억 +2','로봇 5대 +1','신공장 +2','해외 +1','활동 +1'],'미국 신공장, 최근 활동 증가'],
+  ['6','화성2 무빙실러 2차 10대 자동화','DLP-25-281',['계약 53억 +4','종료 임박 +2'],'대형 건 양산 직전'],
+  ['6','현대 전주 트럭 도장합리화 도료공급설비 개조','DLP-25-129',['계약 52억 +4','종료 임박 +2'],'연내 종료 대형 개조']].map(c=>
+  `<div class="row cand"><span class="score">${c[0]}</span><span class="t"><div class="nm">${c[1]}<span class="cd">${c[2]}</span></div><div class="sub">${c[4]}</div><div class="rs">${c[3].map(x=>`<span>${x}</span>`).join('')}</div></span><button class="btn ok">선정</button><button class="btn">제외</button></div>`)],
+};
+const open=k=>{const [t,n,rows]=D[k];document.getElementById('dTitle').textContent=t;
+  document.getElementById('dBody').innerHTML=`<div class="note">${n}</div>`+rows.join('');document.body.classList.add('drawer-open');};
+const close=()=>document.body.classList.remove('drawer-open');
+document.getElementById('dClose').onclick=close;document.getElementById('dim').onclick=close;
+
+const rows=[
+ ['DLP-24-260','기아 화성5 공장 하도 및 신기술 프로젝트','기아 화성','수주','','모듈라','var(--s-mod)','김철수','어제 · 모듈라 수정',1],
+ ['DLP-26-033','기아 화성 5공장 신공장 신기술 자동화 프로젝트','기아 화성','중단','','—','var(--s-line)','-','—',0,'→ DLP-26-119~122로 나뉨'],
+ ['DLP-26-119','화성5 신기술 상도 샌딩 폴리싱 와이핑 자동화','기아 화성','수주','','설계·검토','var(--s-design)','-','3일 전 · 옛 코드 033 자료 연결',1],
+ ['DLP-25-281','화성2 무빙실러 2차 10대 자동화 프로젝트','기아 화성','수주','','현장','var(--s-site)','박민수','어제 · 업무 일지',1],
+ ['DLP-25-104','에코플라스틱 국내 신공장','에코플라스틱','수주','영업중','설계·검토','var(--s-design)','-','5일 전 · 사양서',0],
+ ['DLP-25-188','에코플라스틱 GP신공장 범퍼 로딩/언로딩 자동화','에코플라스틱','수주','영업중','현장','var(--s-site)','최가영','어제 · ERP 발주',0],
+ ['DLP-25-274','현대 아산 중도 도어내판 교체','현대 아산','수주','영업중','라인 대응','var(--s-line)','-','45일 전',1],
+];
+document.getElementById('rows').innerHTML=rows.map(r=>`<tr data-go="${r[0]}"><td><button class="tstar ${r[9]?'on':''}">${r[9]?'★':'☆'}</button></td>
+<td><b>${r[1]}</b>${r[10]?`<span class="moved">${r[10]}</span>`:''}<br><small style="color:var(--mute)">${r[0]}</small></td><td>${r[2]}</td>
+<td>${r[3]}</td>
+<td><span class="dot" style="background:${r[6]}"></span>${r[5]}</td><td>${r[7]}</td><td style="color:var(--sub)">${r[8]}</td></tr>`).join('');
+
+const toast=t=>{let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';el.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#101828;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;z-index:20';document.body.appendChild(el);}el.textContent=t;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',1400);};
+document.addEventListener('click',e=>{
+  const s=e.target.closest('.tstar');
+  if(s){s.classList.toggle('on');s.textContent=s.classList.contains('on')?'★':'☆';return;}
+  const b=e.target.closest('.btn.ok');
+  if(b){b.classList.remove('ok');b.classList.add('done');b.textContent='선정됨 ✓';return;}
+  if(e.target.closest('.btn,.demo'))return;
+  const o=e.target.closest('[data-open]');
+  if(o){open(o.dataset.open);return;}
+  if(e.target.closest('.ev')){toast('근거 자료·기록으로 이동 (시안)');return;}
+  const g=e.target.closest('[data-go]');
+  if(g){toast(`${g.dataset.go} 상세 화면으로 이동 (시안)`);return;}
+  const c=e.target.closest('.chip');
+  if(c){const grp=x=>/^ERP|^마감/.test(x.textContent);[...c.parentElement.querySelectorAll('.chip')].forEach(x=>{if(x!==c&&grp(x)===grp(c))x.classList.remove('on')});c.classList.add('on');}
+  const sg=e.target.closest('.seg button');
+  if(sg){[...sg.parentElement.children].forEach(x=>x.classList.remove('on'));sg.classList.add('on');}
+});
+// 브리핑: 탭·화살표·밀기·키보드 ← →
+let bi=0;const N=2,track=document.getElementById('bfTrack'),view=document.getElementById('bfView');
+const go=i=>{bi=(i+N)%N;track.style.transform=`translateX(-${bi*100}%)`;
+  document.querySelectorAll('.bf-tabs button').forEach((b,k)=>b.classList.toggle('on',k===bi));
+  document.querySelectorAll('.bf-dots i').forEach((d,k)=>d.classList.toggle('on',k===bi));};
+document.querySelectorAll('.bf-tabs button').forEach(b=>b.onclick=()=>go(+b.dataset.i));
+document.querySelectorAll('.bf-arrow').forEach(b=>b.onclick=()=>go(bi+ +b.dataset.d));
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='Escape')close();if(e.key==='ArrowLeft')go(bi-1);if(e.key==='ArrowRight')go(bi+1);
+  if(e.key==='/'){e.preventDefault();document.querySelector('.search input').focus();}});
+let sx=null,moved=false;
+view.addEventListener('pointerdown',e=>{sx=e.clientX;moved=false});
+view.addEventListener('pointermove',e=>{if(sx!==null&&Math.abs(e.clientX-sx)>10)moved=true});
+view.addEventListener('pointerup',e=>{if(sx===null)return;const dx=e.clientX-sx;sx=null;if(Math.abs(dx)>40)go(bi+(dx<0?1:-1));});
+view.addEventListener('click',e=>{if(moved){e.stopPropagation();moved=false}},true);
+// 시안: ★ 없을 때 — 관심 칸은 안내, 브리핑은 '회사 주요'부터
+document.getElementById('demoEmpty').onclick=()=>{document.body.classList.add('no-fav');document.getElementById('favN').textContent='0';
+  document.getElementById('favBrief').style.display='none';document.getElementById('favBriefEmpty').style.display='';go(1);
+  toast('★이 없을 때 화면 (새로 고침하면 돌아옴)');};
+// 시안 전용 역할 보기
+document.querySelectorAll('.modes button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.modes button').forEach(x=>x.classList.toggle('on',x===b));
+  document.body.classList.remove('sel');if(b.dataset.m)document.body.classList.add(b.dataset.m);});
+</script>
+</body>
+</html>

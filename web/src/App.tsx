@@ -58,7 +58,8 @@ export function App() {
         ))}
         <Route path="/projects/:id" element={<ProjectDetailPage />} />
         {user.isAdmin && <Route path="/admin/partners" element={<PartnersAdminPage />} />}
-        <Route path="*" element={<Navigate to={partner ? '/projects' : '/home'} replace />} />
+        {/* 로그인 첫 화면 = 프로젝트 메인(11-04, 홈 제거). 홈 화면 코드는 routes.ts에서 끈 채로 남겨 둔다. */}
+        <Route path="*" element={<Navigate to="/projects" replace />} />
       </Routes>
     </Layout>
   )

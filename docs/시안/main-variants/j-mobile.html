@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>J안 휴대폰 화면</title>
+<link rel="stylesheet" href="common.css">
+<style>
+:root{--bg:#EEF2F8;--surface:#fff;--surface2:#F1F4F9;--ink:#0B1A33;--sub:#56627A;--mute:#9AA4B8;--line:#E3E8F0;--hover:#F6F8FC;--accent:#2563EB;--accent-soft:#E8EFFE}
+header{padding:30px 0 10px}
+h1{margin:0;font-size:24px;letter-spacing:-.5px}
+header p{margin:6px 0 0;color:var(--sub);font-size:13.5px}
+header a{color:var(--accent);font-weight:600}
+.phones{display:flex;gap:34px;justify-content:center;flex-wrap:wrap;padding:20px 0 60px}
+figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:14px}
+figcaption{text-align:center;font-size:13px;color:var(--sub);max-width:330px}
+figcaption b{display:block;color:var(--ink);font-size:14.5px;margin-bottom:2px}
+.phone{width:350px;height:740px;border-radius:52px;background:#0F172A;padding:11px;box-shadow:0 30px 60px -25px rgba(11,26,51,.55),inset 0 0 0 2px #334155;position:relative}
+.screen{width:100%;height:100%;border-radius:42px;overflow:hidden;position:relative;background:#0056B9}
+.status{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 26px 0 30px;color:#fff;font-size:13px;font-weight:650;z-index:3}
+.status i{font-style:normal;letter-spacing:1px;font-size:11px}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:104px;height:30px;border-radius:16px;background:#000;z-index:4}
+.home{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:120px;height:5px;border-radius:3px;background:#0F172A;opacity:.85;z-index:4}
+iframe{position:absolute;top:44px;left:0;width:390px;height:788px;border:0;transform:scale(.8462);transform-origin:0 0}
+.pm-tools{display:none}
+</style>
+</head>
+<body>
+<main class="pm-wrap">
+  <header><h1>J안 — 휴대폰 화면</h1>
+    <p>폭 390px 기준 실제 화면을 그대로 띄운 것입니다. 각 화면 안에서 스크롤·탭·밀기가 됩니다. · <a href="j-band.html">넓은 화면 보기</a> · <a href="index.html">시안 비교로</a></p></header>
+  <div class="phones">
+    <figure><div class="phone"><div class="screen"><div class="island"></div><div class="status"><span>9:41</span><i>▂▄▆ ▭</i></div><iframe data-state="top" src="j-band.html" title="첫 화면"></iframe><div class="home"></div></div></div>
+      <figcaption><b>① 첫 화면</b>로고·알림·검색이 위에, 그 아래 AI 브리핑. 브리핑은 옆으로 밀어서 '회사 주요'로 넘깁니다.</figcaption></figure>
+    <figure><div class="phone"><div class="screen" style="background:#F3F6FC"><div class="island"></div><div class="status" style="color:#0C1A33"><span>9:41</span><i>▂▄▆ ▭</i></div><iframe data-state="lists" src="j-band.html" title="관심·주요"></iframe><div class="home"></div></div></div>
+      <figcaption><b>② 아래로 내림</b>내 관심 3개, 회사 주요 3개가 위아래로. 전체 목록은 표 대신 한 줄 카드, 거르기 칩은 옆으로 밉니다. 아래에 바로가기 막대.</figcaption></figure>
+    <figure><div class="phone"><div class="screen"><div class="island"></div><div class="status"><span>9:41</span><i>▂▄▆ ▭</i></div><iframe data-state="sheet" src="j-band.html" title="모두 보기"></iframe><div class="home"></div></div></div>
+      <figcaption><b>③ 모두 보기</b>'모두 보기'를 누르면 아래에서 올라오는 시트로 전체 목록이 열립니다. 아래로 끌거나 바깥을 눌러 닫습니다.</figcaption></figure>
+  </div>
+</main>
+<script>
+document.querySelectorAll('iframe[data-state]').forEach((f) => f.addEventListener('load', () => {
+  const d = f.contentDocument, w = f.contentWindow
+  d.head.insertAdjacentHTML('beforeend', '<style>.pm-tools{display:none!important}html{scrollbar-width:none}::-webkit-scrollbar{display:none}</style>')
+  if (f.dataset.state === 'lists') setTimeout(() => w.scrollTo(0, d.querySelector('.h-pair').getBoundingClientRect().top + w.scrollY - 12), 400)
+  if (f.dataset.state === 'sheet') setTimeout(() => d.querySelector('[data-open="feat"]').click(), 200)
+}))
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+using Npgsql;
+
+namespace DyOne.Worker.Jobs.ProjectMain;
+
+public sealed record ErpInfo(string Code, string? Status, string? Name, string? Partner, string? Pm, DateOnly? From, DateOnly? To, decimal Amount);
+public sealed record TraceInfo(int Po30, int Po90, DateOnly? LastPo, int Nas30, int Nas14, int Nas1, DateTime? NasLast, string? NasDir, string? NasTop, int Act30, int Act1, DateTime? ActLast,
+    int Po31_60 = 0, int Po61_90 = 0, int NasDays30 = 0, int NasDays14 = 0, decimal NasTopShare = 0);
+public sealed record ModularInfo(string Code, string? Status, string? Process, string? Detail, int Robots, DateOnly? Install, DateOnly? Commissioning, DateOnly? Ship, bool IsEnd);
+public sealed record TextInfo(DateTime At, string Source, string Text);
+
+/// <summary>점수·브리핑이 같이 쓰는 dyone 데이터(ERP 미러·흔적·모듈라·옛→새 코드 묶음).</summary>
+public sealed class MainData
+{
+    public Dictionary<string, ErpInfo> Erp = [];
+    public Dictionary<string, TraceInfo> Trace = [];
+    public Dictionary<string, List<ModularInfo>> Modular = [];
+    public Dictionary<string, long> ProjectId = [];
+    public Dictionary<string, string> GwName = [];
+    public Dictionary<string, string> PmDept = [];
+    /// <summary>코드 → 묶음 대표 코드. 옛→새 코드 연결(project.project_alias)을 이어 붙인 덩어리에서, 옛 코드가 아닌 것 중 가장 작은 코드.</summary>
+    public Dictionary<string, string> Key = [];
+    public Dictionary<string, List<string>> Groups = [];
+    public HashSet<string> OldCodes = [];
+    public HashSet<(string Old, string New)> Alias = [];
+
+    public string KeyOf(string code) => Key.GetValueOrDefault(code, code);
+    public List<string> CodesOf(string key) => Groups.TryGetValue(key, out var g) ? g : [key];
+
+    /// <summary>옛 코드 하나를 여러 새 코드로 나눈 묶음(예: 033 → 119~122)이면 옛 코드의 이름을 묶음 이름으로 쓴다.</summary>
+    public string? NameOf(string key)
+    {
+        var codes = CodesOf(key);
+        var split = codes.FirstOrDefault(c => OldCodes.Contains(c) && Alias.Count(a => a.Old == c) >= 2);
+        if (split is not null && Erp.TryGetValue(split, out var se) && !string.IsNullOrWhiteSpace(se.Name)) return se.Name!.Trim();
+        if (Erp.TryGetValue(key, out var e) && !string.IsNullOrWhiteSpace(e.Name)) return e.Name!.Trim();
+        return GwName.GetValueOrDefault(key);
+    }
+
+    /// <summary>화면용 코드 이름: 새 코드가 여러 개면 'DLP-26-119~122'.</summary>
+    public string CodeLabel(string key)
+    {
+        var news = CodesOf(key).Where(c => !OldCodes.Contains(c)).Order().ToList();
+        if (news.Count <= 1) return key;
+        var last = news[^1];
+        return $"{news[0]}~{last[(last.LastIndexOf('-') + 1)..]}";
+    }
+
+    public TraceInfo TraceOf(string key)
+    {
+        var list = CodesOf(key).Select(c => Trace.GetValueOrDefault(c)).Where(t => t is not null).Select(t => t!).ToList();
+        if (list.Count == 0) return new TraceInfo(0, 0, null, 0, 0, 0, null, null, null, 0, 0, null);
+        var nasMain = list.OrderByDescending(t => t.Nas30).First();
+        // 묶음(옛+새 코드)의 NAS 날 수는 폴더가 하나인 경우가 대부분이라 가장 큰 폴더 값을 쓴다
+        return new TraceInfo(list.Sum(t => t.Po30), list.Sum(t => t.Po90), list.Max(t => t.LastPo), list.Sum(t => t.Nas30), list.Sum(t => t.Nas14), list.Sum(t => t.Nas1),
+            list.Max(t => t.NasLast), nasMain.NasDir, nasMain.NasTop, list.Sum(t => t.Act30), list.Sum(t => t.Act1), list.Max(t => t.ActLast),
+            list.Sum(t => t.Po31_60), list.Sum(t => t.Po61_90), list.Max(t => t.NasDays30), list.Max(t => t.NasDays14), nasMain.NasTopShare);
+    }
+
+    public List<ModularInfo> ModularOf(string key) => CodesOf(key).SelectMany(c => Modular.GetValueOrDefault(c) ?? []).ToList();
+
+    /// <summary>해외 프로젝트인가(일정의 '선적' 단계는 해외만, 11-05). 근거 둘 중 하나:
+    ///  ① NAS 프로젝트 폴더가 연도 폴더 아래 '6. 해외 프로젝트'에 있다. ② ERP 고객사 이름에 한글이 없다(해외 법인은 영문 등록).
+    /// 11-05 대조: 일정 대상 22건은 ①②가 모두 일치. ①만 맞는 예 = 한국 법인이 발주한 해외 현장(서연이화 인도 푸네·삼보 멕시코),
+    /// ②만 맞는 예 = 해외 폴더 밖에 둔 해외 티칭·CS 건. 근거: docs/roadmap/일정 단계 규칙 수정 결과 (2026-11-05).md</summary>
+    public bool IsOverseas(string key, IEnumerable<string> nasDirs)
+    {
+        if (nasDirs.Any(p => p.Replace('\\', '/').Split('/').Any(s => s.Contains("해외")))) return true;
+        return CodesOf(key).Any(c => Erp.TryGetValue(c, out var e) && !string.IsNullOrWhiteSpace(e.Partner)
+            && !e.Partner!.Any(ch => ch is >= '가' and <= '힣'));
+    }
+
+    public static async Task<MainData> LoadAsync(NpgsqlConnection db, CancellationToken ct)
+    {
+        var d = new MainData();
+        await Read(db, "select cd_prjt, status_name, name, partner_name, pm_name, cnst_from, cnst_to, coalesce(contract_amount, 0) from sync.erp_project", r =>
+            d.Erp[r.GetString(0)] = new ErpInfo(r.GetString(0), S(r, 1), S(r, 2), S(r, 3), S(r, 4), Dt(r, 5), Dt(r, 6), r.GetDecimal(7)), ct);
+        await Read(db, "select code, po_30d, po_90d, last_po_date, nas_30d, nas_14d, nas_1d, nas_last_at, nas_dir, nas_top::text, act_30d, act_1d, act_last_at, po_31_60d, po_61_90d, nas_days_30, nas_days_14, nas_top_share from sync.project_trace", r =>
+            d.Trace[r.GetString(0)] = new TraceInfo(r.GetInt32(1), r.GetInt32(2), Dt(r, 3), r.GetInt32(4), r.GetInt32(5), r.GetInt32(6),
+                r.IsDBNull(7) ? null : r.GetDateTime(7), S(r, 8), S(r, 9), r.GetInt32(10), r.GetInt32(11), r.IsDBNull(12) ? null : r.GetDateTime(12),
+                r.GetInt32(13), r.GetInt32(14), r.GetInt32(15), r.GetInt32(16), r.GetDecimal(17)), ct);
+        await Read(db, """
+            select b.project_code, s.name, b.process, b.process_detail, coalesce(b.robot_count, 0), b.install_start, b.commissioning_start, b.ship_due, coalesce(s.is_end, false)
+              from modular.build b left join modular.status s on s.id = b.status_id
+             where not b.is_deleted and b.project_code is not null
+            """, r =>
+        {
+            var m = new ModularInfo(r.GetString(0), S(r, 1), S(r, 2), S(r, 3), r.GetInt32(4), Dt(r, 5), Dt(r, 6), Dt(r, 7), r.GetBoolean(8));
+            (d.Modular.TryGetValue(m.Code, out var l) ? l : d.Modular[m.Code] = []).Add(m);
+        }, ct);
+        await Read(db, "select code, id, name from project.project where is_active", r => { d.ProjectId[r.GetString(0)] = r.GetInt64(1); d.GwName[r.GetString(0)] = r.GetString(2); }, ct);
+        // ERP PM은 이름만 있다 → 조직도 같은 이름의 재직자 부서(동명이인은 첫 사람)
+        await Read(db, """
+            select distinct on (e.name) e.name, coalesce(d.name, '') from org.employee e left join org.department d on d.id = e.department_id
+             where e.is_active order by e.name, e.id
+            """, r => d.PmDept[r.GetString(0)] = r.GetString(1), ct);
+        await Read(db, "select old_code, new_code from project.project_alias", r => d.Alias.Add((r.GetString(0), r.GetString(1))), ct);
+
+        // 묶음(union-find)
+        var parent = new Dictionary<string, string>();
+        string Find(string x) { while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+        foreach (var (o, n) in d.Alias)
+        {
+            parent.TryAdd(o, o); parent.TryAdd(n, n);
+            var a = Find(o); var b = Find(n);
+            if (a != b) parent[a] = b;
+            d.OldCodes.Add(o);
+        }
+        foreach (var g in parent.Keys.GroupBy(Find))
+        {
+            var codes = g.Order().ToList();
+            var key = codes.Where(c => !d.OldCodes.Contains(c)).DefaultIfEmpty(codes[0]).Min()!;
+            d.Groups[key] = codes;
+            foreach (var c in codes) d.Key[c] = key;
+        }
+        return d;
+    }
+
+    /// <summary>최근 글(모듈라 활동글·이력, ES 이슈 활동글) — 사내 AI가 읽는 입력. 길면 자른다.</summary>
+    public static async Task<List<TextInfo>> ReadTextsAsync(NpgsqlConnection db, IReadOnlyList<string> codes, int days, int take, CancellationToken ct)
+    {
+        var list = new List<TextInfo>();
+        await using var cmd = new NpgsqlCommand("""
+            with wdoc as (
+              select d.id doc_id from works.doc d join works.field f on f.applet_id = d.applet_id and f.props->>'integrationAppletId' = '285'
+               where not d.is_deleted and substring(d.display->>f.cid from '(DL[A-Z]*-\d{2}-\d{3})') = any(@codes)),
+            t as (
+              select a.created_at at, '모듈라 활동' src, a.body_text txt from modular.activity a join modular.build b on b.id = a.build_id
+               where b.project_code = any(@codes) and not b.is_deleted
+              union all select h.at, '모듈라 변경', concat_ws(' ', h.title, h.status_from, case when h.status_to is not null then '→ ' || h.status_to end)
+                from modular.history h join modular.build b on b.id = h.build_id where b.project_code = any(@codes) and not b.is_deleted and h.kind <> 'view'
+              union all select a.created_at, 'ES 이슈', a.body_text from works.activity a join wdoc w on w.doc_id = a.doc_id)
+            select at, src, txt from t where at > now() - make_interval(days => @days) and coalesce(trim(txt), '') <> '' order by at desc limit @take
+            """, db);
+        cmd.Parameters.AddWithValue("codes", codes.ToArray());
+        cmd.Parameters.AddWithValue("days", days);
+        cmd.Parameters.AddWithValue("take", take);
+        await using var r = await cmd.ExecuteReaderAsync(ct);
+        while (await r.ReadAsync(ct))
+        {
+            var t = System.Text.RegularExpressions.Regex.Replace(r.GetString(2), @"\s+", " ").Trim();
+            list.Add(new TextInfo(r.GetDateTime(0), r.GetString(1), t.Length > 180 ? t[..180] + "…" : t));
+        }
+        return list;
+    }
+
+    private static string? S(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : r.GetString(i);
+    private static DateOnly? Dt(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : DateOnly.FromDateTime(r.GetDateTime(i));
+
+    private static async Task Read(NpgsqlConnection db, string sql, Action<NpgsqlDataReader> row, CancellationToken ct)
+    {
+        await using var cmd = new NpgsqlCommand(sql, db);
+        await using var r = await cmd.ExecuteReaderAsync(ct);
+        while (await r.ReadAsync(ct)) row(r);
+    }
+}

@@ -177,3 +177,14 @@
 ## [임시] 데모 화면 메모(포스트잇) — 운영에 넣지 않음 (2026-10-14 로컬)
 - [ ] 운영에는 `server/db/demo_memo.sql`을 적용하지 않고 `DemoMemo:Enabled`도 켜지 않는다(기본 false)
 - [ ] 데모가 끝나면 삭제: `web/src/components/DemoMemos.tsx`, `web/src/styles/demo-memo.css`, Layout의 `<DemoMemos />` 한 줄, `server/src/DyOne.Api/Modules/Demo/`, Program.cs의 `app.MapDemoMemos(config)` 한 줄, appsettings `DemoMemo`, `server/db/demo_memo.sql`, DB `demo` 스키마
+
+## 프로젝트 메인(첫 화면) · ERP 미러 · 회사 주요 · 브리핑 (2026-11-04 로컬)
+- [ ] 운영 dyone에 `server/db/project_main.sql` 적용 — **API·Worker 배포 전에** (11-05 흐름 칸 `nas_flow`·`po_recent` 포함)
+- [ ] 운영 ERP dylab 계정으로 `neoe.MA_PITEM`·`neoe.MA_PARTNER` 읽기 되는지 확인(발주 품목·거래처 이름, 11-05 추가)
+- [ ] 운영 Worker 환경변수: `ConnectionStrings__Erp`(dylab 읽기 전용, 비밀번호 없이), `Erp__Password`, `Llm__ApiKey`, `ProjectMain__NasRoots__0..` (운영에서 읽을 수 있는 NAS 경로)
+- [ ] 운영 Worker 서버 → ERP 192.168.30.20:11443, 사내 AI 192.168.11.146:18101 연결 확인
+- [ ] 배포 직후 `--run-once project-main` 한 번 실행 → `select status_code, count(*) from sync.erp_project group by 1`가 ERP와 같은지 확인
+- [ ] 회사 주요 선정 담당 부서 정해 `access.app_department`에 `project.featured` 넣기(그 전엔 관리자만 선정, 화면은 '시스템 추천')
+- [ ] 로컬 ★·선정·후보·브리핑 데이터는 옮기지 않는다(`check_prod_clean.sql`에 새 표 추가 검토)
+- [ ] 일정 주의: 운영 Worker 서버에 파이썬 + `pip install pymupdf python-pptx openpyxl`, `Spec:PythonPath` 확인, NAS `2. 사양서`·`3. 수행 계획서` 읽기 권한
+- [ ] 운영 API `ProjectMain:ScheduleGraceDays`는 비우거나 14(로컬 Development만 0)

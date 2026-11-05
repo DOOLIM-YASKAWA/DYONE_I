@@ -8,7 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+  </ItemGroup>
+
+  <!-- 문서 일정 읽기 도우미(Python: PyMuPDF·python-pptx·openpyxl). 빌드 출력의 python/ 아래로 복사된다. -->
+  <ItemGroup>
+    <None Include="python\**\*.py" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

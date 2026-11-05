@@ -271,3 +271,22 @@
 | 사내 AI 주소 | `http://192.168.11.146:18101/v1`(dy-linux) | 운영 API 서버에서 이 주소에 닿는지(방화벽) |
 | 감사 기록 | 에이전트 질문 앞 200자 `ai.agent` | 같음 |
 
+## 16. 프로젝트 메인(로그인 첫 화면) · ERP 미러 · 회사 주요 · 브리핑 (2026-11-04)
+- 설계: `docs/roadmap/project-main-design.md`. 홈을 끄고(`routes.ts` home enabled=false) 로그인하면 `/projects`(J안 메인).
+- 스키마: `server/db/project_main.sql` — `sync.erp_project`·`sync.project_trace`(Worker) · `project.project_alias`(기준 연결 9줄) · `project.favorite`·`project.featured`(API) · `project.featured_suggestion`·`project.status_brief`(Worker).
+- Worker 잡 `project-main`(매일 06:30): ① ERP 미러(바뀐 줄만, DTS_UPDATE 기준 `sync.state(erp/project)`) + 발주 집계 ② NAS 최근 수정 파일(읽기 전용, 소음 파일 제외) + 모듈라/ES 기록 ③ 회사 주요 후보 규칙 점수 + 사내 AI 이유 ④ ★∪주요의 지금 상태 한 줄(사내 AI, 숫자 검사). 수동 실행: `dotnet DyOne.Worker.dll --run-once project-main`.
+- API: `GET /api/projects/main`·`favorites`·`favorites/ids`·`featured`·`featured/candidates`, `PUT/DELETE /api/projects/{id}/favorite`, `POST /api/projects/featured`(선정 권한 = access `project.featured` 부서·사람 + 관리자 '*'). 목록 `GET /api/projects?erp=live|sales|ordered|closed`, 목록 항목에 `erpStatus`.
+- 글꼴: Pretendard 가변(`web/src/assets/fonts`, OFL) — 번들에 들어가므로 운영 추가 작업 없음. 로고는 SVG(`components/DyOneLogo.tsx`).
+
+| 항목 | 로컬 | 운영 |
+|---|---|---|
+| 스키마 | `project_main.sql` 적용(2026-11-04, v3 칸 `po_31_60d`·`po_61_90d`·`nas_days_*`·`nas_top_share`, 11-05 흐름 칸 `nas_flow`·`po_recent`(jsonb) 포함) | **API·Worker 배포 전** 적용(없으면 메인 화면 API가 실패). 여러 번 실행해도 안전 |
+| 흐름 칸 값(11-05) | Worker가 매일 채움(NAS 날짜×폴더 수정 수·대표 파일 이름, ERP 최근 90일 발주서의 거래처·품목 이름 — 금액 없음). ERP 조회 1번 추가(PU_POL·PU_POH·MA_PITEM·MA_PARTNER 읽기) | ❌ 옮기지 않음 — 스크립트로 칸만 만들면 다음 06:30 실행이 채움. dylab 계정에 `MA_PITEM`·`MA_PARTNER` 읽기 권한 있는지 확인 |
+| ERP 연결(Worker) | appsettings.Development `ConnectionStrings:Erp`(dylab, 비밀번호 없음) + user-secrets `Erp:Password` | 환경변수 `ConnectionStrings__Erp`·`Erp__Password`. 운영 Worker 서버에서 192.168.30.20:11443 닿는지 |
+| NAS 뿌리 | `ProjectMain:NasRoots` = `Q:/01_프로젝트/2024~2026` | 운영 Worker 계정이 읽을 수 있는 UNC 경로로(연도 바뀌면 추가) |
+| 사내 AI(Worker) | user-secrets `Llm:ApiKey` | 환경변수 `Llm__ApiKey` — 없으면 규칙 문장만 |
+| ★·선정·브리핑·후보 | 로컬 시험 흔적(★·선정은 시험 후 지움) | ❌ 옮기지 않음 — 운영 Worker가 첫 실행에서 채움 |
+| 선정 담당 | 관리자('*')만 | `access.app_department`에 `project.featured` → 영업 부서 id(결정 필요) |
+| 일정 주의 표 | `project_main.sql`에 `project.schedule_milestone`·`schedule_alert`(Worker)·`schedule_hide`(API) 포함(2026-11-04) | 같은 스크립트로 적용 |
+| 일정 읽기(Worker) | `python/schedule_lines.py`(빌드 출력에 복사) + PyMuPDF·python-pptx·openpyxl, 파이썬 경로 `Spec:PythonPath` | 운영 Worker 서버에 파이썬과 세 라이브러리 설치, NAS `2. 사양서`·`3. 수행 계획서` 읽기 권한 |
+| 일정 주의 유예 | API `ProjectMain:ScheduleGraceDays` = 0(시험) | **14**(기본값 — 설정을 비우면 14). 일정 임박은 유예 없이 바로 |
