@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>엔지니어링 아이콘 후보</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Pretendard Variable', Pretendard, 'Malgun Gothic', system-ui, sans-serif; background: linear-gradient(135deg, #0056B9, #0A7CF0); color: #fff; font-size: 14px; letter-spacing: -.1px; min-height: 100vh; padding: 24px 16px 60px; }
+h1 { margin: 0 auto 4px; max-width: 980px; font-size: 20px; }
+.lead { margin: 0 auto 18px; max-width: 980px; color: #DCE8F7; font-size: 13px; }
+.grid { max-width: 980px; margin: 0 auto; display: grid; gap: 14px; }
+.row.wide { grid-template-columns: 200px repeat(4, minmax(0,1fr)); }
+.row { background: rgba(14, 35, 71, .62); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; padding: 16px 18px; backdrop-filter: blur(20px); display: grid; grid-template-columns: 200px repeat(4, minmax(0,1fr)); gap: 10px; align-items: stretch; }
+.name b { display: block; font-size: 15px; } .name small { color: rgba(255,255,255,.7); font-size: 12px; }
+.opt { border-radius: 12px; padding: 12px 10px; display: flex; gap: 10px; align-items: center; border: 1px solid transparent; }
+.opt.cur { opacity: .55; border: 1px dashed rgba(255,255,255,.35); }
+.opt.rec { background: rgba(255,255,255,.12); border-color: rgba(254,217,1,.8); }
+.ic { width: 38px; height: 38px; border-radius: 11px; background: rgba(255,255,255,.16); display: grid; place-items: center; flex: none; }
+svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.opt b { display: block; font-size: 13px; } .opt small { display: block; color: rgba(255,255,255,.7); font-size: 11.5px; line-height: 1.35; }
+.tag { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 5px; padding: 0 5px; margin-left: 4px; background: #FED901; color: #0C1A33; vertical-align: 1px; }
+.prev { max-width: 980px; margin: 18px auto 0; background: rgba(14, 35, 71, .62); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; padding: 18px; }
+.prev h5 { margin: 0 0 10px; font-size: 12px; color: rgba(255,255,255,.7); font-weight: 600; }
+.prev .g { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; }
+.prev .mi { display: flex; gap: 10px; padding: 10px; border-radius: 12px; }
+.prev .mi b { display: block; } .prev .mi small { display: block; color: rgba(255,255,255,.75); font-size: 12px; }
+@media (max-width: 760px) { .row { grid-template-columns: 1fr 1fr; } .name { grid-column: 1 / -1; } .prev .g { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>엔지니어링 아이콘 후보</h1>
+<p class="lead">왼쪽 흐린 칸이 예전 아이콘, 노란 테두리가 정한 것(SRS Analyzer는 추천)입니다. SRS Analyzer는 로봇·3D·파라미터·잡·패스맵 후보를 더 넣었습니다. 맨 아래는 추천 아이콘을 실제 큰 판(유리 남색)에 넣은 모습입니다.</p>
+<div class="grid" id="grid"></div>
+<div class="prev"><h5>엔지니어링 — 추천 아이콘으로 넣은 모습</h5><div class="g" id="prev"></div></div>
+<script>
+const ROWS = [
+  { name: '모듈라 진행 일지', desc: '모듈라 빌드 진행·일정·글', opts: [
+    ['지금: 정육면체', '모듈 하나', 'M12 2 3 7v10l9 5 9-5V7zM3 7l9 5 9-5M12 12v10', 'cur'],
+    ['클립보드 + 체크', '진행을 적고 확인하는 일지', 'M9 3h6v3H9zM8 4.5H5V21h14V4.5h-3M9 13l2 2 4-4'],
+    ['달력 + 진행 막대', '일정 따라 진행되는 빌드', 'M4 5h16v15H4zM4 9h16M8 3v4M16 3v4M7 13h6M7 16h9', 'rec'],
+    ['공책 + 정육면체', '모듈에 대한 기록', 'M5 3h12l2 2v16H5zM9 3v18M13.5 9l3 1.6v3.3l-3 1.6-3-1.6v-3.3z'],
+  ] },
+  { name: 'CS 이슈 정리', desc: '현장 이슈 기록과 처리', opts: [
+    ['지금: 깃발', '표시해 둔 일', 'M5 21V4M5 4h11l-2 4 2 4H5', 'cur'],
+    ['헤드셋', '고객 지원(CS)', 'M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H4zM17 14h3v5h-3zM20 19a3 3 0 0 1-3 3h-4'],
+    ['말풍선 + 느낌표', '고객이 알려 온 문제', 'M4 5h16v11H9l-5 4zM12 8v3.5M12 13.5h.01'],
+    ['렌치', '현장에서 고치는 일', 'M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z', 'rec'],
+  ] },
+  { name: 'SRS Analyzer', desc: '공정별 로봇 측정 이력·통계 분석', wide: true, opts: [
+    ['지금: 꺾은선 그래프', '일반적인 통계', 'M4 19V5M4 19h16M8 15l3-4 3 2 5-6', 'cur'],
+    ['패스맵(점 잇기)', '로봇이 지나는 경로와 점', 'M3 19a2 2 0 1 0 4 0 2 2 0 0 0-4 0M10 12.5a2 2 0 1 0 4 0 2 2 0 0 0-4 0M17 6a2 2 0 1 0 4 0 2 2 0 0 0-4 0M6.6 17.6l3.8-3.6M13.6 11.1l3.8-3.7', 'rec'],
+    ['로봇 팔 + 궤적', '로봇 동작과 지나간 길', 'M4 21h8M8 21v-3M8 18l3-6 5 1M11 12l3-6 3 1M18 3.5c1.6 1.8 2.3 4 2 6.5M20.5 13.5h.01'],
+    ['3D 좌표축', 'X·Y·Z 3D 보기', 'M12 13V4M12 13l-7.5 4.5M12 13l7.5 4.5M10.3 5.7 12 4l1.7 1.7M5.2 15.4l-.7 2.1 2.2.3M17.3 17.8l2.2-.3-.7-2.1'],
+    ['파라미터 조절 막대', '로봇 파라미터 값', 'M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4'],
+    ['잡(JOB) 프로그램', '로봇 작업 프로그램 코드', 'M5 3h9l5 5v13H5zM14 3v5h5M10 12l-2.5 2.5L10 17M14 12l2.5 2.5L14 17'],
+    ['3D 상자 + 경로', '3D 공간 안의 로봇 경로', 'M12 2 3 7v10l9 5 9-5V7zM3 7l9 5 9-5M12 12v10M6.5 15.5c2-3 4.5 1 6-2.5s3.5-2 5-3'],
+    ['도장 건 + 분사', '도장 로봇 측정', 'M4 9h8l3-2h2v6h-2l-3-2H4zM7 11v6h3M19.5 8h2M19.5 10h2.5M19.5 12h2'],
+  ] },
+  { name: '고객사 및 공정 관리', desc: '공정 편집툴', opts: [
+    ['지금: 세 줄', '목록', 'M4 6h16M4 12h10M4 18h6', 'cur'],
+    ['나무 구조', '고객사 › 공장 › 부스 › 존', 'M4 3h6v4H4zM14 10h6v4h-6zM14 17h6v4h-6zM7 7v12h7M7 12h7', 'rec'],
+    ['공장', '고객사 공장', 'M3 21V10l6 4V10l6 4V6l6 3v12zM7 18h2M12 18h2M17 18h2'],
+    ['목록 + 연필', '공정을 편집', 'M4 6h9M4 12h6M4 18h4M14 19l6.5-6.5-2-2L12 17v2z'],
+  ] },
+  { name: 'MotoSim Launcher', desc: '시뮬레이션 Cell 파일 관리·실행', opts: [
+    ['지금: 로봇 머리', '로봇', 'M9 3h6v4H9zM6 7h12v8H6zM9 15v4M15 15v4M9 11h.01M15 11h.01', 'cur'],
+    ['정육면체 + 재생', '3D 시뮬레이션 실행', 'M12 2 3 7v10l9 5 9-5V7zM10.5 9.5l4 2.5-4 2.5z', 'rec'],
+    ['창 + 재생', '프로그램을 띄움(런처)', 'M3 5h18v14H3zM3 9h18M10 12l4 2.5-4 2.5z'],
+    ['로켓', '빠르게 시작', 'M12 15l-3-3c1-5 5-9 10-9 0 5-4 9-9 10zM9 12l-4 1-2 3 4 1M12 15l-1 4 3 2 1-4'],
+  ] },
+];
+const FIX = [ ['사양서 분석', '사양서 비교 및 사양 정리 초안 작성', 'M5 3h9l5 5v13H5zM14 3v5h5M8 13h8M8 17h5'], ['SmartLab', '랩 도장 테스트 측정값 조회·분석', 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 15h9'] ];
+const svg = (d) => `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>`;
+document.getElementById('grid').innerHTML = ROWS.map((r) => `<div class="row${r.wide ? ' wide' : ''}"><div class="name"><b>${r.name}</b><small>${r.desc}</small></div>${r.opts.map((o) => `<div class="opt ${o[3] ?? ''}"><span class="ic">${svg(o[2])}</span><div><b>${o[0]}${o[3] === 'rec' ? '<span class="tag">추천</span>' : ''}</b><small>${o[1]}</small></div></div>`).join('')}</div>`).join('');
+const rec = (n) => ROWS.find((r) => r.name === n);
+const order = [FIX[0], ['모듈라 진행 일지'], ['CS 이슈 정리'], FIX[1], ['SRS Analyzer'], ['고객사 및 공정 관리'], ['MotoSim Launcher']];
+document.getElementById('prev').innerHTML = order.map((x) => {
+  const r = rec(x[0]); const name = x[0], desc = r ? r.desc : x[1], d = r ? r.opts.find((o) => o[3] === 'rec')[2] : x[2];
+  return `<div class="mi"><span class="ic">${svg(d)}</span><div><b>${name}</b><small>${desc}</small></div></div>`;
+}).join('');
+</script>
+</body>
+</html>

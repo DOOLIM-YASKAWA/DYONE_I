@@ -12,9 +12,11 @@ import { Icon, type IconName } from './icons'
 
 const channelLabel = { web: 'PC 웹', desktop: 'Windows 앱', mobile: '모바일 앱' }[platform.kind]
 
-type MenuItem = { path: string; icon: IconName; name: string; short?: string }
+type MenuItem = { path: string; icon: IconName; name: string; short?: string; desc?: string }
 /** 펼침 메뉴 묶음(위쪽 메뉴 · 휴대폰 전체 메뉴 공통) */
-const GROUP_NAME: Record<Exclude<MenuGroup, 'main'> | 'admin', string> = { eng: '엔지니어링', life: '생활', admin: '관리' }
+const GROUP_NAME: Record<Exclude<MenuGroup, 'main'> | 'admin', string> = { eng: '엔지니어링', svc: '사내 서비스', life: '생활', admin: '관리' }
+/** 위쪽 탭 순서(11-05): 경로 = 탭 하나, 묶음 이름 = 여러 화면이 든 탭 */
+const TABS: (string | keyof typeof GROUP_NAME)[] = ['/projects', '/download', '/search', 'eng', '/ai', 'svc', 'admin']
 
 /**
  * 화면 틀(D안, 2026-11-02): 위쪽 파란 메뉴 막대 + 화면 머리말 파란 띠(theme-d.css).
@@ -39,9 +41,17 @@ export function Layout({ children }: { children: ReactNode }) {
   const main: MenuItem[] = routes.filter((r) => r.group === 'main')
   const groups = ([
     ['eng', routes.filter((r) => r.group === 'eng')],
+    ['svc', routes.filter((r) => r.group === 'svc')],
     ['life', routes.filter((r) => r.group === 'life')],
-    ['admin', user?.isAdmin ? [{ path: '/admin/partners', icon: 'shield', name: '협력사 관리' }] : []],
+    ['admin', user?.isAdmin ? [{ path: '/admin/partners', icon: 'shield', name: '협력사 관리', desc: '협력사 계정·배정 프로젝트 관리' }] : []],
   ] as [keyof typeof GROUP_NAME, MenuItem[]][]).filter(([, items]) => items.length > 0)
+  // 위쪽 탭: TABS 순서대로, 화면이 하나면 바로 가는 탭, 여럿이면 펼침 탭(협력사는 보이는 것만)
+  const groupMap = new Map(groups)
+  const tabs = TABS.flatMap((k): ({ kind: 'link'; r: MenuItem } | { kind: 'group'; g: keyof typeof GROUP_NAME; items: MenuItem[] })[] => {
+    if (k.startsWith('/')) { const r = main.find((x) => x.path === k); return r ? [{ kind: 'link', r }] : [] }
+    const items = groupMap.get(k as keyof typeof GROUP_NAME)
+    return items?.length ? [{ kind: 'group', g: k as keyof typeof GROUP_NAME, items }] : []
+  })
   const isIn = (items: MenuItem[]) => items.some((r) => location.pathname.startsWith(r.path))
   // 펼침 메뉴에서 고르면 포커스를 풀어 닫는다(펼침은 :hover/:focus-within으로 열린다)
   const closePop = () => (document.activeElement as HTMLElement | null)?.blur()
@@ -56,19 +66,23 @@ export function Layout({ children }: { children: ReactNode }) {
           <NavLink className="dy-brand" to="/projects">
             <DyOneLogo height={22} />
           </NavLink>
-          <nav className="dy-nav" aria-label="주 메뉴">
-            {main.map((r) => (
-              <NavLink key={r.path} to={r.path} className={({ isActive }) => `dy-nav-item${isActive ? ' active' : ''}`}>{r.short ?? r.name}</NavLink>
-            ))}
-            {groups.map(([g, items]) => (
-              <div key={g} className={`dy-group${isIn(items) ? ' active' : ''}`}>
-                <button className="dy-nav-item" aria-haspopup="true">{GROUP_NAME[g]}<Icon name="down" size={14} /></button>
-                <div className="dy-pop" role="menu">
-                  {items.map((r) => (
-                    <NavLink key={r.path} to={r.path} role="menuitem" onClick={closePop} className={({ isActive }) => (isActive ? 'active' : '')}>
-                      <Icon name={r.icon} />{r.name}
-                    </NavLink>
-                  ))}
+          <nav className="dy-nav dy-pills" aria-label="주 메뉴">
+            {tabs.map((t) => t.kind === 'link' ? (
+              <NavLink key={t.r.path} to={t.r.path} className={({ isActive }) => `dy-nav-item${isActive ? ' active' : ''}`}>{t.r.short ?? t.r.name}</NavLink>
+            ) : (
+              <div key={t.g} className={`dy-group${isIn(t.items) ? ' active' : ''}`}>
+                <button className="dy-nav-item" aria-haspopup="true">{GROUP_NAME[t.g]}<Icon name="down" size={14} /></button>
+                {/* 큰 판 펼침(11-05 A1 · 유리 남색): 아이콘 + 이름 + 한 줄 설명, 최대 3열 */}
+                <div className="dy-pop dy-mega" role="menu" style={{ ['--cols' as string]: Math.min(3, t.items.length) }}>
+                  <h5>{GROUP_NAME[t.g]}</h5>
+                  <div className="dy-mega-g">
+                    {t.items.map((r) => (
+                      <NavLink key={r.path} to={r.path} role="menuitem" onClick={closePop} className={({ isActive }) => (isActive ? 'active' : '')}>
+                        <span className="dy-mega-ic"><Icon name={r.icon} /></span>
+                        <span><b>{r.name}</b>{r.desc && <small>{r.desc}</small>}</span>
+                      </NavLink>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>여러 화면 탭 시안</title>
+<style>
+:root { --blue:#0056B9; --blue2:#0A7CF0; --ink:#0C1A33; --sub:#56637C; --mute:#97A3BA; --line:#E6ECF4; --soft:#F0F4FB; --bg:#EEF3FA; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Pretendard Variable', 'Malgun Gothic', system-ui, sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; letter-spacing: -.1px; }
+button { font: inherit; cursor: pointer; }
+.sx { position: sticky; top: 0; z-index: 100; background: #0C1A33; color: #fff; display: flex; gap: 6px; align-items: center; padding: 8px 16px; flex-wrap: wrap; font-size: 13px; }
+.sx b { margin-right: 8px; }
+.sx button { border: 0; border-radius: 999px; padding: 5px 12px; background: rgba(255,255,255,.12); color: #fff; }
+.sx button.on { background: #FED901; color: #0C1A33; font-weight: 700; }
+.sx .g { width: 12px; }
+.note { max-width: 1180px; margin: 14px auto 0; padding: 12px 16px; background: #fff; border-radius: 12px; font-size: 13px; color: var(--sub); line-height: 1.6; }
+.note b { color: var(--ink); }
+
+/* 위쪽 막대(지금 적용한 알약 탭) */
+.top { background: var(--blue); color: #fff; position: relative; }
+.top-in { display: flex; align-items: center; gap: 22px; height: 60px; padding: 0 28px; max-width: 1680px; margin: 0 auto; }
+.logo { white-space: nowrap; font-weight: 900; font-size: 20px; letter-spacing: -1px; }
+.logo small { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; margin-left: 6px; color: #DCE8F7; }
+.pills { min-width: 0; overflow-x: auto; scrollbar-width: none; display: flex; gap: 2px; padding: 4px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; }
+.pill { white-space: nowrap; height: 34px; padding: 0 14px; border-radius: 999px; border: 0; background: none; color: #fff; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; position: relative; }
+.pill:hover { background: rgba(255,255,255,.12); }
+.pill.on { background: #fff; color: var(--blue); box-shadow: 0 2px 8px rgba(11,26,51,.18); }
+.pill .cv { font-size: 10px; opacity: .8; }
+.right { margin-left: auto; display: flex; gap: 10px; }
+.av { width: 32px; height: 32px; border-radius: 50%; background: #fff; color: var(--blue); display: grid; place-items: center; font-weight: 700; }
+
+.page { max-width: 1180px; margin: 0 auto; padding: 24px 28px 60px; }
+.ph { background: linear-gradient(135deg, #0056B9, #0A7CF0); color: #fff; border-radius: 20px; padding: 22px 26px; }
+.ph h1 { margin: 0; font-size: 24px; }
+.ph p { margin: 4px 0 0; color: #DCE8F7; }
+.ghost { margin-top: 16px; height: 260px; border-radius: 20px; background: #fff; display: grid; place-items: center; color: var(--mute); }
+
+.ic { width: 34px; height: 34px; border-radius: 10px; background: #EAF2FC; color: var(--blue); display: grid; place-items: center; flex: none; }
+.ic svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* A: 큰 판 펼침(아이콘 카드 + 한 줄 설명) */
+.mega { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 32px)); background: #fff; color: var(--ink); border-radius: 18px; box-shadow: 0 24px 60px -20px rgba(11,26,51,.45); padding: 18px; z-index: 20; }
+.mega h5 { margin: 0 0 10px; font-size: 12px; color: var(--mute); font-weight: 600; }
+.mega-g { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+.mi { display: flex; gap: 10px; padding: 10px; border-radius: 12px; align-items: flex-start; }
+.mi:hover { background: var(--soft); }
+.mi b { display: block; font-size: 14px; }
+.mi small { display: block; color: var(--sub); font-size: 12px; margin-top: 1px; }
+.mi.on { background: #EAF2FC; }
+.mega-f { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--sub); display: flex; justify-content: space-between; }
+
+/* B: 두 번째 줄(아래 띠에 화면 이름) */
+.sub2 { background: #0A4FA6; border-top: 1px solid rgba(255,255,255,.12); }
+.sub2-in { max-width: 1680px; margin: 0 auto; padding: 0 28px; height: 46px; display: flex; align-items: center; gap: 4px; overflow-x: auto; }
+.sub2 a { display: inline-flex; align-items: center; gap: 6px; height: 46px; padding: 0 14px; color: #CFE0F6; text-decoration: none; font-weight: 500; border-bottom: 3px solid transparent; white-space: nowrap; }
+.sub2 a.on { color: #fff; border-bottom-color: #FED901; font-weight: 700; }
+.sub2 a svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* C: 화면 안 왼쪽 목록 */
+.rail-w { display: grid; grid-template-columns: 220px minmax(0,1fr); gap: 16px; margin-top: 16px; }
+.rail { background: #fff; border-radius: 18px; padding: 10px; align-self: start; }
+.rail h5 { margin: 6px 10px 8px; font-size: 12px; color: var(--mute); }
+.rail a { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; color: var(--ink); text-decoration: none; }
+.rail a:hover { background: var(--soft); }
+.rail a.on { background: #EAF2FC; color: var(--blue); font-weight: 700; }
+.rail .ic { width: 28px; height: 28px; border-radius: 8px; }
+.rail-w .ghost { margin-top: 0; }
+
+/* D: 탭을 누르면 모아 보기 화면(앱 카드) */
+.launch { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 16px; }
+.card { background: #fff; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(12,26,51,.05), 0 20px 40px -30px rgba(30,40,120,.5); }
+.card .ic { width: 44px; height: 44px; border-radius: 14px; }
+.card .ic svg { width: 22px; height: 22px; }
+.card b { font-size: 15px; }
+.card small { color: var(--sub); font-size: 12.5px; line-height: 1.5; }
+.card .meta { margin-top: auto; font-size: 12px; color: var(--blue); font-weight: 600; }
+.card.recent { outline: 2px solid #CFE0F6; }
+
+/* E: 알약 안에서 옆으로 펼침 */
+.pill-x { display: inline-flex; align-items: center; gap: 2px; background: #fff; border-radius: 999px; padding: 0 4px 0 14px; height: 34px; }
+.pill-x > span { white-space: nowrap; color: var(--blue); font-weight: 700; margin-right: 6px; }
+.pill-x a { height: 26px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; color: var(--sub); text-decoration: none; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.pill-x a.on { background: var(--blue); color: #fff; }
+.pill-x a:hover:not(.on) { background: var(--soft); }
+
+@media (max-width: 760px) {
+  .top-in { padding: 0 16px; } .pills { display: none; }
+  .mega { display: none; } .rail-w { grid-template-columns: 1fr; } .rail { display: flex; overflow-x: auto; } .rail h5 { display: none; }
+  .rail a { white-space: nowrap; } .page { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="sx">
+  <b>여러 화면 탭 시안</b>
+  <button data-v="A" class="on">A 큰 판 펼침</button><button data-v="B">B 두 번째 줄</button><button data-v="C">C 화면 안 왼쪽 목록</button><button data-v="D">D 모아 보기 화면</button><button data-v="E">E 알약 안 펼침</button>
+  <span class="g"></span>
+  <button data-t="eng" class="on">엔지니어링</button><button data-t="svc">사내 서비스</button>
+</div>
+<div class="note" id="note"></div>
+<div id="app"></div>
+<script>
+const P = {
+  spec: 'M5 3h9l5 5v13H5zM14 3v5h5M8 13h8M8 17h5', modular: 'M12 2 3 7v10l9 5 9-5V7zM3 7l9 5 9-5M12 12v10', issue: 'M5 21V4M5 4h11l-2 4 2 4H5',
+  lab: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 15h9', srs: 'M4 19V5M4 19h16M8 15l3-4 3 2 5-6', process: 'M4 6h16M4 12h10M4 18h6',
+  robot: 'M9 3h6v4H9zM6 7h12v8H6zM9 15v4M15 15v4M9 11h.01M15 11h.01', org: 'M9 3h6v5H9zM3 16h6v5H3zM15 16h6v5h-6zM12 8v4M6 16v-4h12v4',
+  meals: 'M4 3v8a3 3 0 0 0 6 0V3M7 3v18M17 3c-2 2-3 5-3 8h3v10',
+};
+const TAB = {
+  eng: { name: '엔지니어링', items: [
+    ['spec', '사양서 분석', '고객 사양서를 올려 사양정리 초안 만들기'], ['modular', '모듈라', '모듈라 빌드 진행·일정·글'], ['issue', 'ES 이슈', '현장 이슈 기록과 처리'],
+    ['lab', 'SmartLab', '랩 테스트 조회'], ['srs', 'SRS Analyzer', '로봇 신호 분석'], ['process', '공정 관리', '공정 데이터·추적'], ['robot', 'MotoSim', '시뮬레이션 파일·라이선스'] ] },
+  svc: { name: '사내 서비스', items: [ ['org', '조직도', '부서·사람 찾기, 연락처'], ['meals', '수담푸드 메뉴', '오늘 점심·저녁 메뉴'] ] },
+};
+const NOTE = {
+  A: '<b>A 큰 판 펼침</b> — 탭에 마우스를 올리면 아래로 큰 판이 열립니다. 화면마다 아이콘 + 한 줄 설명이라 처음 쓰는 사람도 어디로 갈지 압니다. 화면이 많은 엔지니어링(7개)에 잘 맞고, 2개뿐인 사내 서비스는 판이 비어 보입니다.',
+  B: '<b>B 두 번째 줄</b> — 엔지니어링 안의 화면에 들어가면 위쪽 막대 아래에 화면 이름 줄이 생깁니다. 같은 묶음 안에서 옮겨 다니기 가장 빠릅니다. 대신 화면 위쪽이 46px 더 내려갑니다.',
+  C: '<b>C 화면 안 왼쪽 목록</b> — 묶음 탭을 누르면 본문 왼쪽에 그 묶음의 화면 목록이 붙습니다(휴대폰은 위쪽 가로 목록). 지금 어느 묶음 안에 있는지 늘 보입니다. 임베드 화면(SmartLab·SRS·공정)은 본문 폭이 좁아집니다.',
+  D: '<b>D 모아 보기 화면</b> — 탭을 누르면 먼저 그 묶음의 화면을 카드로 모은 화면이 열리고, 카드를 눌러 들어갑니다. 최근에 쓴 화면을 앞에 둘 수 있고 휴대폰에서도 같은 모양입니다. 한 번 더 눌러야 하는 것이 단점입니다.',
+  E: '<b>E 알약 안 펼침</b> — 지금 탭(흰 알약) 안에 그 묶음의 화면 이름이 옆으로 펼쳐집니다. 위쪽 막대 한 줄에서 끝나 가장 가볍습니다. 화면이 7개인 엔지니어링은 막대가 길어져, 넓은 화면에서만 잘 맞습니다.',
+};
+let v = 'A', t = 'eng';
+const svg = (k) => `<svg viewBox="0 0 24 24"><path d="${P[k]}"/></svg>`;
+function topBar(extra = '') {
+  const tabs = ['프로젝트', '다운로드', '자료 검색', 'eng', 'AI 두리미', 'svc', '관리'];
+  return `<div class="top"><div class="top-in"><span class="logo">DY ONE<small>INTERNAL</small></span><div class="pills">${tabs.map((x) => {
+    if (TAB[x]) {
+      if (v === 'E' && x === t) return `<span class="pill-x"><span>${TAB[x].name}</span>${TAB[x].items.map((it, i) => `<a class="${i === 0 ? 'on' : ''}">${it[1]}</a>`).join('')}</span>`;
+      return `<button class="pill ${x === t ? 'on' : ''}">${TAB[x].name} <span class="cv">▾</span></button>`;
+    }
+    return `<button class="pill">${x}${x === '관리' ? ' <span class="cv">▾</span>' : ''}</button>`;
+  }).join('')}</div><div class="right"><span class="av">함</span></div></div>${extra}</div>`;
+}
+function render() {
+  const T = TAB[t], first = T.items[0];
+  let html = '';
+  if (v === 'A') {
+    html = topBar(`<div class="mega"><h5>${T.name}</h5><div class="mega-g">${T.items.map((it, i) => `<div class="mi ${i === 0 ? 'on' : ''}"><span class="ic">${svg(it[0])}</span><div><b>${it[1]}</b><small>${it[2]}</small></div></div>`).join('')}</div><div class="mega-f"><span>마우스를 올리면 열리고, 고르면 닫힙니다.</span><span>${T.items.length}개 화면</span></div></div>`)
+      + `<div class="page"><div class="ph"><h1>프로젝트</h1><p>지금 보던 화면 위에 판이 열립니다</p></div><div class="ghost">본문</div></div>`;
+  } else if (v === 'B') {
+    html = topBar(`<div class="sub2"><div class="sub2-in">${T.items.map((it, i) => `<a class="${i === 0 ? 'on' : ''}">${svg(it[0])}${it[1]}</a>`).join('')}</div></div>`)
+      + `<div class="page"><div class="ph"><h1>${first[1]}</h1><p>${first[2]}</p></div><div class="ghost">${first[1]} 본문</div></div>`;
+  } else if (v === 'C') {
+    html = topBar() + `<div class="page"><div class="ph"><h1>${first[1]}</h1><p>${first[2]}</p></div><div class="rail-w"><nav class="rail"><h5>${T.name}</h5>${T.items.map((it, i) => `<a class="${i === 0 ? 'on' : ''}"><span class="ic">${svg(it[0])}</span>${it[1]}</a>`).join('')}</nav><div class="ghost">${first[1]} 본문</div></div></div>`;
+  } else if (v === 'D') {
+    html = topBar() + `<div class="page"><div class="ph"><h1>${T.name}</h1><p>${T.items.length}개 화면 · 최근에 쓴 화면이 앞에 옵니다</p></div><div class="launch">${T.items.map((it, i) => `<div class="card ${i === 0 ? 'recent' : ''}"><span class="ic">${svg(it[0])}</span><b>${it[1]}</b><small>${it[2]}</small><span class="meta">${i === 0 ? '최근 사용 · 열기 →' : '열기 →'}</span></div>`).join('')}</div></div>`;
+  } else {
+    html = topBar() + `<div class="page"><div class="ph"><h1>${first[1]}</h1><p>${first[2]}</p></div><div class="ghost">${first[1]} 본문</div></div>`;
+  }
+  document.getElementById('app').innerHTML = html;
+  document.getElementById('note').innerHTML = NOTE[v];
+  document.querySelectorAll('[data-v]').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
+  document.querySelectorAll('[data-t]').forEach((b) => b.classList.toggle('on', b.dataset.t === t));
+}
+document.querySelectorAll('[data-v]').forEach((b) => (b.onclick = () => { v = b.dataset.v; render(); }));
+document.querySelectorAll('[data-t]').forEach((b) => (b.onclick = () => { t = b.dataset.t; render(); }));
+render();
+</script>
+</body>
+</html>
