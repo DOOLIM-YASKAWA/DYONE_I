@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>앱 아이콘 후보</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Pretendard Variable', Pretendard, 'Malgun Gothic', system-ui, sans-serif; background: #EEF3FA; color: #0C1A33; font-size: 14px; padding: 22px 16px 60px; }
+h1 { max-width: 1100px; margin: 0 auto 4px; font-size: 20px; }
+.lead { max-width: 1100px; margin: 0 auto 16px; color: #56637C; font-size: 13px; line-height: 1.6; }
+.list { max-width: 1100px; margin: 0 auto; display: grid; gap: 12px; }
+.card { background: #fff; border-radius: 16px; padding: 14px 16px; display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; }
+.card.cur { outline: 2px dashed #BFD6F2; }
+.big svg { width: 128px; height: 128px; display: block; filter: drop-shadow(0 6px 14px rgba(12,26,51,.18)); }
+.meta b { font-size: 15px; } .meta .k { display: inline-block; background: #0C1A33; color: #FED901; font-weight: 800; border-radius: 6px; padding: 0 7px; margin-right: 6px; font-size: 12px; }
+.meta p { margin: 4px 0 10px; color: #56637C; font-size: 12.5px; }
+.strips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.strip { border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 14px; }
+.strip.dark { background: #1F1F1F; color: #fff; } .strip.light { background: #F3F3F3; }
+.strip small { font-size: 11px; opacity: .7; width: 64px; flex: none; }
+.strip svg { display: block; }
+.tray { display: flex; align-items: center; gap: 10px; margin-left: auto; font-size: 12px; }
+.tray i { width: 16px; height: 16px; border-radius: 3px; background: currentColor; opacity: .35; display: block; }
+@media (max-width: 760px) { .card { grid-template-columns: 1fr; } .strips { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>DY ONE 앱 아이콘 후보</h1>
+<p class="lead">Windows 작업 표시줄·트레이·창 제목에 쓰는 아이콘입니다. 각 후보를 크게(128) 보고, 오른쪽은 <b>실제 크기(16·24·32·48)</b>를 어두운·밝은 작업 표시줄 위에 놓은 모습입니다. 트레이는 16px이라 작은 크기에서 알아보기 쉬운지가 가장 중요합니다.</p>
+<div class="list" id="list"></div>
+<script>
+// 메인 화면 SVG 로고(DyOneLogo.tsx)의 글자 모양: O(0~28) · n(30~54) · e(57~81), 높이 24
+const O = 'M2 0H23A5 5 0 0 1 28 5V19A5 5 0 0 1 23 24H2A2 2 0 0 1 0 22V2A2 2 0 0 1 2 0Z M6 5V19H21A1 1 0 0 0 22 18V6A1 1 0 0 0 21 5Z';
+const N = 'M30 24V1A1 1 0 0 1 31 0H48A6 6 0 0 1 54 6V24H48V7A2 2 0 0 0 46 5H36V24Z';
+const E = 'M57 6A6 6 0 0 1 63 0H75A6 6 0 0 1 81 6V14H63V19H81V24H63A6 6 0 0 1 57 18Z M63 6.5A1.5 1.5 0 0 1 64.5 5H73.5A1.5 1.5 0 0 1 75 6.5V9H63Z';
+let uid = 0;
+const grad = (id, a, b) => `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+// 각 후보: (size) => svg 문자열. 256 칸 기준
+const V = [
+  { k: '지금', name: '파랑 바탕 + O', desc: '지금 넣은 모양. 메인 로고의 O만 하늘색으로.', cur: true, svg: (u) => `
+    <defs>${grad(u + 'b', '#0A6CD8', '#004AA3')}${grad(u + 'o', '#D4EDFF', '#86C2FF')}</defs>
+    <rect width="256" height="256" rx="56" fill="url(#${u}b)"/><g transform="translate(38.4 49) scale(6.4)"><path d="${O}" fill="url(#${u}o)" fill-rule="evenodd"/></g>` },
+  { k: 'B', name: 'One 글자 전체', desc: '메인 로고 "One"을 그대로. 크게 보면 바로 DY ONE인데, 16px에서는 글자가 뭉개집니다.', svg: (u) => `
+    <defs>${grad(u + 'b', '#0A6CD8', '#004AA3')}${grad(u + 'o', '#D4EDFF', '#86C2FF')}</defs>
+    <rect width="256" height="256" rx="56" fill="url(#${u}b)"/><g transform="translate(24 98) scale(2.56)"><path d="${O}" fill="url(#${u}o)" fill-rule="evenodd"/><path d="${N}" fill="#fff"/><path d="${E}" fill="#fff" fill-rule="evenodd"/></g>` },
+  { k: 'C', name: 'O 위 · ne 아래 두 줄', desc: '정사각형에 맞게 O를 크게, 아래에 작은 "ONE". 32px 이상에서 글자가 보입니다.', svg: (u) => `
+    <defs>${grad(u + 'b', '#0A6CD8', '#004AA3')}${grad(u + 'o', '#D4EDFF', '#86C2FF')}</defs>
+    <rect width="256" height="256" rx="56" fill="url(#${u}b)"/><g transform="translate(66 46) scale(4.4)"><path d="${O}" fill="url(#${u}o)" fill-rule="evenodd"/></g>
+    <text x="128" y="214" text-anchor="middle" font-family="Pretendard Variable, Malgun Gothic, sans-serif" font-weight="800" font-size="46" letter-spacing="6" fill="#fff">ONE</text>` },
+  { k: 'D', name: '흰 바탕 + 파란 O', desc: '흰 둥근 네모에 진한 파랑 O. 어두운 작업 표시줄에서 가장 잘 보이고 깔끔합니다.', svg: (u) => `
+    <defs>${grad(u + 'o', '#3D8EF0', '#0056B9')}</defs>
+    <rect width="256" height="256" rx="56" fill="#fff"/><rect x="2" y="2" width="252" height="252" rx="54" fill="none" stroke="#DCE5F2" stroke-width="4"/><g transform="translate(38.4 49) scale(6.4)"><path d="${O}" fill="url(#${u}o)" fill-rule="evenodd"/></g>` },
+  { k: 'E', name: 'O 굵게 · 남색 바탕', desc: '테두리를 굵게 다시 그린 O(안쪽 구멍을 줄임). 16px에서도 "O"로 또렷합니다. 바탕은 짙은 남색.', svg: (u) => `
+    <defs>${grad(u + 'b', '#163A70', '#0C1A33')}${grad(u + 'o', '#9CC9FF', '#38BDF8')}</defs>
+    <rect width="256" height="256" rx="56" fill="url(#${u}b)"/><path d="M58 52H186A36 36 0 0 1 222 88V168A36 36 0 0 1 186 204H58A18 18 0 0 1 40 186V70A18 18 0 0 1 58 52Z M90 96V160H166A8 8 0 0 0 174 152V104A8 8 0 0 0 166 96Z" fill="url(#${u}o)" fill-rule="evenodd"/>` },
+  { k: 'F', name: '바탕 없는 O', desc: '네모 바탕 없이 O 모양만 파랑 그라데이션으로. 작업 표시줄 색과 어울리지만 크기가 작아 보입니다.', svg: (u) => `
+    <defs>${grad(u + 'o', '#5AB0FF', '#0056B9')}</defs>
+    <path d="M18 36H210A36 36 0 0 1 246 72V184A36 36 0 0 1 210 220H18A12 12 0 0 1 6 208V48A12 12 0 0 1 18 36Z M58 76V180H196A8 8 0 0 0 204 172V84A8 8 0 0 0 196 76Z" fill="url(#${u}o)" fill-rule="evenodd"/>` },
+  { k: 'G', name: '파랑 바탕 + 굵은 O + 노란 점', desc: '굵은 O 오른쪽 아래에 회사 포인트 노랑 점. 다른 파랑 아이콘(Outlook·Teams 등) 사이에서 구별됩니다.', svg: (u) => `
+    <defs>${grad(u + 'b', '#0A6CD8', '#004AA3')}</defs>
+    <rect width="256" height="256" rx="56" fill="url(#${u}b)"/><path d="M58 52H186A36 36 0 0 1 222 88V168A36 36 0 0 1 186 204H58A18 18 0 0 1 40 186V70A18 18 0 0 1 58 52Z M90 96V160H166A8 8 0 0 0 174 152V104A8 8 0 0 0 166 96Z" fill="#fff" fill-rule="evenodd"/><circle cx="214" cy="212" r="26" fill="#FED901" stroke="#004AA3" stroke-width="8"/>` },
+];
+const icon = (v, size) => { const u = 'g' + (uid++); return `<svg viewBox="0 0 256 256" width="${size}" height="${size}">${v.svg(u)}</svg>`; };
+document.getElementById('list').innerHTML = V.map((v) => `
+  <div class="card ${v.cur ? 'cur' : ''}">
+    <div class="big">${icon(v, 128)}</div>
+    <div class="meta"><b><span class="k">${v.k}</span>${v.name}</b><p>${v.desc}</p>
+      <div class="strips">
+        <div class="strip dark"><small>어두운 작업 표시줄</small>${[16, 24, 32, 48].map((s) => icon(v, s)).join('')}<span class="tray"><i></i><i></i>${icon(v, 16)}<span>오후 4:30</span></span></div>
+        <div class="strip light"><small>밝은 작업 표시줄</small>${[16, 24, 32, 48].map((s) => icon(v, s)).join('')}<span class="tray"><i></i><i></i>${icon(v, 16)}<span>오후 4:30</span></span></div>
+      </div>
+    </div>
+  </div>`).join('');
+</script>
+</body>
+</html>

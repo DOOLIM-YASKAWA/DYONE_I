@@ -140,10 +140,35 @@ td { padding: 11px 16px; line-height: 1.55; border-top-color: #F2F4F7; }
 /* ── 로그인(D안) ── */
 .dy-login { display: flex; flex-wrap: wrap; min-height: 100vh; background: #fff; }
 .dy-login-brand { flex: 1 1 480px; background: var(--blue); color: #fff; padding: 56px 64px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 40px; }
-.dy-login-logo { width: 240px; height: auto; }
+.dy-login-logo { display: flex; align-items: center; gap: 18px; }
+.dy-login-logo > svg { flex: none; }
+.dy-login-bar { width: 2px; height: 56px; background: rgba(255, 255, 255, .35); flex: none; }
+/* INTERNAL ↔ INTEGRATION 글자판 넘김(FlipWord): I는 넘기지 않고 노랑·굵게·세로로 길게, 나머지는 작고 흐리게 */
+.dy-flip { position: relative; display: block; }
+.dy-flip-word { display: flex; gap: 3px; height: 56px; } /* 로그인: 11-05 두 번 키움(로고 48→60px, 낱말 21→35px, I 26→42px, 풀이 13→18px) */
+.dy-flip-word i { position: relative; display: block; width: 27px; height: 56px; font-style: normal; text-align: center; perspective: 200px; }
+.dy-flip-word i b { position: absolute; inset: 0; font-size: 35px; line-height: 64px; font-weight: 300; color: rgba(227, 238, 255, .55); backface-visibility: hidden; }
+.dy-flip-word i.lead { width: 32px; }
+.dy-flip-word i.lead b { font-size: 42px; line-height: 56px; font-weight: 900; color: #FED901; text-shadow: 0 0 12px rgba(254, 217, 1, .45); transform: scaleY(1.35); transform-origin: 50% 72%; }
+.dy-flip-word b.in, .dy-flip-sub b.in { animation: dyFlipIn .35s ease-out; }
+.dy-flip-word b.out, .dy-flip-sub b.out { animation: dyFlipOut .35s ease-in forwards; }
+@keyframes dyFlipIn { from { transform: rotateX(90deg); opacity: 0; } to { transform: rotateX(0); opacity: 1; } }
+@keyframes dyFlipOut { from { transform: rotateX(0); opacity: 1; } to { transform: rotateX(-90deg); opacity: 0; } }
+.dy-flip-sub { position: absolute; left: 0; top: 70px; display: flex; gap: 0; height: 34px; font-size: 24px; color: rgba(227, 238, 255, .55); } /* 풀이도 글자판 넘김(11-05), 24px · 영어 나머지 글자와 같은 색·굵기 */
+.dy-flip-sub i { position: relative; display: block; width: .82em; height: 34px; font-style: normal; text-align: center; perspective: 160px; }
+.dy-flip-sub i.sp { width: .22em; }
+.dy-flip-sub i b { position: absolute; inset: 0; font-weight: 300; line-height: 34px; backface-visibility: hidden; }
+/* 위쪽 막대용 작은 크기(11-05 H1): 로고 높이 22px에 맞춤 */
+.dy-flip.sm .dy-flip-word { gap: 1px; height: 16px; }
+.dy-flip.sm .dy-flip-word i { width: 7.6px; height: 16px; perspective: 120px; }
+.dy-flip.sm .dy-flip-word i b { font-size: 10px; line-height: 18px; font-weight: 400; color: rgba(227, 238, 255, .6); }
+.dy-flip.sm .dy-flip-word i.lead { width: 8.5px; } /* 로그인과 같은 비율로 폭 줄임(11-05) */
+.dy-flip.sm .dy-flip-word i.lead b { font-size: 12.5px; line-height: 16px; font-weight: 900; color: #FED901; text-shadow: 0 0 8px rgba(254, 217, 1, .4); }
+.dy-brand-bar { width: 1px; height: 14px; background: rgba(255, 255, 255, .32); margin: 0 2px; flex: none; }
+@media (prefers-reduced-motion: reduce) { .dy-flip-word b.in, .dy-flip-word b.out, .dy-flip-sub b.in, .dy-flip-sub b.out { animation: none; } }
 .dy-login-copy { display: flex; flex-direction: column; gap: 14px; max-width: 480px; }
 .dy-login-tag { font-size: 12px; font-weight: 600; letter-spacing: 1.4px; color: #DCE8F7; }
-.dy-login-copy h1 { margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 1.35; color: #fff; }
+.dy-login-copy h1 { margin: 36px 0 0; font-size: 27px; font-weight: 700; letter-spacing: -1px; line-height: 1.35; color: #fff; }
 .dy-login-copy p { margin: 0; font-size: 15px; line-height: 1.7; color: #DCE8F7; }
 .dy-login-form { flex: 1 1 440px; display: flex; align-items: center; justify-content: center; padding: 48px 28px; box-sizing: border-box; }
 .dy-login-form form { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
@@ -160,7 +185,15 @@ td { padding: 11px 16px; line-height: 1.55; border-top-color: #F2F4F7; }
 @media (max-width: 760px) {
   .dy-login { flex-direction: column; flex-wrap: nowrap; }
   .dy-login-brand { flex: none; padding: 20px 20px; gap: 0; flex-direction: row; align-items: center; justify-content: space-between; }
-  .dy-login-logo { width: 120px; }
+  .dy-login-logo { gap: 10px; }
+  .dy-login-logo > svg { height: 32px; width: auto; }
+  .dy-login-bar { height: 24px; }
+  .dy-flip-word { height: 32px; gap: 2px; }
+  .dy-flip-word i { width: 15px; height: 32px; }
+  .dy-flip-word i b { font-size: 19px; line-height: 37px; }
+  .dy-flip-word i.lead { width: 18px; }
+  .dy-flip-word i.lead b { font-size: 24px; line-height: 32px; }
+  .dy-flip-sub { display: none; }
   .dy-login-copy { display: none; }
   .dy-login-form { flex: 1; align-items: flex-start; padding: 28px 20px 40px; }
 }

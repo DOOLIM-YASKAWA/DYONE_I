@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
-import logoLarge from '../assets/dyone-logo-large.png'
+import { DyOneLogo } from '../components/DyOneLogo'
+import { FlipWord } from '../components/FlipWord'
 import { useAuth } from '../auth/AuthContext'
 
 /**
@@ -35,11 +36,10 @@ export function LoginPage() {
   return (
     <div className="dy-login">
       <section className="dy-login-brand">
-        <img src={logoLarge} alt="DY ONE" className="dy-login-logo" />
+        {/* 로고(11-05): 'One' + 세로줄 + INTERNAL ↔ INTEGRATION 글자판 넘김(I 강조), 아래 풀이 */}
+        <div className="dy-login-logo"><DyOneLogo height={60} word={false} /><span className="dy-login-bar" /><FlipWord /></div>
         <div className="dy-login-copy">
-          <span className="dy-login-tag">INTERNAL</span>
           <h1>프로젝트와 사내 서비스를<br />한곳에서.</h1>
-          <p>두림야스카와 내부 업무 플랫폼 · 프로젝트 자료함, 진행 일지, 조직도, 모듈라·ES 이슈를 한 화면에서 봅니다.</p>
         </div>
       </section>
       <section className="dy-login-form">

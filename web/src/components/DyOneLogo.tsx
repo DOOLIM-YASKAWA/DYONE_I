@@ -14,11 +14,12 @@ const TONES = {
   dark: { o: ['#5AA2F5', '#0056B9'], ne: ['#0C1A33', '#0C1A33'], line: 'rgba(12,26,51,.2)', t: '#56637C' },
 } as const
 
-export function DyOneLogo({ height = 24, tone = 'brand' }: { height?: number; tone?: keyof typeof TONES }) {
+/** word=false면 'One' 글자만(로그인 화면처럼 옆에 다른 낱말을 붙일 때, 11-05) */
+export function DyOneLogo({ height = 24, tone = 'brand', word = true }: { height?: number; tone?: keyof typeof TONES; word?: boolean }) {
   const id = useId().replace(/:/g, '')
   const c = TONES[tone]
   return (
-    <svg viewBox="0 0 151 24" height={height} width={(height * 151) / 24} role="img" aria-label="DY ONE INTERNAL" style={{ display: 'block' }} shapeRendering="geometricPrecision">
+    <svg viewBox={word ? '0 0 151 24' : '0 0 81 24'} height={height} width={(height * (word ? 151 : 81)) / 24} role="img" aria-label={word ? 'DY ONE INTERNAL' : 'DY ONE'} style={{ display: 'block' }} shapeRendering="geometricPrecision">
       <defs>
         <linearGradient id={`${id}o`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={c.o[0]} /><stop offset="1" stopColor={c.o[1]} /></linearGradient>
         <linearGradient id={`${id}n`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={c.ne[0]} /><stop offset="1" stopColor={c.ne[1]} /></linearGradient>
@@ -26,8 +27,8 @@ export function DyOneLogo({ height = 24, tone = 'brand' }: { height?: number; to
       <path d={O} fill={`url(#${id}o)`} fillRule="evenodd" />
       <path d={N} fill={`url(#${id}n)`} />
       <path d={E} fill={`url(#${id}n)`} fillRule="evenodd" />
-      <path d="M86.5 5V19" stroke={c.line} strokeWidth="1" />
-      <path d={T} fill="none" stroke={c.t} strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" />
+      {word && <path d="M86.5 5V19" stroke={c.line} strokeWidth="1" />}
+      {word && <path d={T} fill="none" stroke={c.t} strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" />}
     </svg>
   )
 }
