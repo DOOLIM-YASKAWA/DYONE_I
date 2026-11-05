@@ -24,6 +24,14 @@ export const ICON = {
   menu: 'M4 6h16M4 12h16M4 18h16',
   close: 'M6 6l12 12M18 6 6 18',
   down: 'M6 9l6 6 6-6',
+  download: 'M12 3v12M7 10l5 5 5-5M4 19h16',
+  search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
+  // 엔지니어링 큰 판 아이콘(11-05 사용자 결정)
+  calendarBar: 'M4 5h16v15H4zM4 9h16M8 3v4M16 3v4M7 13h6M7 16h9', // 모듈라 진행 일지: 달력 + 진행 막대
+  wrench: 'M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z', // CS 이슈 정리
+  tree: 'M4 3h6v4H4zM14 10h6v4h-6zM14 17h6v4h-6zM7 7v12h7M7 12h7', // 고객사 및 공정 관리: 고객사 › 공장 › 부스 › 존
+  cubePlay: 'M12 2 3 7v10l9 5 9-5V7zM10.5 9.5l4 2.5-4 2.5z', // MotoSim Launcher: 3D 시뮬레이션 실행
+  cubePath: 'M12 2 3 7v10l9 5 9-5V7zM3 7l9 5 9-5M12 12v10M6.5 15.5c2-3 4.5 1 6-2.5s3.5-2 5-3', // SRS Analyzer: 3D 공간 안의 로봇 경로
 } as const
 export type IconName = keyof typeof ICON
 

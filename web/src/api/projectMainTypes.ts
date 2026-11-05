@@ -29,6 +29,35 @@ export interface MainRow {
 
 export interface Evidence { kind: 'modular' | 'nas' | 'po' | 'post'; label: string; path?: string; at?: string }
 
+/** 최근 흐름 한 상자(NAS 작업 · ERP 발주). 묶기·꼬리표는 규칙, 추세·제목은 사내 AI(검사 통과 시) — 11-05 */
+export interface BriefFlow { tag: string; trend: string; source: 'ai' | 'rule'; steps: { when: string; title: string; detail: string }[] }
+
+/** '상세히' 창 자료(Worker가 브리핑과 함께 evidence에 담음, kind = 'detail') */
+export interface BriefDetail {
+  kind: 'detail'
+  /** 단계는 하나만: DY ONE에서 사람이 정한 단계가 있으면 'DY ONE 예상 프로젝트 단계', 없으면 'ERP 상태' */
+  stage: { label: string; value?: string; others?: string[]; changedAt?: string }
+  /** 모듈라 상태(앞 순번 숫자 뗀 것) */
+  modular?: { status: string; lastAt?: string }
+  erp: { status?: string; from?: string; to?: string }
+  process?: string
+  nasDir?: string
+  nas14: number
+  nasDays14: number
+  lastPo?: string
+  changes: string[]
+  nas?: BriefFlow
+  po?: BriefFlow
+}
+
+/** GET /api/projects/main/brief-detail — 문서 일정(단계별 기준) · 이 프로젝트의 일정 주의 · 고객사 */
+export interface BriefSchedule {
+  code: string
+  partner?: string
+  schedule: { stage: string; name: string; from: string; to: string; raw: string; doc: string; path?: string; kind: string; mtime?: string; page?: string }[]
+  alerts: { kind: 'late' | 'soon' | 'after_sop'; stage: string; due: string; reason: string }[]
+}
+
 export interface Brief {
   code: string
   codeLabel: string
@@ -37,7 +66,7 @@ export interface Brief {
   sentence: string
   source: 'ai' | 'rule'
   changedYesterday: number
-  evidence?: Evidence[]
+  evidence?: (Evidence | BriefDetail)[]
   madeAt: string
 }
 

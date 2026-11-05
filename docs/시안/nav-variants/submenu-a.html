@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>큰 판 펼침 시안</title>
+<style>
+:root { --blue:#0056B9; --blue2:#0A7CF0; --navy:#0C1A33; --ink:#0C1A33; --sub:#56637C; --mute:#97A3BA; --line:#E6ECF4; --soft:#F0F4FB; --bg:#EEF3FA; --point:#FED901; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Pretendard Variable', Pretendard, 'Malgun Gothic', system-ui, sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; letter-spacing: -.1px; }
+button { font: inherit; cursor: pointer; }
+.sx { position: sticky; top: 0; z-index: 100; background: #0C1A33; color: #fff; display: flex; gap: 6px; align-items: center; padding: 8px 16px; flex-wrap: wrap; font-size: 13px; }
+.sx b { margin-right: 8px; }
+.sx button { border: 0; border-radius: 999px; padding: 5px 12px; background: rgba(255,255,255,.12); color: #fff; }
+.sx button.on { background: var(--point); color: #0C1A33; font-weight: 700; }
+.sx .g { width: 12px; }
+.note { max-width: 1180px; margin: 14px auto 0; padding: 12px 16px; background: #fff; border-radius: 12px; font-size: 13px; color: var(--sub); line-height: 1.6; }
+.note b { color: var(--ink); }
+
+.top { background: var(--blue); color: #fff; position: relative; }
+.top-in { display: flex; align-items: center; gap: 22px; height: 60px; padding: 0 28px; max-width: 1680px; margin: 0 auto; }
+.logo { white-space: nowrap; font-weight: 900; font-size: 20px; letter-spacing: -1px; }
+.logo small { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; margin-left: 6px; color: #DCE8F7; }
+.pills { min-width: 0; overflow-x: auto; scrollbar-width: none; display: flex; gap: 2px; padding: 4px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; }
+.pill { white-space: nowrap; height: 34px; padding: 0 14px; border-radius: 999px; border: 0; background: none; color: #fff; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.pill.on { background: #fff; color: var(--blue); box-shadow: 0 2px 8px rgba(11,26,51,.18); }
+.pill .cv { font-size: 10px; opacity: .8; }
+.right { margin-left: auto; } .av { width: 32px; height: 32px; border-radius: 50%; background: #fff; color: var(--blue); display: grid; place-items: center; font-weight: 700; }
+.page { max-width: 1180px; margin: 0 auto; padding: 24px 28px 60px; opacity: .55; }
+.ph { background: linear-gradient(135deg, #0056B9, #0A7CF0); color: #fff; border-radius: 20px; padding: 22px 26px; }
+.ph h1 { margin: 0; font-size: 24px; }
+.ghost { margin-top: 16px; height: 300px; border-radius: 20px; background: #fff; }
+.shade { position: absolute; left: 0; right: 0; top: 60px; height: 100vh; background: rgba(12,26,51,.18); z-index: 10; }
+
+.ic { width: 34px; height: 34px; border-radius: 10px; background: #EAF2FC; color: var(--blue); display: grid; place-items: center; flex: none; }
+svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.panel { position: absolute; z-index: 20; color: var(--ink); }
+.badge { font-size: 10.5px; font-weight: 700; color: var(--blue); background: #EAF2FC; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
+
+/* A1 기본: 3열 + 설명 */
+.a1 { top: 56px; left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 32px)); background: #fff; border-radius: 18px; box-shadow: 0 24px 60px -20px rgba(11,26,51,.45); padding: 18px; }
+.a1 h5 { margin: 0 0 10px; font-size: 12px; color: var(--mute); }
+.a1 .g { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; }
+.a1 .mi { display: flex; gap: 10px; padding: 10px; border-radius: 12px; }
+.a1 .mi:hover, .a1 .mi.on { background: var(--soft); }
+.a1 b { display: block; } .a1 small { display: block; color: var(--sub); font-size: 12px; }
+
+/* A2 왼쪽 소개 칸 + 오른쪽 목록 */
+.a2 { top: 56px; left: 50%; transform: translateX(-50%); width: min(860px, calc(100% - 32px)); background: #fff; border-radius: 20px; box-shadow: 0 24px 60px -20px rgba(11,26,51,.45); display: grid; grid-template-columns: 250px minmax(0,1fr); overflow: hidden; }
+.a2 .intro { background: linear-gradient(160deg, #0056B9, #0A7CF0); color: #fff; padding: 22px; display: flex; flex-direction: column; gap: 8px; }
+.a2 .intro h4 { margin: 0; font-size: 20px; } .a2 .intro p { margin: 0; color: #DCE8F7; font-size: 13px; line-height: 1.6; }
+.a2 .intro .recent { margin-top: auto; background: rgba(255,255,255,.14); border-radius: 12px; padding: 10px 12px; font-size: 12.5px; }
+.a2 .intro .recent b { display: block; font-size: 14px; margin-top: 2px; }
+.a2 .list { padding: 14px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px; align-content: start; }
+.a2 .mi { display: flex; gap: 10px; padding: 10px; border-radius: 12px; align-items: center; }
+.a2 .mi:hover, .a2 .mi.on { background: var(--soft); }
+.a2 b { display: block; } .a2 small { display: block; color: var(--sub); font-size: 12px; }
+
+/* A3 큰 아이콘 타일 */
+.a3 { top: 56px; left: 50%; transform: translateX(-50%); width: min(720px, calc(100% - 32px)); background: #fff; border-radius: 22px; box-shadow: 0 24px 60px -20px rgba(11,26,51,.45); padding: 20px; }
+.a3 .g { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.a3 .t { border: 1px solid var(--line); border-radius: 16px; padding: 16px 10px 14px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.a3 .t:hover, .a3 .t.on { border-color: #BFD6F2; background: #F6FAFF; }
+.a3 .ic { width: 48px; height: 48px; border-radius: 16px; background: linear-gradient(135deg, #0056B9, #0A7CF0); color: #fff; }
+.a3 .ic svg { width: 24px; height: 24px; }
+.a3 b { font-size: 13.5px; } .a3 small { color: var(--sub); font-size: 11.5px; line-height: 1.4; }
+
+/* A4 분류로 나눈 열 */
+.a4 { top: 56px; left: 50%; transform: translateX(-50%); width: min(820px, calc(100% - 32px)); background: #fff; border-radius: 18px; box-shadow: 0 24px 60px -20px rgba(11,26,51,.45); padding: 18px 20px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 0 20px; }
+.a4 .col + .col { border-left: 1px solid var(--line); padding-left: 20px; }
+.a4 h5 { margin: 0 0 8px; font-size: 12px; color: var(--blue); letter-spacing: .5px; }
+.a4 .mi { display: flex; gap: 10px; padding: 8px; margin: 0 -8px; border-radius: 10px; align-items: center; }
+.a4 .mi:hover, .a4 .mi.on { background: var(--soft); }
+.a4 .ic { width: 28px; height: 28px; border-radius: 8px; }
+.a4 b { display: block; font-size: 13.5px; } .a4 small { display: block; color: var(--sub); font-size: 11.5px; }
+
+/* A5 전체 폭 띠 + 최근 사용 */
+.a5 { top: 60px; left: 0; right: 0; background: #fff; box-shadow: 0 24px 40px -24px rgba(11,26,51,.45); border-top: 1px solid var(--line); }
+.a5-in { max-width: 1180px; margin: 0 auto; padding: 20px 28px; display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: 28px; }
+.a5 .g { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+.a5 .mi { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: var(--soft); }
+.a5 .mi:hover, .a5 .mi.on { background: #E3EEFB; }
+.a5 b { font-size: 14px; } .a5 small { color: var(--sub); font-size: 12px; }
+.a5 aside h5 { margin: 0 0 8px; font-size: 12px; color: var(--mute); }
+.a5 aside a { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px dashed var(--line); color: var(--ink); text-decoration: none; font-size: 13px; }
+.a5 aside a span { color: var(--mute); font-size: 12px; }
+
+/* A6 짙은 남색 판 */
+.a6 { top: 56px; left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 32px)); background: #0E2347; color: #fff; border-radius: 18px; box-shadow: 0 24px 60px -16px rgba(5,12,30,.7); padding: 18px; border: 1px solid rgba(255,255,255,.08); }
+.a6 h5 { margin: 0 0 10px; font-size: 12px; color: #8FB4E6; }
+.a6 .g { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; }
+.a6 .mi { display: flex; gap: 10px; padding: 10px; border-radius: 12px; }
+.a6 .mi:hover, .a6 .mi.on { background: rgba(255,255,255,.08); }
+.a6 .ic { background: rgba(56,189,248,.16); color: #7DD3FC; }
+.a6 b { display: block; } .a6 small { display: block; color: #A9BEDC; font-size: 12px; }
+.a6 .foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.1); font-size: 12px; color: #8FB4E6; }
+.a6 kbd { border: 1px solid rgba(255,255,255,.25); border-radius: 5px; padding: 0 5px; font: inherit; font-size: 11px; }
+
+/* ── 투명(유리) 바탕: 뒤 화면이 비쳐 보이게 흐림 + 반투명 ── */
+.glass .page { opacity: 1; }
+.glass .shade { display: none; }
+.panel.bg-w { background: rgba(255,255,255,.72) !important; backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border: 1px solid rgba(255,255,255,.7); }
+.panel.bg-w2 { background: rgba(255,255,255,.42) !important; backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,.6); }
+.panel.bg-w .mi:hover, .panel.bg-w .mi.on, .panel.bg-w2 .mi:hover, .panel.bg-w2 .mi.on { background: rgba(255,255,255,.6) !important; }
+.panel.bg-w .t, .panel.bg-w2 .t { background: rgba(255,255,255,.45); border-color: rgba(255,255,255,.7); }
+.panel.bg-w .a5-in .mi, .panel.bg-w2 .a5-in .mi { background: rgba(255,255,255,.5); }
+.panel.bg-b { background: rgba(0,86,185,.55) !important; color: #fff; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); border: 1px solid rgba(255,255,255,.25); }
+.panel.bg-n { background: rgba(14,35,71,.62) !important; color: #fff; backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%); border: 1px solid rgba(255,255,255,.14); }
+.panel.bg-b small, .panel.bg-n small { color: rgba(255,255,255,.78) !important; }
+.panel.bg-b h5, .panel.bg-n h5 { color: rgba(255,255,255,.75) !important; }
+.panel.bg-b .ic, .panel.bg-n .ic { background: rgba(255,255,255,.16) !important; color: #fff !important; }
+.panel.bg-b .mi:hover, .panel.bg-b .mi.on, .panel.bg-n .mi:hover, .panel.bg-n .mi.on { background: rgba(255,255,255,.14) !important; }
+.panel.bg-b .t, .panel.bg-n .t { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); }
+.panel.bg-b .a5-in .mi, .panel.bg-n .a5-in .mi { background: rgba(255,255,255,.1); }
+.panel.bg-b .badge, .panel.bg-n .badge { background: rgba(254,217,1,.9); color: #0C1A33; }
+.panel.bg-b aside a, .panel.bg-n aside a { color: #fff; border-color: rgba(255,255,255,.2); }
+.panel.bg-b .a4 .col + .col, .panel.bg-n .col + .col { border-color: rgba(255,255,255,.18); }
+.panel.bg-b .intro, .panel.bg-n .intro { background: rgba(255,255,255,.08); }
+.panel.bg-w .intro, .panel.bg-w2 .intro { background: linear-gradient(160deg, rgba(0,86,185,.85), rgba(10,124,240,.75)); }
+/* 뒤 화면(실제 메인처럼) */
+.bgpage { max-width: 1180px; margin: 0 auto; padding: 24px 28px 60px; }
+.bgpage .hero { background: linear-gradient(135deg, #0056B9, #0A7CF0); color: #fff; border-radius: 20px; padding: 22px 26px; }
+.bgpage .hero h1 { margin: 0; font-size: 26px; } .bgpage .hero p { margin: 4px 0 0; color: #DCE8F7; }
+.bgpage .brief { margin-top: 14px; background: rgba(255,255,255,.14); border-radius: 14px; padding: 12px 16px; line-height: 1.9; }
+.bgpage .row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; margin-top: 18px; }
+.bgpage .c { background: #fff; border-radius: 20px; padding: 16px 18px; min-height: 190px; }
+.bgpage .c h3 { margin: 0 0 10px; font-size: 15px; } .bgpage .c p { margin: 6px 0; color: var(--sub); font-size: 13px; }
+.bgpage .c p b { color: var(--ink); }
+.bgpage .tag { display: inline-block; background: #FDECEC; color: #C0262D; border-radius: 6px; padding: 0 6px; font-size: 11.5px; font-weight: 700; margin-right: 6px; }
+
+/* 바탕 색 더(11-05 2차) */
+.panel.bg-sky { background: rgba(56,189,248,.30) !important; backdrop-filter: blur(20px) saturate(170%); -webkit-backdrop-filter: blur(20px) saturate(170%); border: 1px solid rgba(255,255,255,.6); }
+.panel.bg-teal { background: rgba(13,148,136,.52) !important; color: #fff; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); border: 1px solid rgba(255,255,255,.22); }
+.panel.bg-ind { background: rgba(79,70,229,.50) !important; color: #fff; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); border: 1px solid rgba(255,255,255,.22); }
+.panel.bg-slate { background: rgba(71,85,105,.50) !important; color: #fff; backdrop-filter: blur(22px) saturate(130%); -webkit-backdrop-filter: blur(22px) saturate(130%); border: 1px solid rgba(255,255,255,.18); }
+.panel.bg-grad { background: linear-gradient(135deg, rgba(0,86,185,.70), rgba(56,189,248,.45)) !important; color: #fff; backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border: 1px solid rgba(255,255,255,.3); }
+.panel.bg-line { background: rgba(255,255,255,.70) !important; backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border: 2px solid rgba(254,217,1,.85); }
+.panel:is(.bg-sky,.bg-line) :is(.mi:hover,.mi.on,.row7:hover,.row7.on) { background: rgba(255,255,255,.6) !important; }
+.panel.bg-sky .ic { background: rgba(255,255,255,.7) !important; }
+.panel:is(.bg-teal,.bg-ind,.bg-slate,.bg-grad) :is(small,h5) { color: rgba(255,255,255,.8) !important; }
+.panel:is(.bg-teal,.bg-ind,.bg-slate,.bg-grad) .ic { background: rgba(255,255,255,.18) !important; color: #fff !important; }
+.panel:is(.bg-teal,.bg-ind,.bg-slate,.bg-grad,.bg-b,.bg-n) :is(.mi:hover,.mi.on,.row7:hover,.row7.on) { background: rgba(255,255,255,.15) !important; }
+.panel:is(.bg-teal,.bg-ind,.bg-slate,.bg-grad) .badge { background: rgba(254,217,1,.9); color: #0C1A33; }
+.panel:is(.bg-teal,.bg-ind,.bg-slate,.bg-grad,.bg-b,.bg-n) :is(.t,.a5-in .mi,.big9,.prev7,.srch8 input,.dock a.on,.dock a:hover) { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); color: #fff; }
+.panel:is(.bg-teal,.bg-ind,.bg-slate,.bg-grad,.bg-b,.bg-n) :is(.prev7 p,.big9 p,.big9 em,.cap,.kb) { color: rgba(255,255,255,.8); }
+.panel:is(.bg-teal,.bg-ind,.bg-slate,.bg-grad) .intro { background: rgba(255,255,255,.08); }
+.panel:is(.bg-teal,.bg-ind,.bg-slate,.bg-grad) aside a { color: #fff; border-color: rgba(255,255,255,.2); }
+.panel:is(.bg-w,.bg-w2,.bg-sky,.bg-line) :is(.big9,.prev7,.srch8 input,.dock a.on,.dock a:hover) { background: rgba(255,255,255,.55); border-color: rgba(255,255,255,.75); }
+
+/* A7 목록 + 미리보기 */
+.a7 { top: 56px; left: 50%; transform: translateX(-50%); width: min(780px, calc(100% - 32px)); background: #fff; border-radius: 18px; box-shadow: 0 24px 60px -20px rgba(11,26,51,.45); padding: 12px; display: grid; grid-template-columns: 260px minmax(0,1fr); gap: 12px; }
+.row7 { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; }
+.row7:hover, .row7.on { background: var(--soft); }
+.row7 .ic { width: 28px; height: 28px; border-radius: 8px; } .row7 .arr { margin-left: auto; opacity: .5; }
+.prev7 { border-radius: 14px; background: var(--soft); padding: 18px; display: flex; flex-direction: column; gap: 10px; border: 1px solid transparent; }
+.prev7 .shot { height: 120px; border-radius: 10px; background: linear-gradient(135deg, #DCE8F7, #fff); display: grid; place-items: center; color: var(--mute); font-size: 12px; }
+.prev7 h4 { margin: 0; font-size: 17px; } .prev7 p { margin: 0; font-size: 13px; color: var(--sub); }
+.prev7 .go { margin-top: auto; align-self: flex-start; background: var(--blue); color: #fff; border-radius: 10px; padding: 7px 14px; font-weight: 600; font-size: 13px; }
+
+/* A8 메뉴 안 검색 */
+.a8 { top: 56px; left: 50%; transform: translateX(-50%); width: min(700px, calc(100% - 32px)); background: #fff; border-radius: 18px; box-shadow: 0 24px 60px -20px rgba(11,26,51,.45); padding: 14px; }
+.srch8 input { width: 100%; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); padding: 0 14px; font: inherit; font-size: 14px; color: inherit; }
+.a8 .g { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px; margin-top: 10px; }
+.a8 .mi { display: flex; gap: 10px; padding: 9px 10px; border-radius: 10px; align-items: center; }
+.a8 .mi:hover, .a8 .mi.on { background: var(--soft); }
+.a8 b { display: block; } .a8 small { display: block; color: var(--sub); font-size: 12px; }
+.a8 .kb { margin-top: 8px; font-size: 11.5px; color: var(--mute); }
+
+/* A9 대표 카드 + 작은 목록 */
+.a9 { top: 56px; left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 32px)); background: #fff; border-radius: 20px; box-shadow: 0 24px 60px -20px rgba(11,26,51,.45); padding: 16px; display: grid; grid-template-columns: 280px minmax(0,1fr); gap: 14px; }
+.big9 { border-radius: 16px; background: var(--soft); padding: 18px; display: flex; flex-direction: column; gap: 8px; border: 1px solid transparent; }
+.big9 .ic { width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg,#0056B9,#0A7CF0); color: #fff; }
+.big9 .ic svg { width: 26px; height: 26px; }
+.big9 em { font-style: normal; font-size: 11.5px; color: var(--blue); font-weight: 700; }
+.big9 h4 { margin: 0; font-size: 18px; } .big9 p { margin: 0; font-size: 13px; color: var(--sub); }
+.a9 .lst { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px; align-content: start; }
+.a9 .lst .mi { display: flex; gap: 8px; padding: 8px; border-radius: 10px; align-items: center; }
+.a9 .lst .mi:hover { background: var(--soft); } .a9 .lst .ic { width: 28px; height: 28px; border-radius: 8px; }
+.a9 .lst b { font-size: 13.5px; }
+
+/* A10 아이콘 줄(독) */
+.a10 { top: 58px; left: 50%; transform: translateX(-50%); background: #fff; border-radius: 24px; box-shadow: 0 24px 60px -20px rgba(11,26,51,.45); padding: 12px 14px; max-width: calc(100% - 32px); }
+.dock { display: flex; gap: 6px; }
+.dock a { width: 92px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px; border-radius: 16px; text-align: center; border: 1px solid transparent; font-size: 12px; font-weight: 600; color: inherit; }
+.dock a .ic { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg,#0056B9,#0A7CF0) !important; color: #fff !important; }
+.dock a .ic svg { width: 22px; height: 22px; }
+.dock a:hover, .dock a.on { background: var(--soft); }
+.a10 .cap { text-align: center; font-size: 12px; color: var(--sub); margin-top: 6px; }
+@media (max-width: 760px) { .a7, .a9 { grid-template-columns: 1fr; } .dock { flex-wrap: wrap; } }
+</style>
+</head>
+<body>
+<div class="sx">
+  <b>큰 판 펼침 시안</b>
+  <button data-v="1" class="on">A1 기본 3열</button><button data-v="2">A2 왼쪽 소개 칸</button><button data-v="3">A3 큰 아이콘 타일</button><button data-v="4">A4 분류별 열</button><button data-v="5">A5 전체 폭 띠</button><button data-v="6">A6 짙은 남색</button><button data-v="7">A7 목록 + 미리보기</button><button data-v="8">A8 메뉴 안 검색</button><button data-v="9">A9 대표 카드 + 작은 목록</button><button data-v="10">A10 아이콘 줄(독)</button>
+  <span class="g"></span>
+  <button data-t="eng" class="on">엔지니어링</button><button data-t="svc">사내 서비스</button>
+  <span class="g"></span>
+  <b style="margin:0 4px 0 0">바탕</b><button data-bg="solid">불투명</button><button data-bg="w" class="on">유리 흰색</button><button data-bg="w2">아주 옅은 흰색</button><button data-bg="b">유리 파랑</button><button data-bg="n">유리 남색</button><button data-bg="sky">유리 하늘</button><button data-bg="teal">유리 청록</button><button data-bg="ind">유리 보라</button><button data-bg="slate">유리 회색</button><button data-bg="grad">파랑→하늘 그라데이션</button><button data-bg="line">흰 유리 + 노란 테두리</button>
+</div>
+<div class="note" id="note"></div>
+<div id="app"></div>
+<script>
+const P = {
+  spec: 'M5 3h9l5 5v13H5zM14 3v5h5M8 13h8M8 17h5', modular: 'M12 2 3 7v10l9 5 9-5V7zM3 7l9 5 9-5M12 12v10', issue: 'M5 21V4M5 4h11l-2 4 2 4H5',
+  lab: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 15h9', srs: 'M4 19V5M4 19h16M8 15l3-4 3 2 5-6', process: 'M4 6h16M4 12h10M4 18h6',
+  robot: 'M9 3h6v4H9zM6 7h12v8H6zM9 15v4M15 15v4M9 11h.01M15 11h.01', org: 'M9 3h6v5H9zM3 16h6v5H3zM15 16h6v5h-6zM12 8v4M6 16v-4h12v4',
+  meals: 'M4 3v8a3 3 0 0 0 6 0V3M7 3v18M17 3c-2 2-3 5-3 8h3v10',
+};
+const TAB = {
+  eng: { name: '엔지니어링', desc: '설계·분석부터 현장 진행, 시험 데이터까지 엔지니어가 쓰는 화면을 모았습니다.', items: [
+    ['spec', '사양서 분석', '사양서를 올려 사양정리 초안 만들기', '설계·분석'], ['srs', 'SRS Analyzer', '로봇 신호 분석', '설계·분석'], ['robot', 'MotoSim', '시뮬레이션 파일·라이선스', '설계·분석'],
+    ['modular', '모듈라', '모듈라 빌드 진행·일정·글', '진행 관리'], ['issue', 'ES 이슈', '현장 이슈 기록과 처리', '진행 관리'], ['process', '공정 관리', '공정 데이터·추적', '진행 관리'],
+    ['lab', 'SmartLab', '랩 테스트 조회', '시험·데이터'] ] },
+  svc: { name: '사내 서비스', desc: '사람 찾기와 식단처럼 모든 직원이 쓰는 생활 화면입니다.', items: [
+    ['org', '조직도', '부서·사람 찾기, 연락처', '사람'], ['meals', '수담푸드 메뉴', '오늘 점심·저녁 메뉴', '생활'] ] },
+};
+const NOTE = {
+  1: '<b>A1 기본 3열</b> — 앞서 고르신 모양. 흰 판에 아이콘 + 이름 + 한 줄 설명을 3열로.',
+  2: '<b>A2 왼쪽 소개 칸</b> — 왼쪽 파란 칸에 묶음 소개와 <b>최근에 쓴 화면</b>, 오른쪽에 화면 목록 2열. 묶음이 무엇인지 처음 보는 사람에게 친절합니다. 판이 조금 넓습니다(860px).',
+  3: '<b>A3 큰 아이콘 타일</b> — 파란 아이콘을 크게 4열로. 앱 서랍처럼 눈에 잘 들어오고 손가락으로 누르기도 쉽습니다. 설명은 짧게만 보입니다.',
+  4: '<b>A4 분류별 열</b> — 엔지니어링을 <b>설계·분석 / 진행 관리 / 시험·데이터</b>로 나눠 열마다 보여 줍니다(분류 이름은 예시 — 정해 주시면 바꿉니다). 화면이 더 늘어도 정리가 됩니다.',
+  5: '<b>A5 전체 폭 띠</b> — 위쪽 막대 바로 아래로 화면 폭 전체가 내려옵니다. 왼쪽은 화면 카드 4열, 오른쪽은 최근 사용 목록. 가장 넓게 보이고, 본문을 많이 가립니다.',
+  7: '<b>A7 목록 + 미리보기</b> — 왼쪽은 화면 이름 목록, 마우스를 올린 화면의 설명·미리보기 그림·[열기]가 오른쪽에 크게 보입니다. 화면이 무엇을 하는지 가장 자세히 알려 줍니다.',
+  8: '<b>A8 메뉴 안 검색</b> — 판 맨 위에 찾기 칸이 있어 이름을 치면 바로 걸러집니다(키보드로 ↑↓ Enter). 화면이 앞으로 많이 늘어날 때 좋습니다.',
+  9: '<b>A9 대표 카드 + 작은 목록</b> — 가장 많이 쓰는(또는 최근) 화면 하나를 왼쪽에 크게, 나머지는 오른쪽에 작게. 자주 쓰는 화면으로 바로 갑니다.',
+  10: '<b>A10 아이콘 줄(독)</b> — 동그란 아이콘을 한 줄로 늘어놓은 가벼운 판. 판이 작아 본문을 거의 가리지 않습니다. 설명은 마우스를 올린 것만 아래에 나옵니다.',
+  6: '<b>A6 짙은 남색</b> — A1과 같은 배치를 짙은 남색 판으로. 파란 막대와 이어져 보이고 흰 본문과 확실히 구분됩니다. 아래에 단축키 안내(예시).',
+};
+let v = '1', t = 'eng', bg = 'w';
+const svg = (k) => `<svg viewBox="0 0 24 24"><path d="${P[k]}"/></svg>`;
+function topBar(panel) {
+  const tabs = ['프로젝트', '다운로드', '자료 검색', 'eng', 'AI 두리미', 'svc', '관리'];
+  return `<div class="top"><div class="top-in"><span class="logo">DY ONE<small>INTERNAL</small></span><div class="pills">${tabs.map((x) => TAB[x]
+    ? `<button class="pill ${x === t ? 'on' : ''}">${TAB[x].name} <span class="cv">▴</span></button>`
+    : `<button class="pill">${x}${x === '관리' ? ' <span class="cv">▾</span>' : ''}</button>`).join('')}</div><div class="right"><span class="av">함</span></div></div><div class="shade"></div>${panel}</div>`;
+}
+function render() {
+  const T = TAB[t], it = T.items;
+  const mi = (x, i, cls = 'mi') => `<div class="${cls} ${i === 0 ? 'on' : ''}"><span class="ic">${svg(x[0])}</span><div><b>${x[1]}${i === 0 ? '<span class="badge">최근</span>' : ''}</b><small>${x[2]}</small></div></div>`;
+  let p = '';
+  const B = bg === 'solid' ? '' : ` bg-${bg}`;
+  if (v === '1') p = `<div class="panel a1${B}"><h5>${T.name}</h5><div class="g">${it.map((x, i) => mi(x, i)).join('')}</div></div>`;
+  if (v === '2') p = `<div class="panel a2${B}"><div class="intro"><h4>${T.name}</h4><p>${T.desc}</p><div class="recent">최근에 쓴 화면<b>${it[0][1]} →</b></div></div><div class="list">${it.map((x, i) => mi(x, i)).join('')}</div></div>`;
+  if (v === '3') p = `<div class="panel a3${B}"><div class="g">${it.map((x, i) => `<div class="t ${i === 0 ? 'on' : ''}"><span class="ic">${svg(x[0])}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join('')}</div></div>`;
+  if (v === '4') {
+    const cats = [...new Set(it.map((x) => x[3]))];
+    p = `<div class="panel a4${B}" style="grid-template-columns:repeat(${cats.length},minmax(0,1fr))">${cats.map((c) => `<div class="col"><h5>${c}</h5>${it.filter((x) => x[3] === c).map((x) => mi(x, it.indexOf(x))).join('')}</div>`).join('')}</div>`;
+  }
+  if (v === '5') p = `<div class="panel a5${B}"><div class="a5-in"><div class="g">${it.map((x, i) => `<div class="mi ${i === 0 ? 'on' : ''}"><span class="ic">${svg(x[0])}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join('')}</div><aside><h5>최근 사용</h5>${it.slice(0, 3).map((x, i) => `<a>${x[1]}<span>${['오늘', '어제', '11/3'][i]}</span></a>`).join('')}</aside></div></div>`;
+  if (v === '7') p = `<div class="panel a7${B}"><div>${it.map((x, i) => `<div class="row7 ${i === 0 ? 'on' : ''}"><span class="ic">${svg(x[0])}</span><b>${x[1]}</b><span class="arr">›</span></div>`).join('')}</div><div class="prev7"><div class="shot">${it[0][1]} 화면 미리보기</div><h4>${it[0][1]}</h4><p>${it[0][2]}</p><span class="go">열기 →</span></div></div>`;
+  if (v === '8') p = `<div class="panel a8${B}"><div class="srch8"><input placeholder="${T.name}에서 화면 찾기 (예: 모듈라)"></div><div class="g">${it.map((x, i) => mi(x, i)).join('')}</div><div class="kb">↑↓ 고르기 · Enter 열기 · Esc 닫기</div></div>`;
+  if (v === '9') p = `<div class="panel a9${B}"><div class="big9"><span class="ic">${svg(it[0][0])}</span><em>가장 많이 씀</em><h4>${it[0][1]}</h4><p>${it[0][2]}</p></div><div class="lst">${it.slice(1).map((x) => `<div class="mi"><span class="ic">${svg(x[0])}</span><b>${x[1]}</b></div>`).join('')}</div></div>`;
+  if (v === '10') p = `<div class="panel a10${B}"><div class="dock">${it.map((x, i) => `<a class="${i === 0 ? 'on' : ''}"><span class="ic">${svg(x[0])}</span>${x[1]}</a>`).join('')}</div><div class="cap">${it[0][1]} — ${it[0][2]}</div></div>`;
+  if (v === '6') p = `<div class="panel a6${B}"><h5>${T.name}</h5><div class="g">${it.map((x, i) => mi(x, i)).join('')}</div><div class="foot">↑↓ 고르기 · <kbd>Enter</kbd> 열기 · <kbd>Esc</kbd> 닫기</div></div>`;
+  const bgPage = `<div class="bgpage"><div class="hero"><h1>프로젝트</h1><p>안녕하세요, 함유진 님. 관심·주요 프로젝트에 어제 기록이 136건 있습니다.</p>
+    <div class="brief">• 서연이화 미국 중소물 도장 신공장 — 예상 프로젝트 단계는 모듈라이며, 준비중 상태로 도면 작업이 이어지고 있습니다.<br>• 기아 광명2 전기차 신공장 — 예상 프로젝트 단계는 현장이며, 모듈라는 문서 정리 중입니다.<br>• 기아 화성 5공장 신기술 자동화 — ERP 상태는 수주이며, 모듈라는 시운전 상태입니다.</div></div>
+    <div class="row"><div class="c"><h3>★ 내 관심 프로젝트</h3><p><b>서연이화 미국 중소물 도장 신공장</b></p><p>최근 10/30 · PM 이재성 · 모듈라</p><p><b>기아 광명2 전기차 신공장</b></p><p>최근 10/19 · 현장</p></div>
+    <div class="c"><h3>회사 주요 프로젝트</h3><p><b>1 기아 화성 5공장 신공장 신기술</b></p><p>신공장 · 다음 12/31 · PM 함유진</p><p><b>2 기아 화성5 하도</b></p><p>신공장 · 다음 1/15</p></div>
+    <div class="c"><h3>일정 주의</h3><p><span class="tag">+415일</span><b>서연이화 미국</b></p><p>OLT 2025/9/15 지남</p><p><span class="tag">+36일</span><b>태화 실내 가니쉬</b></p><p>양산 9/30 지남</p></div></div></div>`;
+  document.getElementById('app').className = bg === 'solid' ? '' : 'glass';
+  document.getElementById('app').innerHTML = topBar(p) + (bg === 'solid' ? `<div class="page"><div class="ph"><h1>프로젝트</h1></div><div class="ghost"></div></div>` : bgPage);
+  document.getElementById('note').innerHTML = NOTE[v];
+  document.querySelectorAll('[data-v]').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
+  document.querySelectorAll('[data-t]').forEach((b) => b.classList.toggle('on', b.dataset.t === t));
+  document.querySelectorAll('[data-bg]').forEach((b) => b.classList.toggle('on', b.dataset.bg === bg));
+}
+document.querySelectorAll('[data-bg]').forEach((b) => (b.onclick = () => { bg = b.dataset.bg; render(); }));
+document.querySelectorAll('[data-v]').forEach((b) => (b.onclick = () => { v = b.dataset.v; render(); }));
+document.querySelectorAll('[data-t]').forEach((b) => (b.onclick = () => { t = b.dataset.t; render(); }));
+render();
+</script>
+</body>
+</html>

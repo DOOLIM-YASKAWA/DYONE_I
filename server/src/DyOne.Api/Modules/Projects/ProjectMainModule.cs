@@ -76,6 +76,57 @@ public static class ProjectMainModule
                 schedule.Take(ShowFav).ToList(), schedule.Count);
         });
 
+        // '상세히' 창(브리핑, 11-05): 문서 일정(단계별 기준 일정 + 원문 줄·출처) · 이 프로젝트의 일정 주의 · 고객사. 나머지는 브리핑 evidence의 detail에 이미 있다.
+        g.MapGet("/main/brief-detail", async (string code, IConfiguration config, CancellationToken ct) =>
+        {
+            await using var conn = new NpgsqlConnection(config.GetConnectionString("DyOne"));
+            await conn.OpenAsync(ct);
+            var (_, alias) = await AliasAsync(conn, ct);
+            var key = alias.GetValueOrDefault(code, code);
+            string? partner = null;
+            await using (var cmd = new NpgsqlCommand("select coalesce(e.partner_name, p.partner_name) from (select @c as c) x left join sync.erp_project e on e.cd_prjt = x.c left join project.project p on p.code = x.c and p.is_active limit 1", conn))
+            {
+                cmd.Parameters.AddWithValue("c", key);
+                partner = await cmd.ExecuteScalarAsync(ct) as string;
+            }
+            // 단계별 기준 일정: Worker 판정과 같은 순서 — 연도가 적힌 글자 줄 › 그림 일정표 › 연도를 추정한 글자 줄, 그다음 사양정리 › 수행계획서 › 사양서, 같은 종류면 새 파일
+            var stages = new List<(string Stage, object Row)>();
+            var alerts = new List<object>();
+            try
+            {
+                await using (var cmd = new NpgsqlCommand("""
+                    select distinct on (stage) stage, date_from, date_to, raw_text, doc_name, doc_path, doc_kind, doc_mtime, page
+                      from project.schedule_milestone where code = @c
+                     order by stage,
+                       case when raw_text like '[그림]%' then 1
+                            when raw_text ~ '(20[0-9]{2}|[’‘''`] ?[0-9]{2}([^0-9]|$)|[0-9]{2} *년|[0-9]{2} *\. *[0-9]{1,2} *[./월])' then 0 else 2 end,
+                       case doc_kind when 'summary' then 0 when 'plan' then 1 else 2 end, doc_mtime desc nulls last
+                    """, conn))
+                {
+                    cmd.Parameters.AddWithValue("c", key);
+                    await using var r = await cmd.ExecuteReaderAsync(ct);
+                    while (await r.ReadAsync(ct))
+                        stages.Add((r.GetString(0), new
+                        {
+                            stage = r.GetString(0), name = StageNames.GetValueOrDefault(r.GetString(0), r.GetString(0)),
+                            from = DateOnly.FromDateTime(r.GetDateTime(1)), to = r.IsDBNull(2) ? DateOnly.FromDateTime(r.GetDateTime(1)) : DateOnly.FromDateTime(r.GetDateTime(2)),
+                            raw = r.GetString(3), doc = r.GetString(4), path = r.IsDBNull(5) ? null : r.GetString(5), kind = r.GetString(6),
+                            mtime = r.IsDBNull(7) ? (DateTime?)null : r.GetDateTime(7), page = r.IsDBNull(8) ? null : r.GetString(8),
+                        }));
+                }
+                await using (var cmd = new NpgsqlCommand("select kind, stage, due_date, reason from project.schedule_alert where code = @c and kind <> 'erp' order by kind", conn))
+                {
+                    cmd.Parameters.AddWithValue("c", key);
+                    await using var r = await cmd.ExecuteReaderAsync(ct);
+                    while (await r.ReadAsync(ct))
+                        alerts.Add(new { kind = r.GetString(0), stage = r.GetString(1), due = DateOnly.FromDateTime(r.GetDateTime(2)), reason = r.GetString(3) });
+                }
+            }
+            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UndefinedTable) { }
+            string[] order = ["olt", "ship", "install", "commission", "pre", "sop"];
+            return Results.Ok(new { code = key, partner, schedule = stages.OrderBy(x => Array.IndexOf(order, x.Stage)).Select(x => x.Row).ToList(), alerts });
+        });
+
         g.MapGet("/favorites", async (ClaimsPrincipal user, IConfiguration config, DyOneDbContext db, CancellationToken ct) =>
         {
             await using var conn = new NpgsqlConnection(config.GetConnectionString("DyOne"));

@@ -1,0 +1,100 @@
+/* 오늘의 브리핑 [상세히] — B안 가운데 큰 창(휴대폰은 아래 시트). 시안 docs/시안/main-variants/j-evidence.html(11-05) */
+.pbd {
+  --pbd-brand: #0056B9; --pbd-brand2: #0A7CF0; --pbd-ink: #0C1A33; --pbd-sub: #56637C; --pbd-mute: #97A3BA;
+  --pbd-line: #E6ECF4; --pbd-soft: #F0F4FB; --pbd-ok: #12805C; --pbd-okbg: #E3F5EE; --pbd-warn: #A15C00; --pbd-warnbg: #FFF3DC;
+  --pbd-bad: #C0262D; --pbd-badbg: #FDECEC;
+  position: fixed; inset: 0; z-index: 1200; color: var(--pbd-ink); font-size: 14px; line-height: 1.55; letter-spacing: -.1px;
+}
+.pbd-backdrop { position: absolute; inset: 0; background: rgba(12, 26, 51, .45); }
+.pbd-box {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(1000px, calc(100% - 32px)); max-height: calc(100% - 48px);
+  background: #fff; border-radius: 20px; display: flex; flex-direction: column; box-shadow: 0 30px 80px -30px rgba(12, 26, 51, .6); overflow: hidden;
+}
+.pbd-h { display: flex; align-items: flex-start; gap: 12px; padding: 18px 22px 14px; border-bottom: 1px solid var(--pbd-line); }
+.pbd-h h3 { margin: 0; font-size: 18px; font-weight: 750; }
+.pbd-h small { display: block; color: var(--pbd-sub); font-size: 12.5px; margin-top: 2px; }
+.pbd-x { margin-left: auto; border: 0; background: var(--pbd-soft); width: 32px; height: 32px; border-radius: 10px; font-size: 18px; color: var(--pbd-sub) !important; flex: none; cursor: pointer; }
+.pbd-b { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 22px; padding: 16px 22px 22px; overflow: auto; }
+.pbd-col { min-width: 0; }
+.pbd-sec { margin-top: 18px; }
+.pbd-col > .pbd-sec:first-child { margin-top: 0; }
+.pbd-sec h4 { margin: 0 0 8px; font-size: 13px; color: var(--pbd-sub); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pbd-sec h4 i { font-style: normal; font-weight: 400; color: var(--pbd-mute); font-size: 12px; }
+.pbd-link { margin-left: auto; border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--pbd-brand) !important; font-size: 12.5px; cursor: pointer; }
+.pbd-tag { display: inline-block; font-size: 11.5px; font-weight: 700; border-radius: 6px; padding: 1px 7px; margin-right: 6px; background: var(--pbd-soft); color: var(--pbd-sub); vertical-align: 1px; }
+.pbd-tag.ai { background: #E8F1FD; color: var(--pbd-brand); }
+.pbd-tag.ok { background: var(--pbd-okbg); color: var(--pbd-ok); }
+.pbd-tag.warn { background: var(--pbd-warnbg); color: var(--pbd-warn); }
+.pbd-tag.mute { background: var(--pbd-soft); color: var(--pbd-sub); }
+
+/* 지금 상태 */
+.pbd-say { background: linear-gradient(135deg, #F3F8FF, #EEF4FD); border: 1px solid #D6E6FA; border-radius: 14px; padding: 14px 16px; }
+.pbd-say p { margin: 0 0 10px; font-size: 15.5px; font-weight: 600; line-height: 1.55; }
+.pbd-meta { font-size: 12px; color: var(--pbd-sub); }
+.pbd-chk { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pbd-chk span { font-size: 12px; background: #fff; border: 1px solid var(--pbd-line); border-radius: 8px; padding: 2px 8px; }
+.pbd-chk span::before { content: "✓ "; color: var(--pbd-ok); font-weight: 800; }
+
+/* 한눈에 */
+.pbd-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pbd-facts.one { grid-template-columns: minmax(0, 1fr); }
+.pbd-fact { background: var(--pbd-soft); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.pbd-fact label { display: block; font-size: 11.5px; color: var(--pbd-mute); }
+.pbd-fact label i { font-style: normal; margin-left: 4px; }
+.pbd-fact b { display: block; font-size: 14.5px; margin-top: 2px; }
+.pbd-fact small { display: block; font-size: 11.5px; color: var(--pbd-sub); margin-top: 2px; }
+.pbd-fact.wide { grid-column: 1 / -1; }
+.pbd-term { position: relative; height: 8px; background: #DCE5F2; border-radius: 4px; margin: 8px 0 4px; }
+.pbd-term i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, var(--pbd-brand), var(--pbd-brand2)); }
+.pbd-term em { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--pbd-ink); }
+.pbd-term-l { display: flex; justify-content: space-between; gap: 6px; font-size: 11.5px; color: var(--pbd-sub); }
+
+/* 문서 일정 */
+.pbd-tl { position: relative; margin: 30px 6px 8px; height: 4px; background: #DCE5F2; border-radius: 2px; }
+.pbd-p { position: absolute; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid var(--pbd-brand); transform: translateX(-50%); }
+.pbd-p.past { border-color: #98A2B3; }
+.pbd-p.bad { border-color: var(--pbd-bad); background: var(--pbd-badbg); }
+.pbd-p b { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); font-size: 11px; white-space: nowrap; }
+.pbd-p small { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); font-size: 10.5px; color: var(--pbd-sub); white-space: nowrap; }
+.pbd-today { position: absolute; top: -10px; bottom: -10px; width: 2px; background: var(--pbd-ink); }
+.pbd-today::after { content: ""; position: absolute; top: -4px; left: -3px; border: 4px solid transparent; border-top-color: var(--pbd-ink); }
+.pbd-src { margin-top: 30px; font-size: 12px; color: var(--pbd-sub); }
+.pbd-src code { background: var(--pbd-soft); border-radius: 6px; padding: 1px 6px; font-family: inherit; word-break: break-all; }
+.pbd-raw { margin-top: 6px; font-size: 12px; color: var(--pbd-sub); }
+.pbd-raw summary { cursor: pointer; color: var(--pbd-brand); font-weight: 600; }
+.pbd-raw p { margin: 6px 0 0; background: var(--pbd-soft); border-radius: 8px; padding: 8px 10px; white-space: pre-wrap; word-break: break-all; }
+.pbd-alert { display: flex; gap: 4px; align-items: center; margin-top: 8px; font-size: 12.5px; border-radius: 10px; padding: 7px 10px; background: var(--pbd-warnbg); color: var(--pbd-warn); }
+.pbd-alert.late { background: var(--pbd-badbg); color: var(--pbd-bad); }
+.pbd-alert .pbd-tag { background: rgba(255, 255, 255, .6); color: inherit; }
+
+/* 최근 흐름 */
+.pbd-flow { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.pbd-box2 { border: 1px solid var(--pbd-line); border-radius: 12px; padding: 12px 14px; background: #fff; }
+.pbd-box-h { display: flex; align-items: baseline; gap: 8px; font-size: 13px; font-weight: 700; }
+.pbd-box-h small { font-weight: 400; color: var(--pbd-sub); font-size: 12px; }
+.pbd-trend { margin: 8px 0 0; font-size: 13px; line-height: 1.55; }
+.pbd-steps { margin: 10px 0 0; padding: 0; list-style: none; }
+.pbd-steps li { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 10px; position: relative; padding: 0 0 10px; }
+.pbd-steps li:last-child { padding-bottom: 0; }
+.pbd-steps li::before { content: ""; position: absolute; left: 66px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: #BFD6F2; }
+.pbd-steps li::after { content: ""; position: absolute; left: 69px; top: 16px; bottom: -2px; width: 2px; background: #E6ECF4; }
+.pbd-steps li:last-child::after { display: none; }
+.pbd-steps li.now::before { background: var(--pbd-brand); }
+.pbd-steps time { font-size: 12px; color: var(--pbd-mute); padding-top: 1px; white-space: nowrap; }
+.pbd-steps div { padding-left: 14px; min-width: 0; }
+.pbd-steps b { display: block; font-size: 13px; }
+.pbd-steps small { display: block; font-size: 12px; color: var(--pbd-sub); margin-top: 1px; overflow-wrap: anywhere; }
+.pbd-empty { font-size: 12.5px; color: var(--pbd-mute); background: var(--pbd-soft); border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+.pbd-how { font-size: 12.5px; color: var(--pbd-sub); background: var(--pbd-soft); border-radius: 12px; padding: 10px 12px; }
+.pbd-how b { color: var(--pbd-ink); }
+.pbd-f { display: flex; gap: 8px; padding: 12px 22px; border-top: 1px solid var(--pbd-line); background: #fff; }
+.pbd-btn { border: 1px solid var(--pbd-line); background: #fff; border-radius: 10px; padding: 8px 14px; font: inherit; font-weight: 600; color: var(--pbd-ink) !important; cursor: pointer; }
+.pbd-btn.pri { background: var(--pbd-brand); border-color: var(--pbd-brand); color: #fff !important; margin-left: auto; }
+
+/* 휴대폰: 아래에서 올라오는 시트 */
+@media (max-width: 760px) {
+  .pbd-box { top: auto; left: 0; right: 0; bottom: 0; transform: none; width: 100%; max-height: 90vh; height: 90vh; border-radius: 20px 20px 0 0; }
+  .pbd-b { display: block; padding-left: 16px; padding-right: 16px; }
+  .pbd-col + .pbd-col { margin-top: 18px; }
+  .pbd-h, .pbd-f { padding-left: 16px; padding-right: 16px; }
+}

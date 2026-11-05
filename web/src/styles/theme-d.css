@@ -45,7 +45,29 @@ a { color: var(--blue); }
 .dy-pop a svg { color: var(--blue); }
 .dy-pop a:hover { background: #F5F8FC; }
 .dy-pop a.active { background: #EAF2FC; color: var(--blue); font-weight: 600; }
-.dy-top-right { display: flex; align-items: center; gap: 10px; flex: none; }
+/* 위쪽 탭 — 알약 모양(11-05): 반투명 둥근 틀 안에 탭, 지금 탭은 흰 알약 + 파란 글자 */
+.dy-nav.dy-pills { flex: 0 1 auto; gap: 2px; padding: 4px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18); border-radius: 999px; }
+.dy-pills .dy-nav-item { height: 34px; padding: 0 16px; border-radius: 999px; color: #fff; font-weight: 600; }
+.dy-pills .dy-nav-item:hover { background: rgba(255, 255, 255, .12); }
+.dy-pills .dy-nav-item.active, .dy-pills .dy-group.active > .dy-nav-item { background: #fff; color: var(--blue); box-shadow: 0 2px 8px rgba(11, 26, 51, .18); }
+/* 큰 판 펼침(11-05 A1 · 유리 남색): 위쪽 막대 가운데 아래로 — 반투명 남색 + 뒤 흐림 */
+.dy-pills .dy-group { position: static; }
+.dy-pills .dy-group::after { display: none; }
+.dy-mega { top: 56px; left: 50%; transform: translateX(-50%); width: min(calc(var(--cols, 3) * 250px + 36px), calc(100vw - 32px)); min-width: 0; padding: 18px;
+  background: rgba(14, 35, 71, .62); color: #fff; border: 1px solid rgba(255, 255, 255, .14); border-radius: 18px;
+  backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%); box-shadow: 0 24px 60px -16px rgba(5, 12, 30, .7); }
+.dy-mega::before { content: ""; position: absolute; left: 0; right: 0; top: -14px; height: 14px; } /* 탭 → 판 사이 마우스 이동 길 */
+.dy-group:hover .dy-mega, .dy-group:focus-within .dy-mega { display: block; }
+.dy-mega h5 { margin: 0 0 10px; font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, .7); }
+.dy-mega-g { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: 6px; }
+.dy-mega a { display: flex; align-items: flex-start; gap: 10px; height: auto; padding: 10px; border-radius: 12px; color: #fff; text-decoration: none; }
+.dy-mega a:hover { background: rgba(255, 255, 255, .12); }
+.dy-mega a.active { background: rgba(255, 255, 255, .16); color: #fff; font-weight: 400; }
+.dy-mega-ic { width: 34px; height: 34px; border-radius: 10px; background: rgba(255, 255, 255, .16); display: grid; place-items: center; flex: none; }
+.dy-mega a svg, .dy-mega a.active svg { color: #fff; }
+.dy-mega b { display: block; font-size: 14px; font-weight: 650; }
+.dy-mega small { display: block; margin-top: 1px; font-size: 12px; color: rgba(255, 255, 255, .75); line-height: 1.4; }
+.dy-top-right { display: flex; align-items: center; gap: 10px; flex: none; margin-left: auto; }
 .dy-top .demo-chip { background: rgba(255, 255, 255, .12); border: 0; color: #DCE8F7; }
 .dy-icon-btn { position: relative; width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 8px;
   background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer; padding: 0; }

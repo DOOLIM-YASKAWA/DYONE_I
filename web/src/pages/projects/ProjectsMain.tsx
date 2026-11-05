@@ -9,6 +9,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { ErrorBox, Loading } from '../../components/ui'
 import { useToast } from '../../components/Toast'
 import { Pager } from './Pager'
+import { BriefDetailModal } from './BriefDetail'
 import '../../styles/project-main.css'
 
 // 프로젝트 메인(로그인 첫 화면, 11-04 J안): 위에서부터 검색 → 오늘의 프로젝트 브리핑 → [내 관심 | 회사 주요] → 전체 프로젝트.
@@ -23,7 +24,7 @@ const ERP_CLASS: Record<string, string> = { '수주': 'order', '영업중': 'sal
 const md = (v?: string) => (v ? `${new Date(v).getMonth() + 1}/${new Date(v).getDate()}` : '')
 const hm = (v?: string) => (v ? new Date(v).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : '')
 
-type Drawer = { kind: 'fav' | 'feat' | 'cand' | 'sched' } | { kind: 'evidence'; brief: Brief } | { kind: 'why'; row: MainRow } | null
+type Drawer = { kind: 'fav' | 'feat' | 'cand' | 'sched' } | { kind: 'why'; row: MainRow } | null
 
 /** 3줄씩 묶기(카드·브리핑 넘김 단위). 비어 있어도 한 쪽은 있다 */
 const chunk = <T,>(xs: T[], n = 3): T[][] => (xs.length ? Array.from({ length: Math.ceil(xs.length / n) }, (_, i) => xs.slice(i * n, i * n + n)) : [[]])
@@ -70,6 +71,7 @@ export function ProjectsMain() {
   const erp = params.get('erp') ?? ''
   const [page, setPage] = useState(1)
   const [drawer, setDrawer] = useState<Drawer>(null)
+  const [detail, setDetail] = useState<Brief | null>(null) // 오늘의 브리핑 [상세히] — B안 가운데 큰 창(11-05)
   const searchRef = useRef<HTMLInputElement>(null)
 
   const main = useQuery({ queryKey: ['projects-main'], queryFn: () => api<MainData>('/api/projects/main') })
@@ -155,7 +157,7 @@ export function ProjectsMain() {
               프로젝트 찾기 <kbd>/</kbd>
             </button>
           </div>
-          <BriefPanel data={m} onOpen={open} onEvidence={(b) => setDrawer({ kind: 'evidence', brief: b })} />
+          <BriefPanel data={m} onOpen={open} onEvidence={setDetail} />
         </div>
       </section>
 
@@ -266,6 +268,7 @@ export function ProjectsMain() {
         </section>
       </div>
 
+      {detail && <BriefDetailModal brief={detail} onClose={() => setDetail(null)} onOpen={(b) => { setDetail(null); open(b) }} />}
       {drawer && <MainDrawer drawer={drawer} canSelect={!!m?.canSelect} onClose={() => setDrawer(null)} onOpen={open} onFav={toggleFav} onWhy={(row) => setDrawer({ kind: 'why', row })} />}
       {main.error && <div className="pmj-wrap"><ErrorBox error={main.error} /></div>}
     </div>
@@ -311,7 +314,7 @@ function BriefPanel({ data, onOpen, onEvidence }: { data?: MainData; onOpen(b: B
       <button className="pmj-bf-name" onClick={() => !moved.current && onOpen(b)}>{b.name}</button>
       <span className="pmj-txt">{b.sentence}</span>
       {b.changedYesterday > 0 && <span className="pmj-ch" title="어제 생긴 모듈라·ES 기록과 NAS 수정 파일">어제 +{b.changedYesterday.toLocaleString()}</span>}
-      <button className="pmj-ev" onClick={() => !moved.current && onEvidence(b)}>근거</button>
+      <button className="pmj-ev" onClick={() => !moved.current && onEvidence(b)}>상세히</button>
     </li>
   )
   return (
@@ -485,7 +488,7 @@ function AllTable({ items, fav, onFav, onOpen }: { items: Project[]; fav: Set<nu
   )
 }
 
-/** 오른쪽 서랍(휴대폰은 아래에서 올라옴): 내 관심 전체 · 회사 주요 전체 · 새 후보 검토 · 브리핑 근거 */
+/** 오른쪽 서랍(휴대폰은 아래에서 올라옴): 내 관심 전체 · 회사 주요 전체 · 새 후보 검토 · 일정 주의 · 왜 주요인가. 브리핑 [상세히]는 BriefDetail.tsx */
 function MainDrawer({ drawer, canSelect, onClose, onOpen, onFav, onWhy }: {
   drawer: NonNullable<Drawer>; canSelect: boolean; onClose(): void; onOpen(r: { projectId?: number; code: string }): void; onFav(id?: number): void; onWhy(r: MainRow): void
 }) {
@@ -612,23 +615,6 @@ function MainDrawer({ drawer, canSelect, onClose, onOpen, onFav, onWhy }: {
     title = r.name
     note = `${r.codeLabel}${r.category ? ` · ${r.category}` : ''} · 왜 회사 주요 프로젝트인가`
     body = <WhyBody r={r} onOpen={onOpen} />
-  } else if (drawer.kind === 'evidence') {
-    const b = drawer.brief
-    title = b.name
-    note = `${b.codeLabel} · ${b.source === 'ai' ? '사내 AI 문장(숫자는 넘겨준 사실에 있는 것만 통과)' : '규칙 문장(사내 AI 문장이 검사에 걸리거나 없을 때)'} · ${md(b.madeAt)} ${hm(b.madeAt)} 만듦`
-    body = (
-      <div className="pmj-evid">
-        <p className="pmj-evid-s">{b.sentence}</p>
-        <h4>근거</h4>
-        <ul>
-          {(b.evidence ?? []).length === 0 && <li>근거 기록이 없습니다.</li>}
-          {(b.evidence ?? []).map((e, i) => (
-            <li key={i}><span className={`pmj-ek pmj-ek-${e.kind}`}>{{ modular: '모듈라', nas: 'NAS', po: 'ERP 발주', post: '최근 글' }[e.kind]}</span>{e.label}{e.path && <code>{e.path}</code>}</li>
-          ))}
-        </ul>
-        {b.projectId && <button className="pmj-btn pmj-ok" onClick={() => onOpen(b)}>프로젝트 상세 열기 →</button>}
-      </div>
-    )
   }
   // 본문(main)은 isolation으로 따로 쌓이므로, 위쪽 메뉴 막대보다 위에 뜨도록 body에 붙인다
   return createPortal(

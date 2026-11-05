@@ -18,6 +18,7 @@ import { AccessPage, ItPage, VehiclesPage } from './pages/ServicePages'
 import { MealsPage } from './pages/MealsPage'
 import { PartnersAdminPage } from './pages/PartnersAdminPage'
 import { SpecAnalysisPage } from './pages/SpecAnalysisPage'
+import { ComingSoonPage } from './pages/ComingSoonPage'
 import { useRealtimeNotifications } from './realtime/useRealtimeNotifications'
 import { visibleRoutes } from './routes'
 
@@ -40,6 +41,9 @@ const pageElements: Record<string, ReactElement> = {
   '/meals': <MealsPage />,
   '/vehicles': <VehiclesPage />,
   '/access': <AccessPage />,
+  '/download': <ComingSoonPage title="다운로드" />,
+  '/search': <ComingSoonPage title="자료 검색" />,
+  '/ai': <ComingSoonPage title="AI 두리미" />,
 }
 
 export function App() {
