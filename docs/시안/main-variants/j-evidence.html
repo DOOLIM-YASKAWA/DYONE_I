@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>브리핑 근거 시안</title>
+<style>
+/* 브리핑 근거 화면 시안(11-05) — 프로젝트 한 장 요약. 데이터는 11-04 로컬 실제 값 */
+:root{--brand:#0056B9;--brand2:#0A7CF0;--sky:#38BDF8;--ink:#0C1A33;--sub:#56637C;--mute:#97A3BA;--line:#E6ECF4;--bg:#F2F6FB;--soft:#F0F4FB;--ok:#067647;--okbg:#DCFAE6;--warn:#B54708;--warnbg:#FEF0C7;--bad:#B42318;--badbg:#FEE4E2}
+*{box-sizing:border-box}
+body{margin:0;font-family:Pretendard,"Pretendard Variable","Malgun Gothic",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+button{font:inherit;cursor:pointer}
+[hidden]{display:none!important}
+.sx-bar{position:sticky;top:0;z-index:50;background:var(--ink);color:#CBD5E1;font-size:12.5px;display:flex;gap:6px;align-items:center;padding:8px 16px;flex-wrap:wrap}
+.sx-bar b{color:#fff;margin-right:4px}
+.sx-bar button{border:0;background:rgba(255,255,255,.08);color:#CBD5E1;border-radius:999px;padding:4px 12px;font-size:12.5px}
+.sx-bar button.on{background:#F5B70A;color:var(--ink);font-weight:700}
+.sx-bar .gap{width:12px}
+.sx-note{max-width:1100px;margin:14px auto;padding:0 16px;font-size:12.5px;color:var(--sub)}
+.sx-note b{color:var(--ink)}
+.sx-note ol{margin:6px 0 0;padding-left:18px}
+
+/* 뒤 화면(브리핑 한 줄) */
+.bg-brief{max-width:1100px;margin:0 auto;padding:0 16px}
+.bf{background:linear-gradient(135deg,#0B2D5C,#0056B9);color:#fff;border-radius:20px;padding:18px 22px}
+.bf h2{margin:0 0 10px;font-size:16px}.bf h2 em{font-style:normal;font-size:11px;background:rgba(255,255,255,.16);border-radius:6px;padding:1px 6px;margin-right:6px}
+.bf li{list-style:none;display:flex;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid rgba(255,255,255,.12)}
+.bf ul{margin:0;padding:0}
+.bf li b{flex:none;max-width:220px}.bf li span{flex:1;color:#DCE8F8}
+.bf .ev{flex:none;border:0;background:#fff;color:var(--brand);font-weight:700;border-radius:999px;padding:2px 12px;font-size:12px}
+
+/* 공통 */
+.backdrop{position:fixed;inset:0;background:rgba(12,26,51,.38);z-index:40}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;border-radius:6px;padding:1px 8px;white-space:nowrap}
+.t-ai{background:#E3EFFB;color:var(--brand)}.t-rule{background:#F2F4F7;color:#475467}
+.t-ok{background:var(--okbg);color:var(--ok)}.t-warn{background:var(--warnbg);color:var(--warn)}.t-bad{background:var(--badbg);color:var(--bad)}
+.ev-h{display:flex;gap:10px;align-items:flex-start;padding:18px 22px 12px;border-bottom:1px solid var(--line)}
+.ev-h h3{margin:0;font-size:18px;line-height:1.35}
+.ev-h small{display:block;color:var(--sub);font-size:12.5px;margin-top:3px}
+.ev-h .x{margin-left:auto;border:0;background:var(--soft);width:32px;height:32px;border-radius:10px;font-size:18px;color:var(--sub);flex:none}
+.ev-b{padding:16px 22px 22px;overflow:auto}
+.sec{margin-top:18px}
+.sec:first-child{margin-top:0}
+.sec h4{margin:0 0 8px;font-size:13px;color:var(--sub);display:flex;align-items:center;gap:6px}
+.sec h4 i{font-style:normal;font-weight:400;color:var(--mute);font-size:12px}
+.sec h4 a{margin-left:auto;font-weight:600;color:var(--brand);font-size:12.5px;text-decoration:none;cursor:pointer}
+/* ① 문장 */
+.say{background:linear-gradient(135deg,#F3F8FF,#EEF4FD);border:1px solid #D6E6FA;border-radius:14px;padding:14px 16px}
+.say p{margin:0 0 10px;font-size:15.5px;font-weight:600;line-height:1.55}
+.say mark{background:none;color:var(--brand);border-bottom:2px solid #9CC3F0;padding:0 1px}
+.say .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--sub)}
+.chk{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chk span{font-size:12px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:2px 8px}
+.chk span::before{content:"✓ ";color:var(--ok);font-weight:800}
+/* ② 사실 */
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fact{background:var(--soft);border-radius:12px;padding:10px 12px;min-width:0}
+.fact label{display:block;font-size:11.5px;color:var(--mute)}
+.fact b{display:block;font-size:14.5px;margin-top:2px}
+.fact small{display:block;font-size:11.5px;color:var(--sub);margin-top:2px}
+.fact.wide{grid-column:1/-1}
+.term{position:relative;height:8px;background:#DCE5F2;border-radius:4px;margin:8px 0 4px}
+.term i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:linear-gradient(90deg,var(--brand),var(--brand2))}
+.term em{position:absolute;top:-4px;width:2px;height:16px;background:var(--ink)}
+.term-l{display:flex;justify-content:space-between;font-size:11.5px;color:var(--sub)}
+/* ③ 흐름 */
+.flow{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
+.box-h{display:flex;align-items:baseline;gap:8px;font-size:13px;font-weight:700}
+.box-h small{font-weight:400;color:var(--sub);font-size:12px}
+.box-h a{margin-left:auto;font-weight:600;font-size:12px;color:var(--brand);cursor:pointer}
+.bars{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;align-items:end;height:64px;margin-top:10px}
+.bars i{display:block;background:#BFD6F2;border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.bars i.on{background:var(--brand)}
+.bars i.zero{background:#E6ECF4}
+.bars i b{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--sub);font-weight:600}
+.bars-l{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;font-size:10px;color:var(--mute);text-align:center;margin-top:3px}
+.bars-l span.we{color:#C4CCD8}
+.dirs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.dirs span{font-size:12px;background:var(--soft);border-radius:8px;padding:2px 8px}
+.files{margin:8px 0 0;padding:0;list-style:none;font-size:12.5px}
+.files li{display:flex;gap:8px;padding:4px 0;border-top:1px dashed var(--line)}
+.files li time{flex:none;color:var(--mute);width:38px}
+.files li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.files li em{font-style:normal;color:var(--mute);flex:none;margin-left:auto;font-size:11.5px}
+.po{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.po div{text-align:center}
+.po i{display:block;height:46px;position:relative}
+.po i s{position:absolute;bottom:0;left:25%;right:25%;background:#BFD6F2;border-radius:4px 4px 0 0}
+.po div.now i s{background:var(--brand)}
+.po b{display:block;font-size:13px}.po small{font-size:11px;color:var(--mute)}
+.posts{margin:8px 0 0;padding:0;list-style:none}
+.posts li{display:flex;gap:10px;padding:8px 0;border-top:1px dashed var(--line);font-size:13px}
+.posts li:first-child{border-top:0}
+.posts time{flex:none;color:var(--mute);width:38px}
+.posts .k{flex:none}
+.posts q{quotes:none;color:var(--sub)}
+.empty{font-size:12.5px;color:var(--mute);background:var(--soft);border-radius:10px;padding:10px 12px;margin-top:8px}
+.cap{margin:8px 0 0;font-size:11.5px;color:var(--sub);line-height:1.5}
+.cap b{color:var(--ink)}
+.lg{display:inline-block;width:10px;height:10px;border-radius:2px;background:#BFD6F2;margin:0 3px 0 8px;vertical-align:-1px}
+.lg.on{background:var(--brand)}.lg.zero{background:#E6ECF4}
+.pol{margin:8px 0 0;padding:0;list-style:none;font-size:12.5px}
+.pol li{display:grid;grid-template-columns:40px minmax(0,auto) minmax(0,1fr);gap:8px;padding:5px 0;border-top:1px dashed var(--line);align-items:baseline}
+.pol time{color:var(--mute)}
+.pol b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.pol span{color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.morelink{display:block;margin-top:6px;font-size:12px;font-weight:600;color:var(--brand);cursor:pointer}
+.trend{margin:8px 0 0;font-size:13px;line-height:1.55}
+.trend .tag{margin-right:6px}
+.flowline{margin:10px 0 0;padding:0;list-style:none;position:relative}
+.flowline li{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;position:relative;padding:0 0 10px}
+.flowline li:last-child{padding-bottom:0}
+.flowline li::before{content:"";position:absolute;left:52px;top:6px;width:8px;height:8px;border-radius:50%;background:#BFD6F2}
+.flowline li::after{content:"";position:absolute;left:55px;top:16px;bottom:-2px;width:2px;background:#E6ECF4}
+.flowline li:last-child::after{display:none}
+.flowline li.now::before{background:var(--brand)}
+.flowline time{font-size:12px;color:var(--mute);padding-top:1px}
+.flowline div{padding-left:14px;min-width:0}
+.flowline b{display:block;font-size:13px}
+.flowline small{display:block;font-size:12px;color:var(--sub);margin-top:1px}
+/* ④ 문서 일정 */
+.tl{position:relative;margin:30px 6px 8px;height:4px;background:#DCE5F2;border-radius:2px}
+.tl .p{position:absolute;top:-5px;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--brand);transform:translateX(-50%)}
+.tl .p.past{border-color:#98A2B3}.tl .p.bad{border-color:var(--bad);background:var(--badbg)}
+.tl .p b{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;white-space:nowrap}
+.tl .p small{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:10.5px;color:var(--sub);white-space:nowrap}
+.tl .today{position:absolute;top:-10px;bottom:-10px;width:2px;background:var(--ink)}
+.tl .today::after{content:"";position:absolute;top:-4px;left:-3px;border:4px solid transparent;border-top-color:var(--ink)}
+.src{margin-top:30px;font-size:12px;color:var(--sub);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.src code{background:var(--soft);border-radius:6px;padding:1px 6px;font-family:inherit}
+.srcbtn{border:1px solid var(--line);background:var(--soft);border-radius:8px;padding:3px 8px;font:inherit;color:var(--ink);cursor:pointer;text-align:left;min-width:0}
+.srcbtn span{color:var(--brand);font-weight:700;margin-left:4px}
+.srcbtn:hover{border-color:var(--brand)}
+.facts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pv{position:fixed;inset:0;z-index:60;background:rgba(12,26,51,.6);display:flex;align-items:center;justify-content:center;padding:24px}
+.pv[hidden]{display:none}
+.pv-box{background:#fff;border-radius:16px;max-width:min(1100px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden}
+.pv-h{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px}
+.pv-h b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-h small{color:var(--sub);flex:none}
+.pv-h .x{margin-left:auto;border:0;background:var(--soft);width:30px;height:30px;border-radius:9px;font-size:17px;color:var(--sub);flex:none}
+.pv-img{overflow:auto;background:#E9EEF5}
+.pv-img img{display:block;width:100%;height:auto}
+.pv-f{display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--sub)}
+.pv-f .btn{margin-left:auto}
+details.raw{margin-top:6px;font-size:12px;color:var(--sub)}
+details.raw summary{cursor:pointer;color:var(--brand);font-weight:600}
+details.raw p{margin:6px 0 0;background:var(--soft);border-radius:8px;padding:8px 10px;white-space:pre-wrap}
+.alert{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:12.5px;background:var(--badbg);color:var(--bad);border-radius:10px;padding:7px 10px}
+.alert a{margin-left:auto;font-weight:700;color:var(--bad);cursor:pointer}
+/* ⑤ 만든 방법 */
+.how{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:12px;padding:10px 12px}
+.how b{color:var(--ink)}
+.foot{display:flex;gap:8px;padding:12px 22px;border-top:1px solid var(--line);background:#fff}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font-weight:600;color:var(--ink)}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff;margin-left:auto}
+
+/* A: 오른쪽 서랍 */
+.drawer{position:fixed;top:37px;right:0;bottom:0;width:min(560px,100%);background:#fff;z-index:45;display:flex;flex-direction:column;box-shadow:-20px 0 50px -20px rgba(12,26,51,.4)}
+/* B: 가운데 큰 창 */
+.modal{position:fixed;z-index:45;left:50%;top:calc(50% + 18px);transform:translate(-50%,-50%);width:min(1000px,calc(100% - 32px));max-height:calc(100% - 80px);background:#fff;border-radius:20px;display:flex;flex-direction:column;box-shadow:0 30px 80px -30px rgba(12,26,51,.6)}
+.modal .ev-b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 22px}
+.modal .col>.sec:first-child{margin-top:0}
+@media (max-width:760px){
+  .pol li{grid-template-columns:40px minmax(0,1fr)}.pol li span{grid-column:2}
+  .pv{padding:0;align-items:flex-end}.pv-box{border-radius:16px 16px 0 0;width:100%}
+  .pv-img{max-height:60vh}
+  .drawer,.modal{top:auto;left:0;right:0;bottom:0;transform:none;width:100%;max-height:90vh;height:90vh;border-radius:20px 20px 0 0}
+  .modal .ev-b{display:block}
+  .modal .col+.col{margin-top:18px}
+  .ev-h,.ev-b,.foot{padding-left:16px;padding-right:16px}
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bf li{flex-wrap:wrap}.bf li b{max-width:none}
+}
+</style>
+</head>
+<body>
+<div class="sx-bar">
+  <b>브리핑 근거 시안</b>
+  <button data-v="A" class="on">A 오른쪽 서랍</button><button data-v="B">B 가운데 큰 창</button>
+  <span class="gap"></span>
+  <button data-d="rich" class="on">자료 많은 예</button><button data-d="poor">자료 적은 예</button>
+</div>
+<div class="sx-note">
+  <b>무엇이 바뀌나</b> — 지금은 "모듈라 1. 준비중 · NAS 125개 · 발주 2건" 몇 줄뿐. 이걸 <b>프로젝트 한 장 요약</b>으로 바꾼다. 위에서 아래로:
+  <ol>
+    <li><b>지금 상태 문장</b> — 틀: "예상 프로젝트 단계는 ○○이며, [지금 작업 상태]. 최근 [바뀐 이력]." 문장 속 숫자를 밑줄로 표시하고, 넘겨준 사실과 맞춰 본 결과를(검사 강화 여부에 따라 표시 범위가 달라짐) 바로 아래에</li>
+    <li><b>한눈에</b> — 단계 칸은 하나: DY ONE에서 직접 정한 단계(설계·검토~라인 대응·종료)가 있으면 <b>DY ONE 예상 프로젝트 단계</b>만, 없으면(영업·수주 = 그룹웨어 자동) <b>ERP 상태</b>만. 그 옆에 모듈라 상태 · 공사 기간(오늘 위치)</li>
+    <li><b>최근 흐름</b> — NAS는 추세 한 줄 + 굵직한 흐름(날짜·무엇을), 발주는 무엇을 사고 있는지 한 줄</li>
+    <li><b>문서 일정</b> — 사양정리에서 읽은 일정을 선으로, 오늘 위치·지난 일정·일정 주의 연결, 출처 문서·쪽·원문 줄, 출처를 누르면 그 쪽 미리보기(일정 줄 노란색)</li>
+    <li><b>이 문장은 어떻게 만들었나</b> — AI/규칙, 만든 시각, 무엇을 보고 썼는지</li>
+  </ol>
+  데이터는 11-04 로컬 실제 값(서연이화 DLP-26-068 / 기아 광명2 DLP-22-183). NAS 흐름·발주 품목은 지금 DB에 남기지 않아 시안용으로 NAS·ERP를 직접 읽었다(읽기 전용) — 구현할 때 흔적 표에 칸이 필요하다.
+</div>
+
+<div class="bg-brief">
+  <div class="bf">
+    <h2><em>AI</em>오늘의 프로젝트 브리핑</h2>
+    <ul>
+      <li><b>서연이화 미국 중소물 도장 신공장</b><span>예상 프로젝트 단계는 모듈라이며, 모듈라는 준비중으로 도면 작업이 이어지고 있습니다. 최근 10/27 모듈라 설치위치가 바뀌었습니다.</span><button class="ev" data-open="rich">근거</button></li>
+      <li><b>기아 광명2 전기차 신공장</b><span>예상 프로젝트 단계는 현장이며, 모듈라는 문서 정리 중입니다. 최근 10/19 현장 단계로 바뀐 뒤 다른 활동은 없습니다.</span><button class="ev" data-open="poor">근거</button></li>
+    </ul>
+  </div>
+</div>
+
+<div class="backdrop" id="bd"></div>
+<div class="pv" id="pv" hidden role="dialog" aria-modal="true">
+  <div class="pv-box">
+    <div class="pv-h"><b>서연이화 미국 신공장 사양정리 rev10.pptx</b><small>p2 / 10 · 노란색 = 일정을 읽은 줄</small><button class="x" id="pvx" aria-label="닫기">×</button></div>
+    <div class="pv-img"><img src="img/seoyon-rev10-p2.png" alt="사양정리 2쪽 미리보기"></div>
+    <div class="pv-f">Q:/01_프로젝트/2026_PROJECT/6. 해외 프로젝트/DLP-26-068 …/2. 사양서<button class="btn">NAS 경로 복사</button></div>
+  </div>
+</div>
+<aside class="drawer" id="panel" role="dialog" aria-modal="true"></aside>
+
+<template id="t-rich">
+  <header class="ev-h">
+    <div><h3>서연이화 미국 중소물 도장 신공장</h3><small>DLP-26-068 · 에스엠티(주) · 중도 / 베이스</small></div>
+    <button class="x" aria-label="닫기">×</button>
+  </header>
+  <div class="ev-b">
+    <div class="col">
+      <section class="sec">
+        <h4>지금 상태</h4>
+        <div class="say">
+          <p>예상 프로젝트 단계는 <mark>모듈라</mark>이며, 모듈라는 <mark>준비중</mark>으로 도면 작업이 이어지고 있습니다. 최근 <mark>10/27</mark> 모듈라 설치위치가 바뀌었습니다.</p>
+          <div class="meta"><span class="tag t-ai">사내 AI 문장</span>11/04 06:31 만듦 · 어제 바뀐 것 +1</div>
+          <div class="chk"><span>단계 모듈라</span><span>모듈라 상태 준비중</span><span>NAS 2주 125개(주로 4. 도면)</span><span>10/27 모듈라 변경</span></div>
+        </div>
+      </section>
+      <section class="sec">
+        <h4>한눈에</h4>
+        <div class="facts two">
+          <div class="fact"><label>DY ONE 예상 프로젝트 단계</label><b>모듈라</b><small>설계·검토도 진행 중 · 10/15 바꿈</small></div>
+          <div class="fact"><label>모듈라 상태</label><b>준비중</b><small>그룹웨어 모듈라 · 10/27 마지막 글</small></div>
+          <div class="fact wide"><label>ERP 공사 기간</label>
+            <div class="term"><i style="width:35%"></i><em style="left:35%"></em></div>
+            <div class="term-l"><span>2026-04-01</span><span>오늘 · 21개월 중 7개월째</span><span>2027-12-31</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="sec">
+        <h4>문서 일정 <i>사용자가 올린 사양정리에서 읽음 · 검은 선 = 오늘(11/04)</i></h4>
+        <div class="tl">
+          <span class="p bad" style="left:2%"><b>OLT</b><small>25/9 중순</small></span>
+          <span class="p past" style="left:45%"><b>선적</b><small>26/10</small></span>
+          <span class="today" style="left:51%"></span>
+          <span class="p" style="left:60%"><b>설치</b><small>26/12</small></span>
+          <span class="p" style="left:70%"><b>시운전</b><small>27/1</small></span>
+          <span class="p" style="left:96%"><b>양산</b><small>27/4/1</small></span>
+        </div>
+        <div class="src">출처 <button class="srcbtn" data-prev>서연이화 미국 신공장 사양정리 rev10.pptx · p2 <span>미리보기</span></button> 2. 사양서 · 09/08 저장</div>
+        <details class="raw"><summary>원문 줄 보기</summary><p>일 정 | OLT : 25년 9월 중순  선적 : 2026년 10월  설치 : 26년 12월  시운전+품질확보: 27년 1월  양산: 27년 4월 1일</p></details>
+        <div class="alert"><span class="tag t-bad">지연</span>OLT 2025/9/15 지남 · 모듈라 '준비중'<a>일정 주의에서 보기 →</a></div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="sec">
+        <h4>최근 흐름 <a>NAS 폴더 경로 복사</a></h4>
+        <div class="flow">
+          <div class="box">
+            <div class="box-h">NAS 작업 폴더 <small>최근 2주 · 거의 모두 4. 도면</small></div>
+            <p class="trend"><span class="tag t-ok">꾸준히 작업</span>승인도 묶음을 두 번 올린 뒤, 지금은 <b>제작도를 하루 한두 개씩 고치는 중</b>입니다.</p>
+            <ol class="flowline">
+              <li><time>10/23</time><div><b>승인도 묶음 저장</b><small>PLANT LAYOUT · UTILITY LAYOUT 등 PDF, 장비 매뉴얼(참고도면)</small></div></li>
+              <li><time>10/29</time><div><b>승인도 다시 저장 · 제작도 손봄</b><small>같은 승인도의 DWG 원본, 부스 패널·건 클리너 프레임 제작도</small></div></li>
+              <li class="now"><time>10/30~</time><div><b>하나씩 수정</b><small>ENCODER UNIT COVER, 와이핑 AIR FILTER UNIT BKT 등</small></div></li>
+            </ol>
+          </div>
+          <div class="box">
+            <div class="box-h">ERP 발주 <small>최근 3달 · 마지막 11/04</small></div>
+            <p class="trend"><span class="tag t-warn">잦아듦</span>9월 초에 <b>핵심 부품을 몰아서 발주</b>했고, 지금은 작업용품만 가끔 이어집니다.</p>
+            <ol class="flowline">
+              <li><time>09/02~10</time><div><b>핵심 부품 한꺼번에</b><small>도장기·도료 공급(SAMES 펌프, AUTO GUN, 피에스엠피 블록, 에어필터) · 제어·전장(SMC 밸브·매니폴드, 산업용 PC·HMI)</small></div></li>
+              <li><time>09/14~21</time><div><b>추가·보완</b><small>판넬 에어컨 추가, 센서 블록, CODESYS 라이선스</small></div></li>
+              <li class="now"><time>10/26~</time><div><b>작업용품</b><small>페인트 키락, 도장복</small></div></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+      <section class="sec">
+        <h4>이 문장은 어떻게 만들었나</h4>
+        <div class="how">사내 AI가 <b>단계 · 모듈라 상태 · 최근 흐름 · 최근 바뀐 이력(단계 변경·모듈라 글)</b>만 보고 정해진 틀에 맞춰 썼습니다. 문장 속 숫자가 모두 넘겨준 사실 안에 있어 통과했습니다. 값이 바뀌지 않으면 다음 날 다시 쓰지 않습니다. 매일 06:30.</div>
+      </section>
+    </div>
+  </div>
+  <footer class="foot"><button class="btn">모듈라 기록</button><button class="btn pri">프로젝트 상세 열기 →</button></footer>
+</template>
+
+<template id="t-poor">
+  <header class="ev-h">
+    <div><h3>기아 광명2 전기차 신공장</h3><small>DLP-22-183 · 기아자동차(주)소하리공장 · 중상도</small></div>
+    <button class="x" aria-label="닫기">×</button>
+  </header>
+  <div class="ev-b">
+    <div class="col">
+      <section class="sec">
+        <h4>지금 상태</h4>
+        <div class="say">
+          <p>예상 프로젝트 단계는 <mark>현장</mark>이며, 모듈라는 <mark>문서 정리</mark> 중입니다. 최근 <mark>10/19</mark> 현장 단계로 바뀐 뒤 다른 활동은 없습니다.</p>
+          <div class="meta"><span class="tag t-ai">사내 AI 문장</span>11/04 06:31 만듦</div>
+          <div class="chk"><span>단계 현장</span><span>모듈라 상태 문서 정리</span><span>10/19 단계 변경</span><span>최근 30일 활동 없음</span></div>
+        </div>
+      </section>
+      <section class="sec">
+        <h4>한눈에</h4>
+        <div class="facts two">
+          <div class="fact"><label>DY ONE 예상 프로젝트 단계</label><b>현장</b><small>모듈라도 진행 중 · 10/19 바꿈</small></div>
+          <div class="fact"><label>모듈라 상태</label><b>문서 정리</b><small>그룹웨어 모듈라 · 최근 글 없음</small></div>
+          <div class="fact wide"><label>ERP 공사 기간</label>
+            <div class="term"><i style="width:100%"></i></div>
+            <div class="term-l"><span>2022-07-01</span><span><span class="tag t-warn">기간 지남</span></span><span>2024-12-31</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="sec">
+        <h4>문서 일정</h4>
+        <div class="empty">문서에서 읽은 일정이 없습니다. NAS '2. 사양서'에 사양서·사양정리·수행계획서가 없거나, 일정표를 찾지 못했습니다.</div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="sec">
+        <h4>최근 흐름</h4>
+        <div class="flow">
+          <div class="box"><div class="box-h">NAS 작업 폴더 <small>최근 2주</small></div><div class="empty">최근 2주 동안 작업 폴더(2~9번)에서 고친 파일이 없습니다.</div></div>
+          <div class="box"><div class="box-h">ERP 발주 <small>최근 3달</small></div><div class="empty">최근 3달 발주가 없습니다.</div></div>
+          
+        </div>
+      </section>
+      <section class="sec">
+        <h4>이 문장은 어떻게 만들었나</h4>
+        <div class="how">사내 AI가 단계 · 모듈라 상태 · 최근 바뀐 이력(10/19 단계 변경)만 보고 정해진 틀에 맞춰 썼습니다. 그 뒤 움직임이 없어 그렇게 적었습니다.</div>
+      </section>
+    </div>
+  </div>
+  <footer class="foot"><button class="btn">모듈라 기록</button><button class="btn pri">프로젝트 상세 열기 →</button></footer>
+</template>
+
+<script>
+const nas=[['10/22',4],['10/23',69],['10/24',0],['10/25',0],['10/26',1],['10/27',4],['10/28',1],['10/29',53],['10/30',2],['10/31',0],['11/01',0],['11/02',1],['11/03',2],['11/04',2]];
+const we=new Set(['10/24','10/25','10/31','11/01']);
+let view='A', data='rich', open=true;
+const panel=document.getElementById('panel'), bd=document.getElementById('bd');
+function render(){
+  panel.className = view==='A' ? 'drawer' : 'modal';
+  panel.innerHTML = document.getElementById('t-'+data).innerHTML;
+  panel.hidden = bd.hidden = !open;
+  const bars=panel.querySelector('#nasbars');
+  if(bars){
+    const max=Math.max(...nas.map(x=>x[1]));
+    bars.innerHTML=nas.map(([d,n])=>`<i class="${n===0?'zero':n>=10?'on':''}" style="height:${n?Math.max(6,Math.sqrt(n/max)*100):3}%" title="${d} · 고친 파일 ${n}개">${n?`<b>${n}</b>`:''}</i>`).join('');
+    panel.querySelector('#naslab').innerHTML=nas.map(([d],i)=>`<span class="${we.has(d)?'we':''}">${i%2===0||i===13?d.split('/')[1]:''}</span>`).join('');
+  }
+  panel.querySelector('.x').onclick=()=>{open=false;render()};
+  panel.querySelectorAll('[data-prev]').forEach(b=>b.onclick=()=>{pv.hidden=false});
+  document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+  document.querySelectorAll('[data-d]').forEach(b=>b.classList.toggle('on',b.dataset.d===data));
+}
+document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{view=b.dataset.v;open=true;render()});
+document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{data=b.dataset.d;open=true;render()});
+document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{data=b.dataset.open;open=true;render()});
+bd.onclick=()=>{open=false;render()};
+const pv=document.getElementById('pv');
+document.getElementById('pvx').onclick=()=>{pv.hidden=true};
+pv.onclick=e=>{if(e.target===pv)pv.hidden=true};
+render();
+</script>
+</body>
+</html>

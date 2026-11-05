@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프로젝트 메인 시안 비교</title>
+<link rel="stylesheet" href="common.css">
+<style>
+:root{--bg:#EEF2F8;--surface:#fff;--surface2:#F1F4F9;--ink:#0B1A33;--sub:#56627A;--mute:#9AA4B8;--line:#E3E8F0;--hover:#F6F8FC;--accent:#0056B9;--accent-soft:#E5EFFA}
+header{padding:32px 0 18px}
+h1{margin:0;font-size:24px;letter-spacing:-.5px}
+header p{margin:6px 0 0;color:var(--sub);font-size:13.5px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding-bottom:50px}
+.v{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s}
+.v:hover{box-shadow:0 20px 40px -20px rgba(11,26,51,.35);transform:translateY(-2px)}
+.shot{position:relative;aspect-ratio:1360/900;overflow:hidden;background:#F6F8FC;border-bottom:1px solid var(--line)}
+.shot iframe{position:absolute;top:0;left:0;width:1360px;height:900px;border:0;transform-origin:0 0;pointer-events:none}
+.info{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.info h2{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}
+.sw{display:inline-flex;gap:3px}
+.sw i{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.06)}
+.info p{margin:0;color:var(--sub);font-size:13px}
+.info a{margin-top:auto;align-self:flex-start;background:var(--accent);color:#fff;font-weight:650;font-size:13px;border-radius:9px;padding:7px 14px}
+.pm-tools{display:none}
+@media (max-width:1000px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="pm-wrap">
+  <header><h1>프로젝트 메인 — 디자인 시안 11안</h1>
+    <p>같은 배치(검색 → 오늘의 브리핑 → 내 관심 | 회사 주요 → 전체 프로젝트), 같은 데이터로 모양만 다르게. 카드를 누르면 크게 열립니다. 열린 화면 왼쪽 아래 '시안' 막대로 '주요 선정 담당'·'★ 없을 때'를 바꿔 볼 수 있습니다.</p></header>
+  <div class="grid">
+    <a class="v" href="a-minimal.html">
+      <div class="shot"><iframe src="a-minimal.html" tabindex="-1" loading="lazy" title="A"></iframe></div>
+      <div class="info"><h2>A · 미니멀 라이트 <span class="sw"><i style="background:#fff"></i><i style="background:#0B5BD3"></i><i style="background:#0B2A5B"></i></span></h2>
+        <p>흰 바탕과 얇은 선, 넓은 여백. 정보가 가장 차분하게 읽히고 오래 써도 피로가 적습니다. 브리핑은 왼쪽 파랑→보라 선 하나로만 강조.</p><span class="pm-only-sel"></span></div>
+    </a>
+    <a class="v" href="b-navy.html">
+      <div class="shot"><iframe src="b-navy.html" tabindex="-1" loading="lazy" title="B"></iframe></div>
+      <div class="info"><h2>B · 네이비 히어로 <span class="sw"><i style="background:#071735"></i><i style="background:#0B2A5B"></i><i style="background:#7DB2FF"></i></span></h2>
+        <p>짙은 네이비 머리에 인사말·검색·AI 브리핑을 모으고, 관심·주요 카드가 그 위로 올라옵니다. 첫인상이 가장 고급스럽고 '오늘의 대시보드' 느낌.</p></div>
+    </a>
+    <a class="v" href="c-blue.html">
+      <div class="shot"><iframe src="c-blue.html" tabindex="-1" loading="lazy" title="C"></iframe></div>
+      <div class="info"><h2>C · 브랜드 블루 #0056B9 <span class="sw"><i style="background:#0056B9"></i><i style="background:#003275"></i><i style="background:#E5EFFA"></i></span></h2>
+        <p>#0056B9를 메뉴·검색 버튼·탭·번호에 일관되게 사용. 업무 시스템다운 단정함과 회사 색의 존재감이 함께 있고, 큰 검색창이 가장 눈에 띕니다.</p></div>
+    </a>
+    <a class="v" href="d-sidebar.html">
+      <div class="shot"><iframe src="d-sidebar.html" tabindex="-1" loading="lazy" title="D"></iframe></div>
+      <div class="info"><h2>D · 네이비 사이드바 <span class="sw"><i style="background:#0B1E3F"></i><i style="background:#163E7E"></i><i style="background:#60A5FA"></i></span></h2>
+        <p>왼쪽 고정 네이비 메뉴(내 관심 바로가기 포함) + 넓은 본문. 메뉴가 늘어나도 자리가 넉넉하고, 앱처럼 느껴집니다. 휴대폰에서는 메뉴가 접힙니다.</p></div>
+    </a>
+    <a class="v" href="e-soft.html">
+      <div class="shot"><iframe src="e-soft.html" tabindex="-1" loading="lazy" title="E"></iframe></div>
+      <div class="info"><h2>E · 소프트 블루 <span class="sw"><i style="background:#DCE8FF"></i><i style="background:#2563EB"></i><i style="background:#7C3AED"></i></span></h2>
+        <p>연한 파란 배경에 둥근 반투명 카드. 가운데 큰 검색("어떤 프로젝트를 찾으세요?")과 최근 검색어, 브리핑은 3장의 작은 카드로. 가장 현대적이고 부드러운 느낌.</p></div>
+    </a>
+    <a class="v" href="f-compact.html">
+      <div class="shot"><iframe src="f-compact.html" tabindex="-1" loading="lazy" title="F"></iframe></div>
+      <div class="info"><h2>F · 콤팩트 업무형 #0056B9 <span class="sw"><i style="background:#fff"></i><i style="background:#0056B9"></i><i style="background:#E6F0FA"></i></span></h2>
+        <p>흰 메뉴에 #0056B9 밑줄·버튼·숫자만 포인트. 글자·줄 간격을 줄여 한 화면에 가장 많이 보입니다. 브리핑은 얇은 파란 띠. ERP처럼 매일 오래 쓰는 사람에게 맞습니다.</p></div>
+    </a>
+    <a class="v" href="g-soft-hero.html">
+      <div class="shot"><iframe src="g-soft-hero.html" tabindex="-1" loading="lazy" title="G"></iframe></div>
+      <div class="info"><h2>G · 소프트 히어로 (B 배치 + E 색감) <span class="sw"><i style="background:#D4E2FF"></i><i style="background:#2563EB"></i><i style="background:#7C3AED"></i></span></h2>
+        <p>B안처럼 머리에 인사말·숫자·검색·브리핑을 모으고 관심·주요 카드가 그 위로 올라옵니다. 색은 E안의 연한 파랑·보라와 둥근 반투명 카드로 밝고 부드럽게.</p></div>
+    </a>
+    <div class="v">
+      <a class="shot" href="h-band.html"><iframe src="h-band.html" tabindex="-1" loading="lazy" title="H"></iframe></a>
+      <div class="info"><h2>H · 블루 밴드 (G 색감 + B 구도) <span class="sw"><i style="background:#1B3FB4"></i><i style="background:#2C5BE6"></i><i style="background:#5B4BDB"></i></span></h2>
+        <p>위 1/3만 진한 파랑→보라 띠로 강조하고, 관심·주요 카드가 띠 경계에 걸쳐 올라옵니다. 새 로고(SVG 직접 그림), 제목 아이콘 없음. 휴대폰 화면을 따로 만들었습니다.</p>
+        <span style="display:flex;gap:8px;margin-top:auto"><a href="h-band.html">넓은 화면</a><a href="h-mobile.html" style="background:#fff;color:var(--accent);border:1px solid var(--accent)">휴대폰 화면</a></span></div>
+    </div>
+    <div class="v">
+      <a class="shot" href="i-band.html"><iframe src="i-band.html" tabindex="-1" loading="lazy" title="I"></iframe></a>
+      <div class="info"><h2>I · 라이트 밴드 (H 띠 색을 연하게) <span class="sw"><i style="background:#3C66DA"></i><i style="background:#5282F0"></i><i style="background:#7C70E8"></i></span></h2>
+        <p>H안과 같은 구도에서 위 띠 색만 한 단계 밝게. 강조는 유지하면서 덜 무겁고, 띠 위 글자는 더 밝게 맞춰 읽기 쉽게 했습니다.</p>
+        <span style="display:flex;gap:8px;margin-top:auto"><a href="i-band.html">넓은 화면</a><a href="i-mobile.html" style="background:#fff;color:var(--accent);border:1px solid var(--accent)">휴대폰 화면</a></span></div>
+    </div>
+    <div class="v">
+      <a class="shot" href="j-band.html"><iframe src="j-band.html" tabindex="-1" loading="lazy" title="J"></iframe></a>
+      <div class="info"><h2>J · 브랜드 블루 밴드 (I 디자인 + C 색) <span class="sw"><i style="background:#00449A"></i><i style="background:#0056B9"></i><i style="background:#38BDF8"></i></span></h2>
+        <p>회사 색 #0056B9를 중심으로 깊은 파랑 → 밝은 파랑으로 번지는 띠, 하늘색 빛 번짐과 옅은 격자무늬로 요즘 느낌을 더했습니다. 버튼·번호·탭은 #0056B9 계열, 포인트는 하늘색.</p>
+        <span style="display:flex;gap:8px;margin-top:auto"><a href="j-band.html">넓은 화면</a><a href="j-mobile.html" style="background:#fff;color:var(--accent);border:1px solid var(--accent)">휴대폰 화면</a></span></div>
+    </div>
+    <div class="v">
+      <a class="shot" href="k-band.html"><iframe src="k-band.html" tabindex="-1" loading="lazy" title="K"></iframe></a>
+      <div class="info"><h2>K · 딥 브랜드 (J를 정돈) <span class="sw"><i style="background:#003C88"></i><i style="background:#0056B9"></i><i style="background:#7CC8FF"></i></span></h2>
+        <p>색을 #0056B9 한 가지 + 하늘색 포인트로 줄이고, 띠는 위가 밝고 아래가 깊어지는 은은한 그라디언트. 버튼·번호는 단색으로 정돈. 로고는 픽셀에 맞춰 더 또렷하게, o에 하늘색 그라디언트와 INTERNAL 앞 구분선.</p>
+        <span style="display:flex;gap:8px;margin-top:auto"><a href="k-band.html">넓은 화면</a><a href="k-mobile.html" style="background:#fff;color:var(--accent);border:1px solid var(--accent)">휴대폰 화면</a></span></div>
+    </div>
+  </div>
+</main>
+<script>
+const fit=()=>document.querySelectorAll('.shot').forEach(s=>{s.querySelector('iframe').style.transform=`scale(${s.clientWidth/1360})`});
+addEventListener('resize',fit);fit();
+</script>
+</body>
+</html>

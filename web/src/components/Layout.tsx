@@ -4,7 +4,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import type { AppNotification } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import logo from '../assets/dyone-logo.png'
+import { DyOneLogo } from './DyOneLogo'
 import { platform } from '../platform/bridge'
 import { visibleRoutes, type MenuGroup } from '../routes'
 import { DemoMemos } from './DemoMemos' // [임시 · 데모] 화면 메모(포스트잇)
@@ -53,9 +53,8 @@ export function Layout({ children }: { children: ReactNode }) {
           <button className="dy-icon-btn dy-mobile" aria-label="전체 메뉴 열기" onClick={() => setMenuOpen(true)}>
             <Icon name="menu" size={20} />
           </button>
-          <NavLink className="dy-brand" to={partner ? '/projects' : '/home'}>
-            <img src={logo} alt="DY ONE" height={24} />
-            <span>INTERNAL</span>
+          <NavLink className="dy-brand" to="/projects">
+            <DyOneLogo height={22} />
           </NavLink>
           <nav className="dy-nav" aria-label="주 메뉴">
             {main.map((r) => (
@@ -87,7 +86,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <div id="menuShade" hidden={!menuOpen} onClick={() => setMenuOpen(false)} />
       <aside className={`dy-drawer${menuOpen ? ' open' : ''}`} aria-label="전체 메뉴" aria-hidden={!menuOpen}>
         <div className="dy-drawer-head">
-          <img src={logo} alt="DY ONE" height={22} />
+          <DyOneLogo height={20} />
           <button className="dy-icon-btn" aria-label="전체 메뉴 닫기" onClick={() => setMenuOpen(false)}><Icon name="close" size={20} /></button>
         </div>
         <nav aria-label="전체 메뉴 목록">

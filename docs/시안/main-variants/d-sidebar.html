@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프로젝트 메인 D 사이드바</title>
+<link rel="stylesheet" href="common.css">
+<style>
+:root{--bg:#F4F6FA;--surface:#fff;--surface2:#F0F3F8;--ink:#0D1B30;--sub:#55617A;--mute:#9AA4B8;--line:#E6EAF1;--hover:#F5F8FD;--accent:#1D5FD0;--accent-soft:#E8F0FD;--radius:14px}
+body{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+/* 왼쪽 네이비 메뉴 */
+.d-side{background:#0B1E3F;color:#AFBEDA;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:18px 14px}
+.d-logo{color:#fff;font-weight:800;letter-spacing:.6px;font-size:17px;display:flex;align-items:center;gap:10px;padding:4px 8px 22px}
+.d-logo i{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#1E3A8A);box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+.d-side small{font-size:11px;letter-spacing:.8px;color:#6C7FA3;padding:14px 10px 6px;font-weight:700}
+.d-side a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;font-size:13.5px;cursor:pointer}
+.d-side a:hover{background:rgba(255,255,255,.05);color:#fff}
+.d-side a.on{background:linear-gradient(90deg,rgba(59,130,246,.28),rgba(59,130,246,.08));color:#fff;font-weight:650;box-shadow:inset 3px 0 0 #60A5FA}
+.d-side a span{width:18px;text-align:center;opacity:.9}
+.d-side .d-pin{font-size:12.5px;color:#93A5C8;padding:6px 10px}
+.d-side .d-pin b{color:#F5B70A;margin-right:6px}
+.d-me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid rgba(255,255,255,.08);font-size:12.5px}
+.d-me i{width:32px;height:32px;border-radius:50%;background:#1E3A8A;color:#fff;font-style:normal;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+/* 본문 */
+.d-main{padding:24px 32px 70px;min-width:0}
+.d-head{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.d-head h1{margin:0;font-size:22px;letter-spacing:-.5px}
+.pm-search{flex:1;max-width:680px;margin-left:auto;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 14px;height:46px;box-shadow:0 1px 2px rgba(13,27,48,.04)}
+.pm-search:focus-within{border-color:#93B4F0;box-shadow:0 0 0 4px var(--accent-soft)}
+.pm-search svg{color:var(--mute)}
+.pm-search input{border:0;outline:0;flex:1;font:inherit;font-size:15px;background:none}
+.pm-search kbd{font:11px/1 inherit;color:var(--mute);border:1px solid var(--line);border-radius:5px;padding:3px 6px}
+/* 브리핑: 남색 줄무늬 카드 */
+.d-brief{background:#0F2A55;background-image:linear-gradient(120deg,#0F2A55 0%,#163E7E 60%,#1D5FD0 130%);color:#fff;border-radius:var(--radius);padding:16px 20px;position:relative;overflow:hidden}
+.d-brief::after{content:"";position:absolute;right:-40px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(96,165,250,.35),transparent 70%)}
+.d-bf-h{display:flex;align-items:center;gap:12px;margin-bottom:8px;position:relative;z-index:1;flex-wrap:wrap}
+.d-bf-h h2{margin:0;font-size:15px}
+.d-bf-h small{color:#9DB3DA;font-size:12px}
+.d-tabs{display:inline-flex;gap:4px;margin-left:8px}
+.d-tabs button{border:1px solid rgba(255,255,255,.2);background:none;color:#C4D2EC;border-radius:999px;padding:2px 12px;font-size:12.5px}
+.d-tabs button.on{background:#fff;color:#0F2A55;border-color:#fff;font-weight:650}
+.d-nav{margin-left:auto;display:flex;align-items:center;gap:8px}
+.d-nav button{width:26px;height:26px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;padding:0}
+.d-brief .pm-bf-view{position:relative;z-index:1}
+.d-brief li{font-size:13.5px;color:#C9D6EE}
+.d-brief li::before{content:"→";color:#60A5FA;flex:none}
+.d-brief li b{color:#fff}
+.d-brief .pm-ev{color:#9CC3FF}
+/* 두 칸 */
+.d-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.d-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.d-card-h{display:flex;align-items:center;gap:8px;padding:14px 18px}
+.d-card-h h2{margin:0;font-size:15px}
+.d-card-h .n{font-size:12px;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:0 8px;font-weight:700;line-height:20px}
+.d-card-h a{margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:600;cursor:pointer}
+.d-card .pm-row:first-child{border-top:1px solid var(--line)}
+.d-card .pm-row{padding:12px 18px}
+.d-card .pm-rank{width:24px;height:24px;border-radius:50%;background:#0F2A55;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.d-cand{display:flex;margin:0 18px 14px;padding:9px 12px;border-radius:10px;background:#F5F0FF;color:#6D28D9;font-size:12.5px;font-weight:600;cursor:pointer}
+/* 전체 */
+.d-sec{margin-top:26px}
+.d-sec-h{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.d-sec-h h2{margin:0;font-size:17px}
+.d-sec-h small{color:var(--mute);font-size:12.5px}
+.d-tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto}
+.d-tools .pm-chip.on{background:#0F2A55;border-color:#0F2A55;color:#fff}
+.d-tbl{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.d-tbl th{background:#F8FAFD}
+.pm-erp-order{color:var(--accent)}
+@media (max-width:1000px){body{grid-template-columns:1fr}.d-side{display:none}.d-main{padding:16px}.d-pair{grid-template-columns:1fr}.d-head{flex-wrap:wrap}.pm-search{max-width:none;flex-basis:100%}.d-tools{margin-left:0}}
+</style>
+</head>
+<body>
+<aside class="d-side">
+  <span class="d-logo"><i></i>DY ONE</span>
+  <a class="on"><span>▦</span>프로젝트</a><a><span>⇩</span>다운로드</a><a><span>⌕</span>자료 검색</a><a><span>⚙</span>엔지니어링</a><a><span>◎</span>협력사</a><a><span>☕</span>사내 서비스</a>
+  <small>내 관심</small>
+  <span class="d-pin"><b>★</b>화성5 하도 및 신기술</span><span class="d-pin"><b>★</b>화성2 무빙실러 2차</span><span class="d-pin"><b>★</b>에코 사바나 가니쉬</span>
+  <div class="d-me"><i>홍</i><div>홍길동<br><span style="color:#6C7FA3">도장영업팀</span></div></div>
+</aside>
+
+<main class="d-main">
+  <div class="d-head">
+    <h1>프로젝트</h1>
+    <label class="pm-search"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input placeholder="프로젝트 코드·이름·발주처·PM 검색"><kbd>/</kbd></label>
+  </div>
+
+  <section class="d-brief">
+    <div class="d-bf-h">
+      <h2>✦ 오늘의 프로젝트 브리핑</h2><small>사내 AI · 07:00 · 지금 상태</small>
+      <span class="d-tabs"><button class="on" data-bf="0">내 관심</button><button data-bf="1">회사 주요</button></span>
+      <span class="d-nav"><button data-bfd="-1" aria-label="이전">‹</button><span class="pm-dots"><i class="on"></i><i></i></span><button data-bfd="1" aria-label="다음">›</button></span>
+    </div>
+    <div class="pm-bf-view" id="bfView"><div class="pm-bf-track" id="bfTrack"><ul id="bfFav"></ul><ul id="bfFeat"></ul></div></div>
+  </section>
+
+  <section class="d-pair">
+    <div class="d-card">
+      <div class="d-card-h"><h2>내 관심 프로젝트</h2><span class="n" id="favCount"></span><a data-open="fav" id="favMore">모두 보기 →</a></div>
+      <div id="favList"></div>
+    </div>
+    <div class="d-card">
+      <div class="d-card-h"><h2>회사 주요 프로젝트</h2><span class="n" id="featCount"></span><a data-open="feat">모두 보기 →</a></div>
+      <div id="featList"></div>
+      <a class="d-cand pm-only-sel" data-open="cand">✦ 시스템이 새 후보 4건을 제안했습니다 · 검토하기 →</a>
+    </div>
+  </section>
+
+  <section class="d-sec">
+    <div class="d-sec-h"><h2>전체 프로젝트</h2><small>3,114건 · 상태는 ERP 기준</small>
+      <div class="d-tools">
+        <button class="pm-chip on" data-g="c">전체</button><button class="pm-chip" data-g="c">현대</button><button class="pm-chip" data-g="c">기아</button><button class="pm-chip" data-g="c">GM</button><button class="pm-chip" data-g="c">르노</button><button class="pm-chip" data-g="c">KGM</button><button class="pm-chip" data-g="c">기타</button>
+        <button class="pm-chip on" data-g="s">진행 중</button><button class="pm-chip" data-g="s">ERP 수주</button><button class="pm-chip" data-g="s">마감·중단</button>
+      </div></div>
+    <div class="d-tbl pm-table-wrap"><table class="pm-table">
+      <thead><tr><th></th><th>프로젝트</th><th>고객사</th><th>ERP 상태</th><th>진행 단계</th><th>PM</th><th>최근 활동</th></tr></thead>
+      <tbody id="rows"></tbody></table></div>
+  </section>
+</main>
+<script src="common.js"></script>
+</body>
+</html>
