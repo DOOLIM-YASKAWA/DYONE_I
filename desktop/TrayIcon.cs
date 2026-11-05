@@ -44,7 +44,8 @@ public sealed class TrayIcon : IDisposable
     {
         try
         {
-            return new Icon(Path.Combine(AppContext.BaseDirectory, "assets", "dy-one.ico"), 16, 16);
+            // 화면 배율에 맞는 트레이 크기(100% 16 · 125% 20 · 150% 24 …)를 .ico에서 고른다
+            return new Icon(Path.Combine(AppContext.BaseDirectory, "assets", "dy-one.ico"), Forms.SystemInformation.SmallIconSize);
         }
         catch (Exception)
         {

@@ -28,16 +28,21 @@ public partial class MainWindow : Window
         Closing += OnClosing;
     }
 
-    // dy-one.ico는 모든 크기가 PNG 압축이라 WPF 디코더가 읽지 못한다. 정식 아이콘이 나오기 전까지 PNG를 쓴다.
+    // 창 제목줄·작업 표시줄 아이콘(11-05 B안 "One"). dy-one.ico는 크기마다 따로 그린 BMP 형식이라 WPF가 읽고,
+    // 제목줄(16·20·24)과 작업 표시줄(32·40·48)에 맞는 크기를 골라 쓴다. 읽지 못하면 PNG로 대신한다.
     private void SetWindowIcon()
     {
-        try
+        foreach (var name in new[] { "dy-one.ico", "icon-192.png" })
         {
-            Icon = BitmapFrame.Create(new Uri(Path.Combine(AppContext.BaseDirectory, "assets", "icon-192.png")));
-        }
-        catch (Exception)
-        {
-            // 아이콘이 없어도 앱은 동작해야 한다.
+            try
+            {
+                Icon = BitmapFrame.Create(new Uri(Path.Combine(AppContext.BaseDirectory, "assets", name)));
+                return;
+            }
+            catch (Exception)
+            {
+                // 다음 파일로. 아이콘이 없어도 앱은 동작해야 한다.
+            }
         }
     }
 

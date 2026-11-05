@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>메인 화면 로고 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Pretendard Variable', Pretendard, 'Malgun Gothic', system-ui, sans-serif; background: #EEF3FA; color: #0C1A33; font-size: 14px; padding: 20px 16px 60px; }
+h1 { max-width: 1200px; margin: 0 auto 4px; font-size: 20px; }
+.lead { max-width: 1200px; margin: 0 auto 16px; color: #56637C; font-size: 13px; line-height: 1.6; }
+.v { max-width: 1200px; margin: 0 auto 16px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px -20px rgba(12,26,51,.4); }
+.v-h { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 13px; }
+.v-h .k { background: #0C1A33; color: #FED901; font-weight: 800; border-radius: 6px; padding: 0 7px; font-size: 12px; }
+.v-h b { font-size: 14px; } .v-h span.d { color: #56637C; }
+.v-h button { margin-left: auto; border: 1px solid #E6ECF4; background: #fff; border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+
+/* 위쪽 막대(실제 메인 화면과 같은 높이·탭) */
+.top { background: #0056B9; color: #fff; }
+.top-in { display: flex; align-items: center; gap: 22px; height: 60px; padding: 0 24px; }
+.brand { display: flex; align-items: center; gap: 8px; flex: none; cursor: pointer; }
+.brand svg.one { height: 22px; width: auto; display: block; }
+.brand .bar { width: 1px; height: 14px; background: rgba(255,255,255,.32); margin: 0 2px; }
+.pills { display: flex; gap: 2px; padding: 4px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; }
+.pill { white-space: nowrap; height: 34px; padding: 0 14px; border-radius: 999px; color: #fff; font-weight: 600; display: inline-flex; align-items: center; }
+.pill.on { background: #fff; color: #0056B9; }
+.right { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.av { width: 32px; height: 32px; border-radius: 50%; background: #fff; color: #0056B9; display: grid; place-items: center; font-weight: 700; }
+
+/* 낱말(작은 크기) */
+.word { display: flex; gap: 1px; height: 16px; }
+.word i { position: relative; display: block; width: 8.4px; height: 16px; font-style: normal; text-align: center; perspective: 120px; }
+.word i b { position: absolute; inset: 0; font-size: 10.5px; line-height: 18px; font-weight: 500; letter-spacing: 0; color: #E3EEFF; backface-visibility: hidden; }
+.word.dim i b { font-weight: 400; color: rgba(227,238,255,.6); font-size: 10px; }
+.word i.lead { width: 9px; }
+.word i.lead.y b { color: #FED901; font-weight: 900; font-size: 12.5px; line-height: 16px; transform: scaleY(1.35); transform-origin: 50% 72%; text-shadow: 0 0 8px rgba(254,217,1,.4); }
+.word b.in { animation: fin .35s ease-out; } .word b.out { animation: fout .35s ease-in forwards; }
+@keyframes fin { from { transform: rotateX(90deg); opacity: 0; } to { transform: rotateX(0); opacity: 1; } }
+@keyframes fout { to { transform: rotateX(-90deg); opacity: 0; } }
+.page { height: 90px; background: linear-gradient(135deg, #0056B9, #0A7CF0); opacity: .9; }
+@media (max-width: 760px) { .pills { display: none; } }
+</style>
+</head>
+<body>
+<h1>메인 화면 위쪽 로고 — 로그인처럼 바꿀지</h1>
+<p class="lead">실제 위쪽 막대와 같은 크기(로고 높이 22px)입니다. 로그인 화면과 같은 글자판 넘김을 그대로 넣는 안부터, 움직임 없이 I만 강조하는 안까지 비교해 보세요. 위쪽 막대는 늘 보이는 곳이라 <b>계속 움직이면 눈에 거슬릴 수 있어</b> 한 번만 넘기거나 마우스를 올릴 때만 넘기는 안도 넣었습니다.</p>
+<div id="list"></div>
+<script>
+const ONE = `<svg class="one" viewBox="0 0 81 24"><defs><linearGradient id="go" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D4EDFF"/><stop offset="1" stop-color="#86C2FF"/></linearGradient><linearGradient id="gn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E4F0FF"/></linearGradient></defs>
+<path d="M2 0H23A5 5 0 0 1 28 5V19A5 5 0 0 1 23 24H2A2 2 0 0 1 0 22V2A2 2 0 0 1 2 0Z M6 5V19H21A1 1 0 0 0 22 18V6A1 1 0 0 0 21 5Z" fill="url(#go)" fill-rule="evenodd"/>
+<path d="M30 24V1A1 1 0 0 1 31 0H48A6 6 0 0 1 54 6V24H48V7A2 2 0 0 0 46 5H36V24Z" fill="url(#gn)"/>
+<path d="M57 6A6 6 0 0 1 63 0H75A6 6 0 0 1 81 6V14H63V19H81V24H63A6 6 0 0 1 57 18Z M63 6.5A1.5 1.5 0 0 1 64.5 5H73.5A1.5 1.5 0 0 1 75 6.5V9H63Z" fill="url(#gn)" fill-rule="evenodd"/></svg>`;
+const WORDS = ['INTERNAL', 'INTEGRATION'], N = 11;
+const V = [
+  { k: '지금', name: '지금 그대로', d: 'One | INTERNAL, 움직임 없음', y: false, dim: false, mode: 'none' },
+  { k: 'H1', name: '로그인과 똑같이', d: 'I 노랑 + 3초마다 계속 넘김', y: true, dim: true, mode: 'loop' },
+  { k: 'H2', name: '움직임 없이 I만 노랑', d: 'INTERNAL 고정, I만 노랑·굵게 — 로그인과 같은 느낌만', y: true, dim: true, mode: 'none' },
+  { k: 'H3', name: '들어올 때 한 번만', d: '화면을 처음 열면 INTEGRATION으로 한 번 넘겼다가 INTERNAL로 돌아와 멈춤', y: true, dim: true, mode: 'once' },
+  { k: 'H4', name: '마우스를 올릴 때만', d: '평소엔 INTERNAL, 로고에 마우스를 올리면 INTEGRATION으로 넘김', y: true, dim: true, mode: 'hover' },
+];
+const list = document.getElementById('list');
+list.innerHTML = V.map((v, n) => `
+  <div class="v"><div class="v-h"><span class="k">${v.k}</span><b>${v.name}</b><span class="d">${v.d}</span>${v.mode === 'once' ? `<button data-replay="${n}">다시 보기</button>` : ''}</div>
+  <div class="top"><div class="top-in"><span class="brand" data-b="${n}">${ONE}<span class="bar"></span><span class="word ${v.dim ? 'dim' : ''}" id="w${n}"></span></span>
+  <div class="pills"><span class="pill on">프로젝트</span><span class="pill">다운로드</span><span class="pill">자료 검색</span><span class="pill">엔지니어링 ▾</span><span class="pill">AI 두리미</span><span class="pill">사내 서비스 ▾</span><span class="pill">관리 ▾</span></div>
+  <div class="right"><span class="av">함</span></div></div></div><div class="page"></div></div>`).join('');
+function build(n) {
+  const v = V[n], w = document.getElementById('w' + n);
+  w.innerHTML = Array.from({ length: N }, (_, j) => `<i class="${j === 0 ? 'lead' + (v.y ? ' y' : '') : ''}"><b>${WORDS[0][j] ?? ''}</b></i>`).join('');
+  return [...w.children];
+}
+function flip(cells, word) {
+  cells.forEach((c, j) => { if (j === 0) return; setTimeout(() => {
+    const t = word[j] ?? ''; const old = c.querySelector('b:last-child'); if (old.textContent === t) return;
+    old.className = 'out'; const nb = document.createElement('b'); nb.className = 'in'; nb.textContent = t; c.appendChild(nb); setTimeout(() => old.remove(), 380);
+  }, j * 55); });
+}
+V.forEach((v, n) => {
+  const cells = build(n);
+  if (v.mode === 'loop') { let k = 0; setInterval(() => { k = 1 - k; flip(cells, WORDS[k]); }, 3000); }
+  if (v.mode === 'once') { const go = () => { setTimeout(() => flip(cells, WORDS[1]), 600); setTimeout(() => flip(cells, WORDS[0]), 2600); }; go(); document.querySelector(`[data-replay="${n}"]`).onclick = go; }
+  if (v.mode === 'hover') { const b = document.querySelector(`[data-b="${n}"]`); b.onmouseenter = () => flip(cells, WORDS[1]); b.onmouseleave = () => flip(cells, WORDS[0]); }
+});
+</script>
+</body>
+</html>

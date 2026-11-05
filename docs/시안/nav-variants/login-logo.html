@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로그인 로고 움직임 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Pretendard Variable', Pretendard, 'Malgun Gothic', system-ui, sans-serif; background: #EEF3FA; color: #0C1A33; }
+.sx { position: sticky; top: 0; z-index: 10; background: #0C1A33; color: #fff; display: flex; gap: 6px; align-items: center; padding: 8px 16px; flex-wrap: wrap; font-size: 13px; }
+.sx b { margin-right: 8px; }
+.sx button { border: 0; border-radius: 999px; padding: 5px 12px; background: rgba(255,255,255,.12); color: #fff; font: inherit; cursor: pointer; }
+.sx button.on { background: #FED901; color: #0C1A33; font-weight: 700; }
+.note { max-width: 1100px; margin: 14px auto; padding: 12px 16px; background: #fff; border-radius: 12px; font-size: 13px; color: #56637C; line-height: 1.6; }
+.note b { color: #0C1A33; }
+
+/* 로그인 화면 왼쪽(실제와 같은 파란 판) */
+.login { max-width: 1100px; margin: 0 auto 40px; display: grid; grid-template-columns: 1.1fr 1fr; min-height: 520px; border-radius: 20px; overflow: hidden; box-shadow: 0 30px 60px -30px rgba(12,26,51,.5); }
+.brand { background: #2F5FC4; background: linear-gradient(160deg, #2D5EC6, #2450B4); color: #fff; padding: 56px 48px; display: flex; flex-direction: column; justify-content: center; gap: 26px; }
+.brand h1 { margin: 0; font-size: 30px; line-height: 1.35; letter-spacing: -.5px; }
+.brand p { margin: 0; color: #DCE8F7; font-size: 14px; line-height: 1.6; max-width: 420px; }
+.form { background: #fff; padding: 56px 48px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.form h2 { margin: 0; font-size: 22px; } .form small { color: #56637C; }
+.form i { display: block; height: 44px; border: 1px solid #E6ECF4; border-radius: 10px; }
+.form .btn { height: 44px; border-radius: 10px; background: #2F5FC4; }
+
+/* 로고 줄: One(SVG) | 바뀌는 낱말 */
+.logo { display: flex; align-items: center; gap: 14px; height: 56px; }
+.logo svg.one { height: 48px; width: auto; display: block; }
+.bar { width: 2px; height: 34px; background: rgba(255,255,255,.35); flex: none; }
+.word { position: relative; height: 34px; min-width: 260px; font-weight: 500; font-size: 26px; letter-spacing: 4px; color: #E3EEFF; line-height: 34px; }
+.word span { position: absolute; left: 0; top: 0; white-space: nowrap; }
+.sub { display: block; margin-top: 6px; font-size: 13px; color: #B9D2F5; letter-spacing: .5px; height: 18px; position: relative; }
+.sub span { position: absolute; left: 0; top: 0; white-space: nowrap; transition: opacity .5s; }
+
+/* A 위아래 회전(3D) */
+.A .word { perspective: 400px; }
+.A .word span { transform-origin: 50% 50% -17px; backface-visibility: hidden; animation: flipA 6s infinite; }
+.A .word span:nth-child(2) { animation-delay: -3s; }
+@keyframes flipA { 0%, 42% { transform: rotateX(0); opacity: 1; } 50%, 92% { transform: rotateX(-90deg); opacity: 0; } 100% { transform: rotateX(-360deg); opacity: 1; } }
+
+/* B 위로 밀어 올림 */
+.B .word { overflow: hidden; }
+.B .word span { animation: slideB 6s infinite cubic-bezier(.7,0,.3,1); }
+.B .word span:nth-child(2) { animation-delay: -3s; }
+@keyframes slideB { 0%, 42% { transform: translateY(0); opacity: 1; } 50%, 92% { transform: translateY(-100%); opacity: 0; } 92.01% { transform: translateY(100%); } 100% { transform: translateY(0); opacity: 1; } }
+
+/* D 지우고 다시 쓰기(타자) — JS */
+.D .word span:nth-child(2) { display: none; }
+.D .word span::after { content: ''; display: inline-block; width: 2px; height: 26px; background: #FED901; margin-left: 4px; vertical-align: -4px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* E 흐렸다 나타남 */
+.E .word span { animation: fadeE 6s infinite; }
+.E .word span:nth-child(2) { animation-delay: -3s; }
+@keyframes fadeE { 0%, 40% { opacity: 1; filter: blur(0); letter-spacing: 4px; } 50%, 90% { opacity: 0; filter: blur(6px); letter-spacing: 10px; } 100% { opacity: 1; filter: blur(0); letter-spacing: 4px; } }
+
+/* C 글자판 넘김(한 글자씩) — JS */
+.C .word { display: flex; gap: 2px; letter-spacing: 0; }
+.C .word i.cell { font-style: normal; display: block; position: relative; width: 22px; height: 34px; text-align: center; perspective: 200px; }
+.C .word .cell b { position: absolute; inset: 0; font-weight: 500; backface-visibility: hidden; transition: transform .35s ease-in, opacity .35s; }
+.C .word .cell b.out { transform: rotateX(-90deg); opacity: 0; }
+.C .word .cell b.in { transform: rotateX(90deg); opacity: 0; }
+.C .word span { display: none; }
+
+
+/* ── C 글자판: 첫 글자 I는 두 낱말에 같아 넘기지 않고 강조, 나머지는 한 단계 낮게 ── */
+.C.ci1 .word i.cell b, .C.ci2 .word i.cell b, .C.ci3 .word i.cell b, .C.ci4 .word i.cell b, .C.ci5 .word i.cell b, .C.ci6 .word i.cell b { color: rgba(227,238,255,.55); font-weight: 300; }
+.C .word i.cell.lead b { transition: none; }
+.C.ci1 .word i.cell.lead b { color: #FED901; font-weight: 900; text-shadow: 0 0 12px rgba(254,217,1,.45); transform: scaleY(1.35); transform-origin: 50% 72%; } /* I만 세로로 길게(11-05) */
+/* 1 굵게·노랑(11-05 결정): 나머지 글자는 조금 작게(26 → 21px) 아래쪽을 맞춰 I가 더 도드라지게 */
+.C.ci1 .word i.cell:not(.lead) { width: 18px; }
+.C.ci1 .word i.cell:not(.lead) b { font-size: 21px; line-height: 38px; }
+.C.ci2 .word i.cell.lead { width: 28px; }
+.C.ci2 .word i.cell.lead b { color: #fff; font-weight: 900; font-size: 42px; line-height: 30px; transform: translateY(-2px); }
+.C.ci3 .word i.cell.lead { width: 30px; margin-right: 6px; }
+.C.ci3 .word i.cell.lead b { background: #fff; color: #2450B4; font-weight: 800; border-radius: 7px; }
+.C.ci4 .word i.cell.lead b { font-weight: 800; background: linear-gradient(180deg, #D4EDFF, #86C2FF); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 32px; filter: drop-shadow(0 0 6px rgba(134,194,255,.6)); }
+.C.ci5 .word i.cell.lead b { color: #fff; font-weight: 800; }
+.C.ci5 .word i.cell.lead::after { content: ''; position: absolute; left: 3px; right: 3px; bottom: -3px; height: 3px; border-radius: 2px; background: #FED901; }
+.C.ci6 .word i.cell.lead { width: 30px; margin-right: 6px; }
+.C.ci6 .word i.cell.lead b { color: #fff; font-weight: 800; border: 2px solid rgba(255,255,255,.85); border-radius: 7px; line-height: 30px; }
+@media (max-width: 760px) { .login { grid-template-columns: 1fr; } .form { display: none; } .brand { padding: 40px 24px; } .word { min-width: 200px; font-size: 20px; } .logo svg.one { height: 38px; } }
+</style>
+</head>
+<body>
+<div class="sx">
+  <b>로그인 로고 움직임</b>
+  <button data-v="A" class="on">A 위아래 회전</button><button data-v="B">B 위로 밀어 올림</button><button data-v="C">C 글자판 넘김</button><button data-v="D">D 지우고 다시 쓰기</button><button data-v="E">E 흐렸다 나타남</button>
+  <span style="width:12px"></span><b style="margin:0 4px 0 0" id="ciLabel">I 강조</b><span id="ciBtns"><button data-ci="0">없음</button><button data-ci="1" class="on">1 굵게·노랑</button><button data-ci="2">2 크게</button><button data-ci="3">3 흰 칸</button><button data-ci="4">4 로고 하늘색</button><button data-ci="5">5 노란 밑줄</button><button data-ci="6">6 테두리 칸</button></span>
+  <span style="width:12px"></span><b style="margin:0 4px 0 0">아래 풀이</b><button data-s="1" class="on">함께 바뀜(사내 · 통합)</button><button data-s="0">없음</button>
+</div>
+<div class="note" id="note"></div>
+<div class="login">
+  <section class="brand" id="brand">
+    <div>
+      <div class="logo">
+        <svg class="one" viewBox="0 0 81 24" aria-label="One">
+          <defs><linearGradient id="go" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D4EDFF"/><stop offset="1" stop-color="#86C2FF"/></linearGradient>
+          <linearGradient id="gn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E4F0FF"/></linearGradient></defs>
+          <path d="M2 0H23A5 5 0 0 1 28 5V19A5 5 0 0 1 23 24H2A2 2 0 0 1 0 22V2A2 2 0 0 1 2 0Z M6 5V19H21A1 1 0 0 0 22 18V6A1 1 0 0 0 21 5Z" fill="url(#go)" fill-rule="evenodd"/>
+          <path d="M30 24V1A1 1 0 0 1 31 0H48A6 6 0 0 1 54 6V24H48V7A2 2 0 0 0 46 5H36V24Z" fill="url(#gn)"/>
+          <path d="M57 6A6 6 0 0 1 63 0H75A6 6 0 0 1 81 6V14H63V19H81V24H63A6 6 0 0 1 57 18Z M63 6.5A1.5 1.5 0 0 1 64.5 5H73.5A1.5 1.5 0 0 1 75 6.5V9H63Z" fill="url(#gn)" fill-rule="evenodd"/>
+        </svg>
+        <span class="bar"></span>
+        <span class="word" id="word"><span>INTERNAL</span><span>INTEGRATION</span></span>
+      </div>
+      <span class="sub" id="sub"><span>사내 업무 플랫폼</span><span style="opacity:0">통합 업무 플랫폼</span></span>
+    </div>
+    <h1>프로젝트와 사내 서비스를<br>한곳에서.</h1>
+  </section>
+  <section class="form"><h2>로그인</h2><small>그룹웨어와 같은 아이디·비밀번호를 씁니다.</small><i></i><i></i><span class="btn"></span></section>
+</div>
+<script>
+const NOTE = {
+  A: '<b>A 위아래 회전</b> — 낱말이 가로축으로 뒤집히듯 돌며 INTERNAL ↔ INTEGRATION이 3초마다 바뀝니다. 가장 "회전"다운 움직임.',
+  B: '<b>B 위로 밀어 올림</b> — 낱말이 위로 빠지고 아래에서 다음 낱말이 올라옵니다. 차분하고 읽기 쉽습니다.',
+  C: '<b>C 글자판 넘김</b> — 한 글자씩 차례로 넘어가며 바뀝니다. 두 낱말 모두 <b>I</b>로 시작하므로 <b>I는 넘기지 않고 강조</b>하고 나머지 글자는 한 단계 낮게 보입니다(위쪽 \'I 강조\'에서 6가지 모양).',
+  D: '<b>D 지우고 다시 쓰기</b> — 한 글자씩 지웠다가 다음 낱말을 타자 치듯 씁니다(노란 커서).',
+  E: '<b>E 흐렸다 나타남</b> — 글자 사이가 벌어지며 흐려졌다가 다음 낱말이 또렷해집니다. 가장 부드럽습니다.',
+};
+const WORDS = ['INTERNAL', 'INTEGRATION'];
+let v = 'C', timer = null, i = 0, ci = 1;
+const word = document.getElementById('word');
+const subs = document.querySelectorAll('#sub span');
+function setSub(k) { subs[0].style.opacity = k === 0 ? 1 : 0; subs[1].style.opacity = k === 1 ? 1 : 0; }
+function reset() {
+  clearInterval(timer); clearTimeout(timer); i = 0;
+  word.innerHTML = '<span>INTERNAL</span><span>INTEGRATION</span>';
+  document.getElementById('brand').className = `brand ${v} ci${ci}`;
+  document.getElementById('ciBtns').style.display = document.getElementById('ciLabel').style.display = v === 'C' ? '' : 'none';
+  setSub(0);
+  if (v === 'A' || v === 'B' || v === 'E') {
+    // 풀이 글은 낱말이 바뀌는 때(3초)에 맞춰 바꾼다
+    timer = setInterval(() => { i = 1 - i; setSub(i); }, 3000);
+  }
+  if (v === 'D') {
+    const s = word.querySelector('span'); let txt = WORDS[0], k = 0, del = false, pause = 0;
+    s.textContent = txt;
+    timer = setInterval(() => {
+      if (pause > 0) { pause--; return; }
+      if (del) { txt = txt.slice(0, -1); if (!txt) { del = false; k = 1 - k; setSub(k); } }
+      else { const t = WORDS[k]; txt = t.slice(0, txt.length + 1); if (txt === t) { del = true; pause = 18; } }
+      s.textContent = txt || '​';
+    }, 70);
+  }
+  if (v === 'C') {
+    const n = Math.max(...WORDS.map((w) => w.length));
+    word.innerHTML = Array.from({ length: n }, (_, j) => `<i class="cell${j === 0 ? ' lead' : ''}"><b>${WORDS[0][j] ?? ''}</b></i>`).join('');
+    const cells = [...word.querySelectorAll('.cell')];
+    const flipTo = (w) => cells.forEach((c, j) => j === 0 && ci > 0 ? null : setTimeout(() => {
+      const old = c.querySelector('b'); const nb = document.createElement('b'); nb.className = 'in'; nb.textContent = w[j] ?? '';
+      c.appendChild(nb); old.classList.add('out'); requestAnimationFrame(() => requestAnimationFrame(() => nb.classList.remove('in')));
+      setTimeout(() => old.remove(), 400);
+    }, j * 60));
+    timer = setInterval(() => { i = 1 - i; flipTo(WORDS[i]); setTimeout(() => setSub(i), 300); }, 3000);
+  }
+  document.getElementById('note').innerHTML = NOTE[v];
+  document.querySelectorAll('[data-v]').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
+}
+document.querySelectorAll('[data-v]').forEach((b) => (b.onclick = () => { v = b.dataset.v; reset(); }));
+document.querySelectorAll('[data-ci]').forEach((b) => (b.onclick = () => {
+  ci = +b.dataset.ci; reset();
+  document.querySelectorAll('[data-ci]').forEach((x) => x.classList.toggle('on', x === b));
+}));
+document.querySelectorAll('[data-s]').forEach((b) => (b.onclick = () => {
+  document.getElementById('sub').style.display = b.dataset.s === '1' ? '' : 'none';
+  document.querySelectorAll('[data-s]').forEach((x) => x.classList.toggle('on', x === b));
+}));
+reset();
+</script>
+</body>
+</html>
