@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프로젝트 메인 F 콤팩트</title>
+<link rel="stylesheet" href="common.css">
+<style>
+/* #0056B9 포인트 + 촘촘한 업무형 */
+:root{--brand:#0056B9;--bg:#F5F7FA;--surface:#fff;--surface2:#F1F4F8;--ink:#111C2D;--sub:#536079;--mute:#98A2B3;--line:#E1E6EE;--hover:#F2F7FD;--accent:#0056B9;--accent-soft:#E6F0FA;--radius:8px}
+body{font-size:13.5px}
+.f-top{background:#fff;border-bottom:1px solid var(--line)}
+.f-top .pm-wrap{height:52px;display:flex;align-items:center;gap:26px}
+.f-logo{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.4px}
+.f-logo i{width:20px;height:20px;background:var(--brand);border-radius:5px}
+.f-nav{display:flex;height:52px}
+.f-nav a{display:flex;align-items:center;padding:0 13px;font-size:13.5px;color:var(--sub);border-bottom:2px solid transparent;cursor:pointer}
+.f-nav a:hover{color:var(--ink)}
+.f-nav a.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:650}
+.f-me{margin-left:auto;font-size:12.5px;color:var(--sub)}
+/* 검색 줄 */
+.f-bar{display:flex;align-items:center;gap:14px;padding:16px 0 12px}
+.f-bar h1{margin:0;font-size:19px;letter-spacing:-.3px;white-space:nowrap}
+.pm-search{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #C9D3E1;border-radius:6px;padding:0 4px 0 12px;height:40px}
+.pm-search:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px var(--accent-soft)}
+.pm-search svg{color:var(--mute)}
+.pm-search input{border:0;outline:0;flex:1;font:inherit;font-size:14px;background:none}
+.f-go{height:32px;padding:0 16px;border:0;border-radius:4px;background:var(--brand);color:#fff;font-weight:650;font-size:13px}
+.f-kpi{display:flex;gap:0;border:1px solid var(--line);border-radius:6px;background:#fff;overflow:hidden}
+.f-kpi div{padding:4px 14px;border-left:1px solid var(--line);text-align:center}
+.f-kpi div:first-child{border-left:0}
+.f-kpi small{display:block;font-size:11px;color:var(--mute)}
+.f-kpi b{font-size:15px;font-variant-numeric:tabular-nums;color:var(--brand)}
+/* 브리핑: 얇은 파란 띠 */
+.f-brief{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:14px;background:var(--accent-soft);border:1px solid #CFE0F4;border-left:4px solid var(--brand);border-radius:6px;padding:10px 14px}
+.f-bf-l{display:flex;flex-direction:column;gap:6px;min-width:120px}
+.f-bf-l b{font-size:13.5px;color:var(--brand)}
+.f-bf-l small{font-size:11px;color:var(--sub)}
+.f-tabs{display:inline-flex;border:1px solid #BCD2EE;border-radius:4px;overflow:hidden;background:#fff}
+.f-tabs button{border:0;background:none;padding:2px 10px;font-size:12px;color:var(--sub)}
+.f-tabs button.on{background:var(--brand);color:#fff;font-weight:600}
+.f-brief li{font-size:13px;color:var(--sub);padding:2px 0}
+.f-brief li::before{content:"•";color:var(--brand);flex:none}
+.f-brief li b{color:var(--ink)}
+.f-brief .pm-ev{color:var(--brand)}
+.f-bf-nav{display:flex;align-items:center;gap:6px;color:var(--brand)}
+.f-bf-nav button{width:24px;height:24px;border-radius:4px;border:1px solid #BCD2EE;background:#fff;color:var(--brand);padding:0}
+/* 두 칸: 촘촘한 패널 */
+.f-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.f-panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.f-panel-h{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#FAFBFD;border-bottom:1px solid var(--line)}
+.f-panel-h h2{margin:0;font-size:13.5px}
+.f-panel-h .n{font-size:12px;color:var(--brand);font-weight:700}
+.f-panel-h small{color:var(--mute);font-size:11.5px}
+.f-panel-h a{margin-left:auto;font-size:12px;color:var(--brand);cursor:pointer;font-weight:600}
+.f-panel .pm-row{padding:8px 14px;gap:10px;grid-template-columns:20px minmax(0,1fr) auto 12px}
+.f-panel .pm-name{font-size:13.5px}
+.f-panel .pm-sub{font-size:12px}
+.f-panel .pm-rank{color:#fff;background:var(--brand);border-radius:4px;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px}
+.f-panel .pm-empty{min-height:150px}
+.f-cand{display:block;padding:7px 14px;border-top:1px solid var(--line);font-size:12px;color:#6D28D9;font-weight:650;background:#FAF7FF;cursor:pointer}
+/* 전체 */
+.f-sec{margin:16px 0 60px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.f-sec-h{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);background:#FAFBFD;flex-wrap:wrap}
+.f-sec-h h2{margin:0;font-size:14px}
+.f-sec-h small{color:var(--mute);font-size:12px}
+.f-sec-h .f-tools{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.f-tools .pm-chip{border-radius:4px;padding:2px 10px;font-size:12px}
+.f-tools .pm-chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.f-sec .pm-table td{padding:7px 14px}
+.f-sec .pm-table th{padding:8px 14px;background:#fff}
+.f-sec .pm-tname{font-weight:600;display:inline}
+.f-sec .pm-tcode{display:inline;margin-left:8px}
+.pm-erp-order{color:var(--brand)}
+@media (max-width:900px){.f-pair{grid-template-columns:1fr}.f-nav,.f-kpi{display:none}.f-brief{grid-template-columns:1fr}.f-bf-l{flex-direction:row;align-items:center}.f-bf-nav{display:none}.f-go{display:none}}
+</style>
+</head>
+<body>
+<header class="f-top"><div class="pm-wrap">
+  <span class="f-logo"><i></i>DY ONE</span>
+  <nav class="f-nav"><a class="on">프로젝트</a><a>다운로드</a><a>자료 검색</a><a>엔지니어링</a><a>협력사</a><a>사내 서비스</a></nav>
+  <span class="f-me">도장영업팀 · 홍길동</span>
+</div></header>
+
+<main class="pm-wrap">
+  <div class="f-bar">
+    <h1>프로젝트</h1>
+    <label class="pm-search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input placeholder="프로젝트 코드·이름·발주처·PM 검색"><button class="f-go" type="button">검색</button></label>
+    <div class="f-kpi"><div><small>ERP 수주</small><b>412</b></div><div><small>영업중</small><b>1,387</b></div><div><small>어제 변경</small><b>23</b></div></div>
+  </div>
+
+  <section class="f-brief">
+    <div class="f-bf-l"><b>✦ 오늘의 브리핑</b><small>사내 AI · 07:00</small>
+      <span class="f-tabs"><button class="on" data-bf="0">내 관심</button><button data-bf="1">회사 주요</button></span></div>
+    <div class="pm-bf-view" id="bfView"><div class="pm-bf-track" id="bfTrack"><ul id="bfFav"></ul><ul id="bfFeat"></ul></div></div>
+    <div class="f-bf-nav"><button data-bfd="-1" aria-label="이전">‹</button><span class="pm-dots"><i class="on"></i><i></i></span><button data-bfd="1" aria-label="다음">›</button></div>
+  </section>
+
+  <section class="f-pair">
+    <div class="f-panel">
+      <div class="f-panel-h"><h2>★ 내 관심 프로젝트</h2><span class="n" id="favCount"></span><small>★한 것만</small><a data-open="fav" id="favMore">모두 보기 ›</a></div>
+      <div id="favList"></div>
+    </div>
+    <div class="f-panel">
+      <div class="f-panel-h"><h2>회사 주요 프로젝트</h2><span class="n" id="featCount"></span><small>영업 부서 선정</small><a data-open="feat">모두 보기 ›</a></div>
+      <div id="featList"></div>
+      <a class="f-cand pm-only-sel" data-open="cand">✦ 새 후보 4건 검토 ›</a>
+    </div>
+  </section>
+
+  <section class="f-sec">
+    <div class="f-sec-h"><h2>전체 프로젝트</h2><small>3,114건 · ERP 기준</small>
+      <div class="f-tools">
+        <button class="pm-chip on" data-g="c">전체</button><button class="pm-chip" data-g="c">현대</button><button class="pm-chip" data-g="c">기아</button><button class="pm-chip" data-g="c">GM</button><button class="pm-chip" data-g="c">르노</button><button class="pm-chip" data-g="c">KGM</button><button class="pm-chip" data-g="c">기타</button>
+        <span style="width:8px"></span>
+        <button class="pm-chip on" data-g="s">진행 중</button><button class="pm-chip" data-g="s">ERP 수주</button><button class="pm-chip" data-g="s">마감·중단</button>
+      </div></div>
+    <div class="pm-table-wrap"><table class="pm-table">
+      <thead><tr><th></th><th>프로젝트</th><th>고객사</th><th>ERP 상태</th><th>진행 단계</th><th>PM</th><th>최근 활동</th></tr></thead>
+      <tbody id="rows"></tbody></table></div>
+  </section>
+</main>
+<script src="common.js"></script>
+</body>
+</html>

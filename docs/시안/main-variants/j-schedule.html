@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>일정 주의 시안</title>
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="j-styles.css">
+<style>
+/* 일정 주의 시안(11-04) — J안 위에 세 가지 자리 */
+body{padding-bottom:40px}
+.sx-bar{position:sticky;top:0;z-index:30;background:#0C1A33;color:#CBD5E1;font-size:12.5px;display:flex;gap:6px;align-items:center;padding:8px 16px;flex-wrap:wrap}
+.sx-bar b{color:#fff;margin-right:6px}
+.sx-bar button{border:0;background:rgba(255,255,255,.08);color:#CBD5E1;border-radius:999px;padding:4px 12px;font-size:12.5px}
+.sx-bar button.on{background:#F5B70A;color:#0C1A33;font-weight:700}
+.sx-bar small{margin-left:auto;color:#94A3B8}
+.sx-note{max-width:1280px;margin:14px auto 0;padding:0 28px;font-size:12.5px;color:#56637C}
+.sx-note b{color:#0C1A33}
+[hidden]{display:none!important}
+/* 공통 꼬리표 */
+.sc-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;border-radius:6px;padding:1px 7px;white-space:nowrap}
+.sc-late{background:#FEE4E2;color:#B42318}
+.sc-soon{background:#FEF0C7;color:#B54708}
+.sc-run{background:#F2F4F7;color:#475467}
+.sc-dday{font-variant-numeric:tabular-nums;font-weight:750;font-size:13px}
+.sc-dday.late{color:#B42318}.sc-dday.soon{color:#B54708}
+/* A: 전체 폭 카드 */
+.sc-card{margin-top:18px;background:#fff;border-radius:20px;box-shadow:0 1px 2px rgba(12,26,51,.05),0 20px 40px -32px rgba(12,26,51,.35);overflow:hidden}
+.sc-h{display:flex;align-items:center;gap:8px;padding:16px 22px 8px;flex-wrap:wrap}
+.sc-h h2{margin:0;font-size:16px}
+.sc-h .n{font-size:12px;font-weight:700;color:#B42318;background:#FEE4E2;border-radius:999px;padding:0 9px;line-height:21px}
+.sc-h small{color:#97A3BA;font-size:12px}
+.sc-scope{margin-left:auto;display:inline-flex;background:#F0F4FB;border-radius:999px;padding:3px}
+.sc-scope button{border:0;background:none;border-radius:999px;padding:3px 12px;font-size:12.5px;color:#56637C}
+.sc-scope button.on{background:#fff;color:#0056B9;font-weight:650;box-shadow:0 2px 6px rgba(0,86,185,.15)}
+.sc-chips{display:flex;gap:6px;padding:0 22px 10px;flex-wrap:wrap}
+.sc-chips button{border:0;background:#F0F4FB;border-radius:999px;padding:4px 12px;font-size:12px;color:#56637C}
+.sc-chips button.on{background:#0056B9;color:#fff}
+.sc-row{display:grid;grid-template-columns:96px minmax(0,1.2fr) minmax(0,1.6fr) 74px 70px;gap:14px;align-items:center;padding:11px 22px;border-top:1px solid #E6ECF4}
+.sc-row:hover{background:#F2F7FD}
+.sc-name b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-name small{font-size:11.5px;color:#97A3BA}
+.sc-why{font-size:12.5px;color:#0C1A33;line-height:1.5}
+.sc-why span{display:block;color:#56637C;font-size:11.5px}
+.sc-src{font-size:11.5px;color:#0056B9;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.sc-hide{border:0;background:none;color:#97A3BA;font-size:11.5px;cursor:pointer}
+.sc-foot{display:flex;gap:14px;padding:10px 22px 14px;font-size:12px;color:#97A3BA;border-top:1px solid #E6ECF4}
+.sc-foot a{color:#0056B9;font-weight:650;cursor:pointer}
+/* B: 세 칸 */
+.h-pair.sx-three{grid-template-columns:1fr 1fr .9fr}
+.sc-mini{display:grid;grid-template-columns:54px minmax(0,1fr);gap:10px;align-items:center;margin:0 10px;padding:10px 12px;border-radius:12px}
+.sc-mini:hover{background:#F2F7FD}
+.sc-mini b{font-size:13.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-mini small{font-size:12px;color:#56637C;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-mini .sc-dday{text-align:center;border-radius:10px;padding:6px 0;font-size:13px}
+.sc-mini .sc-dday.late{background:#FEE4E2}.sc-mini .sc-dday.soon{background:#FEF0C7}.sc-mini .sc-dday.run{background:#F2F4F7;color:#475467}
+/* C: 줄 꼬리표 */
+.pm-row .sc-tag{margin-left:6px}
+.sx-brief-tag{margin-left:6px}
+@media(max-width:700px){
+  .sc-row{grid-template-columns:1fr auto;gap:4px 10px;padding:11px 16px}
+  .sc-row .sc-why{grid-column:1/-1}
+  .sc-row .sc-src,.sc-row .sc-hide{display:none}
+  .h-pair.sx-three{grid-template-columns:1fr}
+  .sc-h,.sc-chips{padding-left:16px;padding-right:16px}
+}
+</style>
+</head>
+<body class="vA">
+<div class="sx-bar"><b>일정 주의 시안</b>
+  <button data-sx="A" class="on">A · 전체 폭 '일정 주의' 칸</button>
+  <button data-sx="B">B · 관심 | 주요 | 일정 세 칸</button>
+  <button data-sx="C">C · 따로 칸 없이 꼬리표만</button>
+  <small>예시는 11-04 NAS 사양서·사양정리에서 실제로 읽은 일정</small>
+</div>
+
+<section class="h-hero"><div class="pm-wrap">
+  <div class="h-top">
+    <svg viewBox="0 0 151 24" height="22" role="img" aria-label="DY ONE INTERNAL" style="display:block"><path d="M2 0H23A5 5 0 0 1 28 5V19A5 5 0 0 1 23 24H2A2 2 0 0 1 0 22V2A2 2 0 0 1 2 0Z M6 5V19H21A1 1 0 0 0 22 18V6A1 1 0 0 0 21 5Z" fill="#9FD0FF" fill-rule="evenodd"/><path d="M30 24V1A1 1 0 0 1 31 0H48A6 6 0 0 1 54 6V24H48V7A2 2 0 0 0 46 5H36V24Z" fill="#fff"/><path d="M57 6A6 6 0 0 1 63 0H75A6 6 0 0 1 81 6V14H63V19H81V24H63A6 6 0 0 1 57 18Z M63 6.5A1.5 1.5 0 0 1 64.5 5H73.5A1.5 1.5 0 0 1 75 6.5V9H63Z" fill="#fff" fill-rule="evenodd"/><path d="M91.6 9.2V16.8 M95.6 16.8V9.2L100.9 16.8V9.2 M103.1 9.2H108.9M106 9.2V16.8 M116.2 9.2H111.9V16.8H116.4M111.9 13H115.7 M119.9 16.8V9.2H123.1A2 2 0 0 1 123.1 13.2H119.9M122.5 13.2L125.3 16.8 M128.2 16.8V9.2L133.5 16.8V9.2 M136.1 16.8L139.2 9.2L142.3 16.8M137.3 14.1H141.1 M145.5 9.2V16.8H150.3" fill="none" stroke="#D6E9FF" stroke-width="1.5"/></svg>
+    <nav class="h-nav"><a class="on">프로젝트</a><a>업무 일지</a><a>조직도</a><a>엔지니어링</a><a>생활</a></nav>
+    <span class="h-me"><span>스마트SW팀 함유진</span><i>함</i></span>
+  </div>
+  <div class="h-greet"><div><h1>프로젝트</h1><p>안녕하세요, 함유진 님. 관심·주요 프로젝트에 어제 기록이 <b>97건</b> 있었습니다.</p></div></div>
+  <label class="pm-search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input placeholder="프로젝트 코드·이름·발주처 검색"><button class="h-go" type="button">검색</button></label>
+  <div class="h-brief">
+    <div class="h-bf-h"><h2><em>AI</em>오늘의 프로젝트 브리핑</h2><small>11/4 06:30 · 지금 상태</small>
+      <div class="h-seg"><button>내 관심</button><button class="on">회사 주요</button></div></div>
+    <ul style="margin:0;padding:0;list-style:none">
+      <li style="display:flex;gap:8px;padding:3px 0;font-size:13.5px"><b>기아 화성5 신기술 자동화</b><span class="pm-txt">모듈라 시운전 단계로, 최근 2주 기계도면 작업이 매일 이어졌습니다. 다음은 2027/6/30 양산입니다.</span></li>
+      <li style="display:flex;gap:8px;padding:3px 0;font-size:13.5px"><b>태화 실내 가니쉬 SYNC 도장</b><span data-v="C" class="sc-tag sc-late sx-brief-tag">⚠ 지연 의심</span><span class="pm-txt">사양정리상 9월 말 양산인데 모듈라가 아직 준비중이며, 발주와 도면 작업은 이어지고 있습니다.</span></li>
+      <li style="display:flex;gap:8px;padding:3px 0;font-size:13.5px"><b>서연이화 미국 도장 신공장</b><span data-v="C" class="sc-tag sc-late sx-brief-tag">⚠ 지연 의심</span><span class="pm-txt">선적 예정(10월)이 지났고 모듈라는 준비중입니다. 다음은 12월 현장 설치입니다.</span></li>
+    </ul>
+  </div>
+</div></section>
+
+<main class="pm-wrap">
+  <!-- 관심 | 주요 (A·C) / 관심 | 주요 | 일정 (B) -->
+  <section class="h-pair" data-v="A C">
+    <div class="h-card">
+      <div class="h-card-h"><h2>내 관심 프로젝트</h2><span class="n">2</span><small>★한 것만 · 최근 활동 순</small></div>
+      <a class="pm-row"><span class="pm-ico pm-star">★</span><span class="pm-main"><span class="pm-name">서연이화 미국 중소물 도장 신공장<span data-v="C" class="sc-tag sc-late">지연 의심</span></span><span class="pm-code">DLP-26-068</span><span class="pm-sub">최근 10/30 인원 배정 · PM 배대혁</span></span><span class="pm-meta">모듈라</span><span class="pm-go">›</span></a>
+      <a class="pm-row"><span class="pm-ico pm-star">★</span><span class="pm-main"><span class="pm-name">기아 광명2 전기차 신공장</span><span class="pm-code">DLP-22-183</span><span class="pm-sub">최근 10/19 진행 상황 변경 · PM 김민수</span></span><span class="pm-meta">현장</span><span class="pm-go">›</span></a>
+      <div class="h-foot"><a>모두 보기 →</a></div>
+    </div>
+    <div class="h-card">
+      <div class="h-card-h"><h2>회사 주요 프로젝트</h2><span class="n">2</span><small>선정 2건 · 추천안 10건 · 다음 일정</small></div>
+      <a class="pm-row"><span class="pm-ico pm-rank">1</span><span class="pm-main"><span class="pm-name">기아 화성5 신기술 자동화</span><span class="pm-code">DLP-26-119~122</span><span class="pm-sub">비도장 · 다음 2027/6/30 양산 · PM 홍윤호</span></span><span class="pm-meta">수주</span><span class="pm-go">›</span></a>
+      <a class="pm-row"><span class="pm-ico pm-rank">2</span><span class="pm-main"><span class="pm-name">태화 실내 가니쉬 SYNC 도장 자동화<span data-v="C" class="sc-tag sc-late">지연 의심</span></span><span class="pm-code">DLP-26-066</span><span class="pm-sub">도장 · 양산 9월 말 지남 · PM 백인웅</span></span><span class="pm-meta">수주</span><span class="pm-go">›</span></a>
+      <a class="pm-row"><span class="pm-ico pm-rank" style="background:#F3E8FF;color:#6D28D9;font-size:10px">추천</span><span class="pm-main"><span class="pm-name">에코 사바나 가니쉬 신공장<span data-v="C" class="sc-tag sc-run">양산 후 작업 중</span></span><span class="pm-code">DLP-25-070</span><span class="pm-sub">도장 · SOP 10월 지남 · PM 김경태</span></span><span class="pm-meta">수주</span><span class="pm-go">›</span></a>
+      <div class="h-foot"><a>모두 보기 →</a></div>
+    </div>
+  </section>
+
+  <section class="h-pair sx-three" data-v="B">
+    <div class="h-card">
+      <div class="h-card-h"><h2>내 관심 프로젝트</h2><span class="n">2</span></div>
+      <a class="pm-row"><span class="pm-ico pm-star">★</span><span class="pm-main"><span class="pm-name">서연이화 미국 중소물 도장 신공장</span><span class="pm-code">DLP-26-068</span><span class="pm-sub">최근 10/30 인원 배정</span></span><span class="pm-go">›</span></a>
+      <a class="pm-row"><span class="pm-ico pm-star">★</span><span class="pm-main"><span class="pm-name">기아 광명2 전기차 신공장</span><span class="pm-code">DLP-22-183</span><span class="pm-sub">최근 10/19 진행 상황 변경</span></span><span class="pm-go">›</span></a>
+      <div class="h-foot"><a>모두 보기 →</a></div>
+    </div>
+    <div class="h-card">
+      <div class="h-card-h"><h2>회사 주요 프로젝트</h2><span class="n">2</span></div>
+      <a class="pm-row"><span class="pm-ico pm-rank">1</span><span class="pm-main"><span class="pm-name">기아 화성5 신기술 자동화</span><span class="pm-code">DLP-26-119~122</span><span class="pm-sub">비도장 · 다음 2027/6/30 양산</span></span><span class="pm-go">›</span></a>
+      <a class="pm-row"><span class="pm-ico pm-rank">2</span><span class="pm-main"><span class="pm-name">태화 실내 가니쉬 SYNC 도장</span><span class="pm-code">DLP-26-066</span><span class="pm-sub">도장 · 양산 9월 말 지남</span></span><span class="pm-go">›</span></a>
+      <div class="h-foot"><a>모두 보기 →</a></div>
+    </div>
+    <div class="h-card">
+      <div class="h-card-h"><h2>일정 주의</h2><span class="n" style="color:#B42318;background:#FEE4E2">4</span><small>관심·주요 중</small></div>
+      <a class="sc-mini"><span class="sc-dday late">+35일</span><span><b>태화 가니쉬 SYNC 도장</b><small>양산 9월 말 지남 · 모듈라 준비중</small></span></a>
+      <a class="sc-mini"><span class="sc-dday late">+4일</span><span><b>서연이화 미국 신공장</b><small>선적 10월 지남 · 모듈라 준비중</small></span></a>
+      <a class="sc-mini"><span class="sc-dday soon">D-27</span><span><b>서연이화 미국 신공장</b><small>12월 현장 설치 예정</small></span></a>
+      <div class="h-foot"><a>모두 보기 →</a></div>
+    </div>
+  </section>
+
+  <!-- A: 전체 폭 일정 주의 -->
+  <section class="sc-card" data-v="A">
+    <div class="sc-h"><h2>일정 주의 프로젝트</h2><span class="n">4</span><small>사양정리·수행계획서·사양서 일정과 지금 진행을 비교 · 매일 06:30</small>
+      <span class="sc-scope"><button class="on">관심·주요만</button><button>회사 전체</button></span></div>
+    <div class="sc-chips"><button class="on">전체 4</button><button>지연 의심 2</button><button>일정 임박 1</button><button>양산 후 작업 중 1</button></div>
+    <div class="sc-row"><span class="sc-tag sc-late">⚠ 지연 의심</span>
+      <span class="sc-name"><b>태화 실내 가니쉬 SYNC 도장 자동화</b><small>DLP-26-066 · 회사 주요</small></span>
+      <span class="sc-why">양산 예정 <b>9월 말</b>이 지났는데 모듈라가 아직 <b>'1. 준비중'</b><span>발주·도면 작업은 이어지는 중 — 일정이 바뀌었는지 확인</span></span>
+      <span class="sc-dday late">+35일</span><span><a class="sc-src">사양정리 REV.8</a></span></div>
+    <div class="sc-row"><span class="sc-tag sc-late">⚠ 지연 의심</span>
+      <span class="sc-name"><b>서연이화 미국 중소물 도장 신공장</b><small>DLP-26-068 · 내 관심</small></span>
+      <span class="sc-why">선적 예정 <b>2026년 10월</b>이 지났는데 모듈라가 <b>'1. 준비중'</b><span>다음: 12월 현장 설치</span></span>
+      <span class="sc-dday late">+4일</span><span><a class="sc-src">사양정리 rev10</a></span></div>
+    <div class="sc-row"><span class="sc-tag sc-soon">⏱ 일정 임박</span>
+      <span class="sc-name"><b>서연이화 미국 중소물 도장 신공장</b><small>DLP-26-068 · 내 관심</small></span>
+      <span class="sc-why">현장 설치 <b>2026년 12월</b><span>30일 안에 다가오는 일정(OLT·선적·설치·시운전·양산)</span></span>
+      <span class="sc-dday soon">D-27</span><span><a class="sc-src">사양정리 rev10</a></span></div>
+    <div class="sc-row"><span class="sc-tag sc-run">양산 후 작업 중</span>
+      <span class="sc-name"><b>에코 사바나 가니쉬 신공장</b><small>DLP-25-070 · 추천안</small></span>
+      <span class="sc-why">SOP <b>2026년 10월</b>이 지났고 발주가 이어지는 중<span>마무리 작업이거나 추가 공사 — 확인만</span></span>
+      <span class="sc-dday">+4일</span><span><a class="sc-src">사양정리 rev3</a></span></div>
+    <div class="sc-foot"><span>처음 나온 날부터 2주 뒤에 보입니다 · [숨기기] 나만/회사 전체 · ERP 기간 갱신 필요(예: 화성5 하도)는 영업 확인 목록으로만 보냅니다</span><a style="margin-left:auto">모두 보기 →</a></div>
+  </section>
+
+  <p class="sx-note" data-v="A"><b>A안</b> · 관심|주요 아래 전체 폭 칸. 줄마다 꼬리표 · 무엇이 어긋났는지 · D-day · 근거 문서. 범위는 기본 '관심·주요만', '회사 전체'로 넓힐 수 있음.</p>
+  <p class="sx-note" data-v="B"><b>B안</b> · 관심·주요 옆 세 번째 칸에 D-day 3줄만. 자세한 내용은 '모두 보기' 서랍. 화면이 좁아 이유는 한 줄로 줄임.</p>
+  <p class="sx-note" data-v="C"><b>C안</b> · 따로 칸을 만들지 않고, 브리핑·관심·주요 줄에 꼬리표(지연 의심·일정 임박·양산 후 작업 중)만 붙임. 가장 가볍지만 한눈에 모아 보기는 어려움.</p>
+</main>
+
+<script>
+const show = (v) => {
+  document.querySelectorAll('[data-sx]').forEach((x) => x.classList.toggle('on', x.dataset.sx === v))
+  document.querySelectorAll('[data-v]').forEach((el) => { el.hidden = !el.dataset.v.split(' ').includes(v) })
+}
+document.querySelectorAll('[data-sx]').forEach((b) => b.onclick = () => show(b.dataset.sx))
+show('A')
+document.querySelectorAll('.sc-scope button,.sc-chips button').forEach((b) => b.onclick = () => b.parentElement.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)))
+</script>
+</body>
+</html>

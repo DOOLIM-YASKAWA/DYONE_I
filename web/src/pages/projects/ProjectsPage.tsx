@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../../api/client'
 import { useAuth, useIsPartner } from '../../auth/AuthContext'
@@ -13,6 +13,8 @@ import { WorksAppSection } from './WorksAppSection'
 import { AssignmentList, LabDetailDialog, ProjectDetailDialog } from './DetailDialogs'
 import { ProjectAI } from './ProjectAI'
 import { isSection, sections } from './sections'
+import { Pager } from './Pager'
+import { ProjectsMain } from './ProjectsMain'
 import '../../styles/project-detail.css'
 
 type DialogState = { kind: 'project'; id: number } | { kind: 'lab'; lab: LabTest } | null
@@ -56,7 +58,7 @@ export function ProjectsPage() {
       if (stageCode) q.set('stage', stageCode)
       return api<PagedResult<Project>>(`/api/projects?${q}`)
     },
-    enabled: section === 'progress' && scope === null,
+    enabled: section === 'progress' && scope === null && partner, // 직원 목록은 ProjectsMain이 읽는다
     placeholderData: keepPreviousData,
   })
   const labs = useQuery({
@@ -146,6 +148,23 @@ export function ProjectsPage() {
   }
 
   const listing = section === 'progress' && !scope
+
+  const aiFab = !partner && (
+    <>
+      <button className="pl-ai-fab" onClick={() => setAiOpen(!aiOpen)} aria-expanded={aiOpen}>
+        <span><Icon name="spark" size={16} /></span>프로젝트 AI
+      </button>
+      {aiOpen && (
+        <div className="pl-ai-drawer" role="dialog" aria-label="프로젝트 AI">
+          <button className="dy-icon-btn pl-ai-close" aria-label="프로젝트 AI 닫기" onClick={() => setAiOpen(false)}><Icon name="close" /></button>
+          <ProjectAI project={project} onOpenSource={openSource} />
+        </div>
+      )}
+    </>
+  )
+
+  // 직원 첫 화면(J안): 검색 · 오늘의 브리핑 · 내 관심 | 회사 주요 · 전체 프로젝트. 협력사는 아래 기존 목록(배정된 것만).
+  if (listing && !partner) return <><ProjectsMain />{aiFab}</>
 
   return (
     <>
@@ -267,19 +286,7 @@ export function ProjectsPage() {
         {section === 'progress' && !partner && <DesktopTools project={project} />}
       </div>
 
-      {!partner && (
-        <>
-          <button className="pl-ai-fab" onClick={() => setAiOpen(!aiOpen)} aria-expanded={aiOpen}>
-            <span><Icon name="spark" size={16} /></span>프로젝트 AI
-          </button>
-          {aiOpen && (
-            <div className="pl-ai-drawer" role="dialog" aria-label="프로젝트 AI">
-              <button className="dy-icon-btn pl-ai-close" aria-label="프로젝트 AI 닫기" onClick={() => setAiOpen(false)}><Icon name="close" /></button>
-              <ProjectAI project={project} onOpenSource={openSource} />
-            </div>
-          )}
-        </>
-      )}
+      {aiFab}
 
       {dialog?.kind === 'project' && <ProjectDetailDialog projectId={dialog.id} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'lab' && <LabDetailDialog lab={dialog.lab} onClose={() => setDialog(null)} />}
@@ -320,30 +327,6 @@ function ProjectTable({ items, me, onOpen }: { items: Project[]; me?: string; on
           </button>
         )
       })}
-    </div>
-  )
-}
-
-function Pager({ total, page, onPage }: { total: number; page: number; onPage(p: number): void }) {
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  if (pages <= 1) return null
-  const from = (page - 1) * PAGE_SIZE + 1
-  const to = Math.min(total, page * PAGE_SIZE)
-  // 처음 · 지금 앞뒤 · 끝만 보이고 사이는 …
-  const nums = [...new Set([1, page - 1, page, page + 1, pages].filter((n) => n >= 1 && n <= pages))].sort((x, y) => x - y)
-  return (
-    <div className="pl-pager">
-      <span><b>{from.toLocaleString()}–{to.toLocaleString()}</b> / {total.toLocaleString()}</span>
-      <span className="pl-pages">
-        <button aria-label="이전 페이지" disabled={page <= 1} onClick={() => onPage(page - 1)}>‹</button>
-        {nums.map((n, i) => (
-          <Fragment key={n}>
-            {i > 0 && n - nums[i - 1] > 1 && <span className="pl-gap">…</span>}
-            <button className={n === page ? 'on' : ''} aria-current={n === page ? 'page' : undefined} onClick={() => onPage(n)}>{n}</button>
-          </Fragment>
-        ))}
-        <button aria-label="다음 페이지" disabled={page >= pages} onClick={() => onPage(page + 1)}>›</button>
-      </span>
     </div>
   )
 }

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프로젝트 메인 E 소프트 블루</title>
+<link rel="stylesheet" href="common.css">
+<style>
+:root{--bg:#EEF3FB;--surface:#fff;--surface2:#F0F4FB;--ink:#0C1A33;--sub:#56637C;--mute:#97A3BA;--line:#E5EBF5;--hover:#F4F8FE;--accent:#2563EB;--accent-soft:#E6EEFE;--radius:20px}
+body{background:radial-gradient(900px 500px at 10% -10%,#DCE8FF 0%,transparent 60%),radial-gradient(900px 600px at 100% 0%,#E4E0FF 0%,transparent 55%),#EEF3FB;min-height:100vh}
+.e-top .pm-wrap{height:64px;display:flex;align-items:center;gap:28px}
+.e-logo{font-weight:800;font-size:16px;letter-spacing:.5px;color:#0C1A33}
+.e-logo b{background:linear-gradient(90deg,#2563EB,#7C3AED);-webkit-background-clip:text;background-clip:text;color:transparent}
+.e-nav{display:flex;gap:4px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.9);border-radius:999px;padding:4px;backdrop-filter:blur(10px)}
+.e-nav a{padding:6px 14px;border-radius:999px;font-size:13px;color:var(--sub);cursor:pointer}
+.e-nav a.on{background:#0C1A33;color:#fff;font-weight:600}
+.e-me{margin-left:auto;font-size:13px;color:var(--sub);display:flex;gap:10px;align-items:center}
+.e-me i{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#7C3AED);color:#fff;font-style:normal;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+/* 가운데 큰 검색 */
+.e-hero{text-align:center;padding:34px 0 26px}
+.e-hero h1{margin:0;font-size:30px;letter-spacing:-.8px}
+.e-hero p{margin:6px 0 18px;color:var(--sub);font-size:14px}
+.pm-search{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px;background:#fff;border-radius:999px;padding:0 8px 0 22px;height:60px;box-shadow:0 20px 50px -22px rgba(37,99,235,.45),0 0 0 1px rgba(37,99,235,.08)}
+.pm-search:focus-within{box-shadow:0 20px 50px -22px rgba(37,99,235,.55),0 0 0 3px rgba(37,99,235,.25)}
+.pm-search svg{color:var(--accent)}
+.pm-search input{border:0;outline:0;flex:1;font:inherit;font-size:16px;background:none;text-align:left}
+.e-go{height:44px;padding:0 22px;border-radius:999px;border:0;background:linear-gradient(90deg,#2563EB,#1D4ED8);color:#fff;font-weight:650}
+.e-quick{margin-top:12px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;font-size:12.5px;color:var(--mute)}
+.e-quick span{background:rgba(255,255,255,.7);border:1px solid #fff;border-radius:999px;padding:2px 10px;color:var(--sub);cursor:pointer}
+/* 브리핑: 3장의 작은 카드 */
+.e-brief-h{display:flex;align-items:center;gap:12px;margin:8px 0 10px;flex-wrap:wrap}
+.e-brief-h h2{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}
+.e-brief-h h2 i{font-style:normal;width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#7C3AED);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px}
+.e-brief-h small{color:var(--mute);font-size:12px}
+.e-seg{display:inline-flex;background:rgba(255,255,255,.7);border:1px solid #fff;border-radius:999px;padding:3px}
+.e-seg button{border:0;background:none;border-radius:999px;padding:3px 13px;font-size:12.5px;color:var(--sub)}
+.e-seg button.on{background:#fff;color:var(--accent);font-weight:650;box-shadow:0 2px 6px rgba(37,99,235,.18)}
+.e-nav2{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--accent)}
+.e-nav2 button{width:30px;height:30px;border-radius:50%;border:0;background:#fff;color:var(--accent);box-shadow:0 2px 8px rgba(12,26,51,.08);padding:0}
+.e-brief .pm-bf-track>ul{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:2px}
+.e-brief li{flex-direction:column;align-items:flex-start;gap:4px;background:rgba(255,255,255,.8);border:1px solid #fff;border-radius:16px;padding:14px 16px;box-shadow:0 8px 24px -16px rgba(12,26,51,.3);white-space:normal}
+.e-brief li b{font-size:14px;color:var(--ink)}
+.e-brief li .pm-txt{white-space:normal;color:var(--sub);font-size:13px;line-height:1.5}
+.e-brief li .pm-ev{color:var(--accent);margin-top:auto}
+.e-brief li.pm-bf-empty{grid-column:1/-1}
+/* 두 칸 */
+.e-pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+.e-card{background:rgba(255,255,255,.85);border:1px solid #fff;border-radius:var(--radius);box-shadow:0 20px 40px -28px rgba(12,26,51,.35);overflow:hidden;backdrop-filter:blur(10px)}
+.e-card-h{display:flex;align-items:center;gap:10px;padding:16px 20px 10px}
+.e-card-h h2{margin:0;font-size:15.5px}
+.e-card-h .n{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:0 9px;line-height:21px}
+.e-card-h a{margin-left:auto;font-size:12.5px;font-weight:650;color:var(--accent);cursor:pointer}
+.e-card .pm-row{margin:0 10px;padding:11px 12px;border-radius:12px}
+.e-card .pm-row + .pm-row{border-top:0}
+.e-card #favList,.e-card #featList{padding-bottom:10px}
+.e-card .pm-rank{width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#2563EB,#7C3AED);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.e-cand{margin:0 20px 16px;display:block;text-align:center;padding:9px;border-radius:12px;border:1px dashed #C4B5FD;color:#6D28D9;font-size:12.5px;font-weight:650;cursor:pointer}
+/* 전체 */
+.e-sec{margin:30px 0 70px;background:rgba(255,255,255,.85);border:1px solid #fff;border-radius:var(--radius);box-shadow:0 20px 40px -30px rgba(12,26,51,.3);overflow:hidden}
+.e-sec-h{display:flex;align-items:center;gap:10px;padding:18px 20px 12px;flex-wrap:wrap}
+.e-sec-h h2{margin:0;font-size:17px}
+.e-sec-h small{color:var(--mute);font-size:12.5px}
+.e-tools{display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 14px}
+.e-tools .pm-chip{border-color:transparent;background:var(--surface2)}
+.e-tools .pm-chip.on{background:var(--accent);color:#fff}
+.e-sec .pm-table th{background:transparent}
+.pm-erp-order{color:var(--accent)}
+@media (max-width:900px){.e-pair{grid-template-columns:1fr}.e-nav{display:none}.e-brief .pm-bf-track>ul{grid-template-columns:1fr}.e-hero h1{font-size:24px}.e-go{display:none}}
+</style>
+</head>
+<body>
+<header class="e-top"><div class="pm-wrap">
+  <span class="e-logo">DY <b>ONE</b></span>
+  <nav class="e-nav"><a class="on">프로젝트</a><a>다운로드</a><a>자료 검색</a><a>엔지니어링</a><a>협력사</a><a>사내 서비스</a></nav>
+  <span class="e-me">홍길동 <i>홍</i></span>
+</div></header>
+
+<main class="pm-wrap">
+  <section class="e-hero">
+    <h1>어떤 프로젝트를 찾으세요?</h1>
+    <p>ERP 기준 수주 412 · 영업중 1,387 · 어제 바뀐 프로젝트 23 (숫자 예시)</p>
+    <label class="pm-search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input placeholder="프로젝트 코드·이름·발주처·PM 검색"><button class="e-go" type="button">검색</button></label>
+    <div class="e-quick">최근 검색 <span>화성5</span><span>DLP-25-281</span><span>사우디</span></div>
+  </section>
+
+  <section class="e-brief">
+    <div class="e-brief-h">
+      <h2><i>✦</i>오늘의 프로젝트 브리핑</h2><small>사내 AI · 07:00 · 지금 상태</small>
+      <span class="e-seg"><button class="on" data-bf="0">내 관심</button><button data-bf="1">회사 주요</button></span>
+      <span class="e-nav2"><button data-bfd="-1" aria-label="이전">‹</button><span class="pm-dots"><i class="on"></i><i></i></span><button data-bfd="1" aria-label="다음">›</button></span>
+    </div>
+    <div class="pm-bf-view" id="bfView"><div class="pm-bf-track" id="bfTrack"><ul id="bfFav"></ul><ul id="bfFeat"></ul></div></div>
+  </section>
+
+  <section class="e-pair">
+    <div class="e-card">
+      <div class="e-card-h"><h2>★ 내 관심 프로젝트</h2><span class="n" id="favCount"></span><a data-open="fav" id="favMore">모두 보기 →</a></div>
+      <div id="favList"></div>
+    </div>
+    <div class="e-card">
+      <div class="e-card-h"><h2>회사 주요 프로젝트</h2><span class="n" id="featCount"></span><a data-open="feat">모두 보기 →</a></div>
+      <div id="featList"></div>
+      <a class="e-cand pm-only-sel" data-open="cand">✦ 새 후보 4건 검토하기</a>
+    </div>
+  </section>
+
+  <section class="e-sec">
+    <div class="e-sec-h"><h2>전체 프로젝트</h2><small>3,114건 · 최근 활동 순 · 상태는 ERP 기준</small></div>
+    <div class="e-tools">
+      <button class="pm-chip on" data-g="c">전체</button><button class="pm-chip" data-g="c">현대</button><button class="pm-chip" data-g="c">기아</button><button class="pm-chip" data-g="c">GM</button><button class="pm-chip" data-g="c">르노</button><button class="pm-chip" data-g="c">KGM</button><button class="pm-chip" data-g="c">기타</button>
+      <span style="width:10px"></span>
+      <button class="pm-chip on" data-g="s">진행 중</button><button class="pm-chip" data-g="s">ERP 영업중</button><button class="pm-chip" data-g="s">ERP 수주</button><button class="pm-chip" data-g="s">마감·중단</button>
+    </div>
+    <div class="pm-table-wrap"><table class="pm-table">
+      <thead><tr><th></th><th>프로젝트</th><th>고객사</th><th>ERP 상태</th><th>진행 단계</th><th>PM</th><th>최근 활동</th></tr></thead>
+      <tbody id="rows"></tbody></table></div>
+  </section>
+</main>
+<script src="common.js"></script>
+</body>
+</html>

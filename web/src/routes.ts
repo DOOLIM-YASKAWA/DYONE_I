@@ -6,7 +6,7 @@ import type { IconName } from './components/icons'
 // icon = components/icons.tsx 이름. group = 위쪽 메뉴 묶음(D안): main 바로 보임 · eng '엔지니어링' 펼침 · life '생활' 펼침
 export type MenuGroup = 'main' | 'eng' | 'life'
 export const routes: readonly { path: string; icon: IconName; name: string; short?: string; group: MenuGroup; enabled: boolean }[] = [
-  { path: '/home', icon: 'home', name: '홈', group: 'main', enabled: true },
+  { path: '/home', icon: 'home', name: '홈', group: 'main', enabled: false }, // 11-04 홈 제거 — 첫 화면은 /projects(프로젝트 메인)
   { path: '/projects', icon: 'projects', name: '프로젝트', group: 'main', enabled: true },
   { path: '/journal', icon: 'journal', name: '프로젝트 진행 일지', short: '진행 일지', group: 'main', enabled: true },
   { path: '/spec', icon: 'spec', name: '사양서 분석', group: 'eng', enabled: true },

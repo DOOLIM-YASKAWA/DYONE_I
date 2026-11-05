@@ -64,6 +64,8 @@ export interface Project {
   lastChangedBy?: string
   /** 최근 7일 활동 수 */
   recentActivity7d?: number
+  /** ERP 영업 관리 상태(영업중·수주·마감·중단, sync.erp_project) — 프로젝트 정본은 ERP */
+  erpStatus?: string
   /** 프로젝트 PM(project.project_member, DY ONE에서 지정) */
   pmName?: string
 }

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프로젝트 메인 G 소프트 히어로</title>
+<link rel="stylesheet" href="common.css">
+<style>
+/* B안 배치(머리에 인사말·검색·브리핑, 카드가 머리 위로 올라옴) + E안 색감(연한 파랑·보라, 둥근 반투명 카드) */
+:root{--bg:#F3F6FC;--surface:#fff;--surface2:#F0F4FB;--ink:#0C1A33;--sub:#56637C;--mute:#97A3BA;--line:#E7ECF5;--hover:#F4F8FE;--accent:#2563EB;--accent-soft:#E6EEFE;--radius:20px;--grad:linear-gradient(135deg,#2563EB,#7C3AED)}
+.g-hero{background:radial-gradient(900px 420px at 8% -20%,#D4E2FF 0%,transparent 60%),radial-gradient(900px 480px at 100% -10%,#E2DCFF 0%,transparent 55%),linear-gradient(180deg,#EAF0FD 0%,#EEF1FC 100%);padding-bottom:88px;position:relative}
+.g-hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(180deg,transparent,var(--bg))}
+.g-hero .pm-wrap{position:relative;z-index:1}
+.g-top{height:64px;display:flex;align-items:center;gap:28px}
+.g-logo{font-weight:800;letter-spacing:.6px;font-size:16px}
+.g-logo b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.g-nav{display:flex;gap:4px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.95);border-radius:999px;padding:4px;backdrop-filter:blur(10px)}
+.g-nav a{padding:6px 14px;border-radius:999px;font-size:13px;color:var(--sub);cursor:pointer}
+.g-nav a:hover{color:var(--ink)}
+.g-nav a.on{background:#0C1A33;color:#fff;font-weight:600}
+.g-me{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub)}
+.g-me i{width:32px;height:32px;border-radius:50%;background:var(--grad);color:#fff;font-style:normal;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.g-greet{padding:28px 0 16px;display:flex;align-items:flex-end;gap:16px}
+.g-greet h1{margin:0;font-size:29px;letter-spacing:-.8px;font-weight:750}
+.g-greet p{margin:4px 0 0;color:var(--sub);font-size:13.5px}
+.g-greet p b{color:var(--accent)}
+.g-stats{margin-left:auto;display:flex;gap:10px}
+.g-stats div{background:rgba(255,255,255,.7);border:1px solid #fff;border-radius:14px;padding:8px 14px;min-width:92px;backdrop-filter:blur(8px)}
+.g-stats small{display:block;color:var(--mute);font-size:11.5px}
+.g-stats b{font-size:20px;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.pm-search{display:flex;align-items:center;gap:12px;background:#fff;border-radius:999px;padding:0 8px 0 22px;height:60px;box-shadow:0 20px 50px -22px rgba(37,99,235,.45),0 0 0 1px rgba(37,99,235,.08)}
+.pm-search:focus-within{box-shadow:0 20px 50px -22px rgba(37,99,235,.55),0 0 0 3px rgba(37,99,235,.25)}
+.pm-search svg{color:var(--accent);flex:none}
+.pm-search input{border:0;outline:0;flex:1;font:inherit;font-size:16px;background:none}
+.g-go{height:44px;padding:0 24px;border-radius:999px;border:0;background:var(--grad);color:#fff;font-weight:650}
+.g-brief{margin-top:14px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.95);border-radius:20px;padding:14px 20px;backdrop-filter:blur(12px);box-shadow:0 12px 30px -22px rgba(12,26,51,.35)}
+.g-bf-h{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.g-bf-h h2{margin:0;font-size:14.5px;display:flex;align-items:center;gap:8px}
+.g-bf-h h2 i{font-style:normal;width:24px;height:24px;border-radius:8px;background:var(--grad);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.g-bf-h small{color:var(--mute);font-size:12px}
+.g-seg{display:inline-flex;background:rgba(255,255,255,.75);border:1px solid #fff;border-radius:999px;padding:3px}
+.g-seg button{border:0;background:none;color:var(--sub);border-radius:999px;padding:3px 13px;font-size:12.5px}
+.g-seg button.on{background:#fff;color:var(--accent);font-weight:650;box-shadow:0 2px 6px rgba(37,99,235,.18)}
+.g-bf-nav{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--accent)}
+.g-arrow{width:28px;height:28px;border-radius:50%;border:0;background:#fff;color:var(--accent);box-shadow:0 2px 8px rgba(12,26,51,.08);font-size:14px;padding:0}
+.g-brief li{font-size:13.5px;color:var(--sub)}
+.g-brief li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--grad);flex:none;transform:translateY(-2px)}
+.g-brief li b{color:var(--ink)}
+.g-brief .pm-ev{color:var(--accent)}
+/* 머리 위로 올라오는 두 카드 */
+.g-pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:-64px;position:relative;z-index:2}
+.g-card{background:rgba(255,255,255,.9);border:1px solid #fff;border-radius:var(--radius);box-shadow:0 24px 48px -28px rgba(37,60,120,.45);overflow:hidden;backdrop-filter:blur(10px)}
+.g-card-h{display:flex;align-items:center;gap:10px;padding:16px 20px 10px}
+.g-ic{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+.g-ic.fav{background:#FFF5D6;color:#E0A100}
+.g-ic.feat{background:var(--grad);color:#fff}
+.g-card-h h2{margin:0;font-size:15.5px;letter-spacing:-.2px}
+.g-card-h .n{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:0 9px;line-height:21px}
+.g-card-h small{margin-left:auto;color:var(--mute);font-size:12px}
+.g-card .pm-row{margin:0 10px;padding:11px 12px;border-radius:12px}
+.g-card .pm-row + .pm-row{border-top:0}
+.g-card #favList,.g-card #featList{padding-bottom:4px}
+.g-card .pm-rank{width:26px;height:26px;border-radius:9px;background:var(--grad);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.g-foot{display:flex;gap:14px;align-items:center;padding:10px 20px 14px;font-size:12.5px}
+.g-foot a{color:var(--accent);font-weight:650;cursor:pointer}
+.g-foot .pm-only-sel{color:#6D28D9;border:1px dashed #C4B5FD;border-radius:999px;padding:2px 10px}
+/* 전체 */
+.g-sec{margin:30px 0 70px;background:rgba(255,255,255,.9);border:1px solid #fff;border-radius:var(--radius);box-shadow:0 20px 40px -30px rgba(12,26,51,.3);overflow:hidden}
+.g-sec-h{display:flex;align-items:center;gap:10px;padding:18px 20px 12px;flex-wrap:wrap}
+.g-sec-h h2{margin:0;font-size:17px}
+.g-sec-h small{color:var(--mute);font-size:12.5px}
+.g-view{margin-left:auto;display:inline-flex;background:var(--surface2);border-radius:999px;padding:3px}
+.g-view button{border:0;background:none;border-radius:999px;padding:3px 12px;font-size:12.5px;color:var(--sub)}
+.g-view button.on{background:#fff;color:var(--accent);font-weight:650;box-shadow:0 2px 6px rgba(37,99,235,.15)}
+.g-tools{display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 14px}
+.g-tools .pm-chip{border-color:transparent;background:var(--surface2)}
+.g-tools .pm-chip.on{background:var(--accent);color:#fff}
+.g-sec .pm-table th{background:transparent}
+.pm-erp-order{color:var(--accent)}
+@media (max-width:900px){.g-pair{grid-template-columns:1fr;margin-top:-56px}.g-nav,.g-stats{display:none}.g-greet h1{font-size:23px}.g-go{display:none}}
+</style>
+</head>
+<body>
+<section class="g-hero"><div class="pm-wrap">
+  <div class="g-top">
+    <span class="g-logo" data-logo="dark"></span>
+    <nav class="g-nav"><a class="on">프로젝트</a><a>다운로드</a><a>자료 검색</a><a>엔지니어링</a><a>협력사</a><a>사내 서비스</a></nav>
+    <span class="g-me">도장영업팀 홍길동 <i>홍</i></span>
+  </div>
+  <div class="g-greet">
+    <div><h1>프로젝트</h1><p>좋은 아침입니다, 홍길동 님. 어제 바뀐 프로젝트가 <b>23건</b> 있습니다.</p></div>
+    <div class="g-stats"><div><small>ERP 수주</small><b>412</b></div><div><small>ERP 영업중</small><b>1,387</b></div><div><small>내 관심</small><b>5</b></div></div>
+  </div>
+  <label class="pm-search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input placeholder="프로젝트 코드·이름·발주처·PM 검색"><button class="g-go" type="button">검색</button></label>
+  <div class="g-brief">
+    <div class="g-bf-h">
+      <h2><i>✦</i>오늘의 프로젝트 브리핑</h2><small>사내 AI · 매일 07:00 · 지금 상태</small>
+      <div class="g-seg"><button class="on" data-bf="0">내 관심</button><button data-bf="1">회사 주요</button></div>
+      <div class="g-bf-nav"><button class="g-arrow" data-bfd="-1" aria-label="이전">‹</button><span class="pm-dots"><i class="on"></i><i></i></span><button class="g-arrow" data-bfd="1" aria-label="다음">›</button></div>
+    </div>
+    <div class="pm-bf-view" id="bfView"><div class="pm-bf-track" id="bfTrack"><ul id="bfFav"></ul><ul id="bfFeat"></ul></div></div>
+  </div>
+</div></section>
+
+<main class="pm-wrap">
+  <section class="g-pair">
+    <div class="g-card">
+      <div class="g-card-h"><h2>내 관심 프로젝트</h2><span class="n" id="favCount"></span><small>★한 것만</small></div>
+      <div id="favList"></div>
+      <div class="g-foot" id="favMore"><a data-open="fav">모두 보기 →</a></div>
+    </div>
+    <div class="g-card">
+      <div class="g-card-h"><h2>회사 주요 프로젝트</h2><span class="n" id="featCount"></span><small>영업 부서 선정 · 금액·다음 일정</small></div>
+      <div id="featList"></div>
+      <div class="g-foot"><a data-open="feat">모두 보기 →</a><a class="pm-only-sel" data-open="cand">✦ 새 후보 4건 검토</a></div>
+    </div>
+  </section>
+
+  <section class="g-sec">
+    <div class="g-sec-h"><h2>전체 프로젝트</h2><small>3,114건 · 최근 활동 순 · 상태는 ERP 기준</small>
+      <span class="g-view"><button class="on">표</button><button>단계별 보드</button></span></div>
+    <div class="g-tools">
+      <button class="pm-chip on" data-g="c">전체</button><button class="pm-chip" data-g="c">현대</button><button class="pm-chip" data-g="c">기아</button><button class="pm-chip" data-g="c">GM</button><button class="pm-chip" data-g="c">르노</button><button class="pm-chip" data-g="c">KGM</button><button class="pm-chip" data-g="c">기타</button>
+      <span style="width:10px"></span>
+      <button class="pm-chip on" data-g="s">진행 중</button><button class="pm-chip" data-g="s">ERP 영업중</button><button class="pm-chip" data-g="s">ERP 수주</button><button class="pm-chip" data-g="s">마감·중단</button>
+    </div>
+    <div class="pm-table-wrap"><table class="pm-table">
+      <thead><tr><th></th><th>프로젝트</th><th>고객사</th><th>ERP 상태</th><th>진행 단계</th><th>PM</th><th>최근 활동</th></tr></thead>
+      <tbody id="rows"></tbody></table></div>
+  </section>
+</main>
+<script src="common.js"></script>
+</body>
+</html>

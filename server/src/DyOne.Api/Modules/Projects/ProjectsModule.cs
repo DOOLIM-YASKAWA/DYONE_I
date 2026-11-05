@@ -27,7 +27,8 @@ public record ProjectDto(
     DateOnly? ErpRegDate, DateOnly? StartDate, DateOnly? EndDate, bool IsActive, DateTimeOffset UpdatedAt, string? Description,
     DateTime? SourceUpdatedAt = null, string? EffectiveStage = null, string? EffectiveSource = null, string? EffectiveStatus = null,
     DateTimeOffset? LastChangedAt = null, string? LastChangedSource = null, string? PmName = null,
-    string? LastChangedBy = null, int RecentActivity7d = 0);
+    string? LastChangedBy = null, int RecentActivity7d = 0, string? ErpStatus = null);
+// ErpStatus = ERP 영업 관리 상태(sync.erp_project, 영업중·수주·마감·중단) — 프로젝트 정본은 ERP
 // LastChangedAt·Source·By = 최근 활동(ProjectActivity: 단계·파일·인원·그룹웨어·모듈라·ES·SmartLab·SRS 중 가장 최근). Source = 활동 종류 문구
 
 public record AssignmentDto(string Level, string? Customer, string? Factory, string? Booth, string? Zone);
@@ -50,12 +51,13 @@ public static class ProjectsModule
     public static void MapProjects(this IEndpointRouteBuilder app)
     {
         var g = app.MapGroup("/api").WithTags("Projects");
+        app.MapProjectMain(); // 프로젝트 메인(첫 화면): 브리핑 · ★ 관심 · 회사 주요
 
         g.MapGet("/codes/{group}", async (string group, DyOneDbContext db, CancellationToken ct) =>
             await db.Codes.Where(c => c.GroupKey == group && c.IsActive).OrderBy(c => c.SortOrder)
                 .Select(c => new { c.Id, c.Code, c.Name }).ToListAsync(ct)).PartnerAllowed();
 
-        g.MapGet("/projects", async (string? search, long? statusId, string? customer, string? stage, int? page, int? pageSize, ClaimsPrincipal user, ProjectScope scope, DyOneDbContext db, CancellationToken ct) =>
+        g.MapGet("/projects", async (string? search, long? statusId, string? customer, string? stage, string? erp, int? page, int? pageSize, ClaimsPrincipal user, ProjectScope scope, DyOneDbContext db, CancellationToken ct) =>
         {
             var size = Math.Clamp(pageSize ?? 50, 1, 200);
             var current = Math.Max(page ?? 1, 1);
@@ -68,8 +70,13 @@ public static class ProjectsModule
                 var s = $"%{search.Trim()}%";
                 q = q.Where(p => EF.Functions.ILike(p.Code, s) || EF.Functions.ILike(p.Name, s) || EF.Functions.ILike(p.PartnerName ?? "", s));
             }
+            // ERP 상태(sync.erp_project): live 진행 중(ERP 영업중·수주 + DY ONE에서 단계를 진행한 것) · sales 영업중 · ordered 수주 · closed 마감·중단.
+            // 고르면 그룹웨어 '진행 중' 기본 조건 대신 이것으로 거른다(프로젝트 메인 화면은 live가 기본 — 상태는 ERP 기준).
+            var erpCodes = await ErpCodesAsync(db, erp, ct);
+            if (erpCodes is not null && erp == "live") q = q.Where(p => erpCodes.Contains(p.Code) || db.ProjectStages.Any(ps => ps.ProjectId == p.Id));
+            else if (erpCodes is not null) q = q.Where(p => erpCodes.Contains(p.Code));
             if (statusId is not null) q = statusId == 0 ? q.Where(p => p.StatusId == null) : q.Where(p => p.StatusId == statusId);
-            else if (visible is null)
+            else if (visible is null && erpCodes is null)
             {
                 // [진행 중 모집단] 상태 미선택 시: 그룹웨어 영업중(0)/수주(1) '또는' dyone 진행 단계(project_stage)가 있는 것.
                 // → 영업부가 ERP에 넣는 영업·수주 + 대응 인원이 dyone에서 진행시킨 건. 그룹웨어 마감/중단·미지정(단계 없음)은 제외.
@@ -414,7 +421,20 @@ public static class ProjectsModule
         // PM(project.project_member): 엔티티 없이 같은 연결로 읽는다
         await db.Database.OpenConnectionAsync(ct);
         Dictionary<long, string> pms;
-        try { pms = await Org.OrgModule.PmNamesAsync((NpgsqlConnection)db.Database.GetDbConnection(), ids, ct); }
+        var erp = new Dictionary<string, string>();
+        try
+        {
+            var conn = (NpgsqlConnection)db.Database.GetDbConnection();
+            pms = await Org.OrgModule.PmNamesAsync(conn, ids, ct);
+            try
+            {
+                await using var cmd = new NpgsqlCommand("select cd_prjt, status_name from sync.erp_project where cd_prjt = any(@c) and status_name is not null", conn);
+                cmd.Parameters.AddWithValue("c", rows.Select(r => r.Code).ToArray());
+                await using var r = await cmd.ExecuteReaderAsync(ct);
+                while (await r.ReadAsync(ct)) erp[r.GetString(0)] = r.GetString(1);
+            }
+            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UndefinedTable) { } // ERP 미러 적용 전(server/db/project_main.sql)
+        }
         finally { await db.Database.CloseConnectionAsync(); }
 
         return rows.Select(p =>
@@ -425,8 +445,25 @@ public static class ProjectsModule
             var act = activity.GetValueOrDefault(p.Id);
             return new ProjectDto(p.Id, p.Code, p.Name, p.PartnerName, p.StatusId, gw, Name(p.TypeId),
                 p.ErpRegDate, p.StartDate, p.EndDate, p.IsActive, p.UpdatedAt, p.Description, p.SourceUpdatedAt,
-                v?.Stage.Name, v is null ? null : v.FromGw ? "gw" : "dyone", v?.Status, act?.At, act?.Label, pms.GetValueOrDefault(p.Id), act?.By, act?.Recent7d ?? 0);
+                v?.Stage.Name, v is null ? null : v.FromGw ? "gw" : "dyone", v?.Status, act?.At, act?.Label, pms.GetValueOrDefault(p.Id), act?.By, act?.Recent7d ?? 0, erp.GetValueOrDefault(p.Code));
         }).ToList();
+    }
+
+    private static async Task<List<string>?> ErpCodesAsync(DyOneDbContext db, string? erp, CancellationToken ct)
+    {
+        string[]? st = erp switch { "live" => ["001", "002"], "sales" => ["001"], "ordered" => ["002"], "closed" => ["003", "004"], _ => null };
+        if (st is null) return null;
+        await db.Database.OpenConnectionAsync(ct);
+        try
+        {
+            await using var cmd = new NpgsqlCommand("select cd_prjt from sync.erp_project where status_code = any(@s)", (NpgsqlConnection)db.Database.GetDbConnection());
+            cmd.Parameters.AddWithValue("s", st);
+            var list = new List<string>();
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct)) list.Add(r.GetString(0));
+            return list;
+        }
+        finally { await db.Database.CloseConnectionAsync(); }
     }
 
     /// <summary>프로젝트별 최근 활동(ids가 null이면 전체). EF 연결을 그대로 빌려 쓴다.</summary>
